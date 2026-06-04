@@ -1,150 +1,373 @@
 import 'package:flutter/material.dart';
 
+// ELEVATE Brand Colors
+const Color elevateBlue = Color(0xFF0066CC);
+const Color elevateGreen = Color(0xFF00A651);
+const Color elevateLightBg = Color(0xFFF5F7FA);
+
 void main() {
-  runApp(const PulseReviewApp());
+  runApp(const ElevateApp());
 }
 
-class PulseReviewApp extends StatelessWidget {
-  const PulseReviewApp({super.key});
+// Company Data Model
+class CompanyProfile {
+  final String id;
+  final String name;
+  final String tagline;
+  final Color accentColor;
+  final List<Employee> employees;
+  final List<Feedback> feedbacks;
+  final List<Goal> goals;
+  final List<Review> reviews;
+  final List<List<double>> heatmapData;
+  final List<String> departments;
+  final List<String> regions;
+
+  CompanyProfile({
+    required this.id,
+    required this.name,
+    required this.tagline,
+    required this.accentColor,
+    required this.employees,
+    required this.feedbacks,
+    required this.goals,
+    required this.reviews,
+    required this.heatmapData,
+    required this.departments,
+    required this.regions,
+  });
+}
+
+class Employee {
+  final String name;
+  final String dept;
+  final String region;
+  Employee(this.name, this.dept, this.region);
+}
+
+class Feedback {
+  final String name;
+  final String type;
+  final String comment;
+  Feedback(this.name, this.type, this.comment);
+}
+
+class Goal {
+  final String name;
+  final double progress;
+  Goal(this.name, this.progress);
+}
+
+class Review {
+  final String name;
+  final String cycle;
+  final String rating;
+  Review(this.name, this.cycle, this.rating);
+}
+
+// Generate company data
+final CompanyProfile companyA = CompanyProfile(
+  id: 'A',
+  name: 'Company A',
+  tagline: 'Tech Solutions',
+  accentColor: elevateBlue,
+  employees: [
+    Employee('Alice Johnson', 'Engineering', 'North America'),
+    Employee('Bob Smith', 'Sales', 'EMEA'),
+    Employee('Carol Davis', 'Marketing', 'APAC'),
+    Employee('David Wilson', 'Engineering', 'North America'),
+    Employee('Emma Brown', 'HR', 'Global'),
+    Employee('Frank Miller', 'Finance', 'North America'),
+    Employee('Grace Lee', 'Product', 'APAC'),
+    Employee('Henry Taylor', 'Customer Success', 'EMEA'),
+    Employee('Ivy Chen', 'Engineering', 'APAC'),
+    Employee('Jack Robinson', 'Sales', 'North America'),
+  ],
+  feedbacks: [
+    Feedback('Alice Johnson', 'Positive', 'Excellent code quality'),
+    Feedback('Bob Smith', 'Constructive', 'Improve follow-up'),
+    Feedback('Carol Davis', 'Positive', 'Great campaign ideas'),
+    Feedback('David Wilson', 'Positive', 'Strong technical skills'),
+    Feedback('Emma Brown', 'Constructive', 'More proactive support'),
+  ],
+  goals: [
+    Goal('Launch feature', 0.9),
+    Goal('Team engagement', 0.7),
+    Goal('Code quality', 0.85),
+    Goal('Reduce bugs', 0.8),
+  ],
+  reviews: [
+    Review('Alice Johnson', 'Annual', '4.7'),
+    Review('Bob Smith', 'Quarterly', '4.2'),
+    Review('Carol Davis', 'Annual', '4.5'),
+    Review('David Wilson', 'Quarterly', '4.6'),
+  ],
+  heatmapData: [
+    [4.5, 4.2, 3.8],
+    [4.7, 4.1, 3.5],
+    [3.9, 3.6, 2.0],
+    [2.8, 3.2, 3.1],
+  ],
+  departments: ['Engineering', 'Sales', 'Marketing', 'HR'],
+  regions: ['North America', 'EMEA', 'APAC'],
+);
+
+final CompanyProfile companyB = CompanyProfile(
+  id: 'B',
+  name: 'Company B',
+  tagline: 'Retail & Commerce',
+  accentColor: elevateGreen,
+  employees: [
+    Employee('Sarah Mitchell', 'Operations', 'North America'),
+    Employee('Tom Nakamura', 'Sales', 'APAC'),
+    Employee('Uma Patel', 'Marketing', 'EMEA'),
+    Employee('Victor Lee', 'Finance', 'Global'),
+    Employee('Wendy Zhang', 'HR', 'North America'),
+    Employee('Xavier Lopez', 'Customer Service', 'LATAM'),
+    Employee('Yuki Tanaka', 'Operations', 'APAC'),
+    Employee('Zoe Anderson', 'Product', 'EMEA'),
+    Employee('Adam Green', 'Sales', 'LATAM'),
+    Employee('Beth white', 'Marketing', 'North America'),
+  ],
+  feedbacks: [
+    Feedback('Sarah Mitchell', 'Positive', 'Outstanding leadership'),
+    Feedback('Tom Nakamura', 'Constructive', 'Improve reporting'),
+    Feedback('Uma Patel', 'Positive', 'Innovative ideas'),
+    Feedback('Victor Lee', 'Positive', 'Meticulous analysis'),
+    Feedback('Wendy Zhang', 'Constructive', 'More visibility needed'),
+  ],
+  goals: [
+    Goal('Market expansion', 0.75),
+    Goal('Customer retention', 0.88),
+    Goal('Efficiency gains', 0.82),
+    Goal('Team growth', 0.65),
+  ],
+  reviews: [
+    Review('Sarah Mitchell', 'Annual', '4.6'),
+    Review('Tom Nakamura', 'Quarterly', '4.3'),
+    Review('Uma Patel', 'Annual', '4.8'),
+    Review('Victor Lee', 'Quarterly', '4.4'),
+  ],
+  heatmapData: [
+    [4.2, 3.9, 4.1],
+    [4.5, 4.3, 3.8],
+    [3.7, 3.4, 3.2],
+    [3.1, 3.5, 2.9],
+  ],
+  departments: ['Operations', 'Sales', 'Marketing', 'Finance'],
+  regions: ['North America', 'EMEA', 'LATAM'],
+);
+
+final CompanyProfile companyC = CompanyProfile(
+  id: 'C',
+  name: 'Company C',
+  tagline: 'Financial Services',
+  accentColor: const Color(0xFF1f3a5f),
+  employees: [
+    Employee('Charles Brown', 'Risk', 'North America'),
+    Employee('Diana Prince', 'Compliance', 'EMEA'),
+    Employee('Eric Stone', 'Trading', 'APAC'),
+    Employee('Fiona Scott', 'Client Relations', 'North America'),
+    Employee('George Martin', 'Technology', 'Global'),
+    Employee('Helen Price', 'Operations', 'LATAM'),
+    Employee('Iris Lane', 'Analytics', 'APAC'),
+    Employee('James Bond', 'Trading', 'EMEA'),
+    Employee('Karen Bell', 'Compliance', 'North America'),
+    Employee('Leo Fox', 'Client Relations', 'LATAM'),
+  ],
+  feedbacks: [
+    Feedback('Charles Brown', 'Positive', 'Exceptional risk judgment'),
+    Feedback('Diana Prince', 'Constructive', 'Document more thoroughly'),
+    Feedback('Eric Stone', 'Positive', 'Strong market insight'),
+    Feedback('Fiona Scott', 'Positive', 'Client satisfaction high'),
+    Feedback('George Martin', 'Constructive', 'Improve documentation'),
+  ],
+  goals: [
+    Goal('Compliance rate', 0.95),
+    Goal('Client satisfaction', 0.89),
+    Goal('Risk mitigation', 0.92),
+    Goal('System uptime', 0.98),
+  ],
+  reviews: [
+    Review('Charles Brown', 'Annual', '4.8'),
+    Review('Diana Prince', 'Quarterly', '4.5'),
+    Review('Eric Stone', 'Annual', '4.7'),
+    Review('Fiona Scott', 'Quarterly', '4.9'),
+  ],
+  heatmapData: [
+    [4.8, 4.5, 4.2],
+    [4.7, 4.6, 4.4],
+    [4.4, 4.3, 4.1],
+    [4.2, 4.1, 3.9],
+  ],
+  departments: ['Risk', 'Compliance', 'Trading', 'Operations'],
+  regions: ['North America', 'EMEA', 'APAC'],
+);
+
+class ElevateApp extends StatefulWidget {
+  const ElevateApp({super.key});
+
+  @override
+  State<ElevateApp> createState() => _ElevateAppState();
+}
+
+class _ElevateAppState extends State<ElevateApp> {
+  CompanyProfile? selectedCompany;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'PulseReview Mobile',
+      title: 'Elevate',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: elevateBlue,
         useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: elevateBlue,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
       ),
-      home: const LoginScreen(),
+      home: selectedCompany == null
+          ? CompanyPickerScreen(
+              onCompanySelected: (company) {
+                setState(() => selectedCompany = company);
+              },
+            )
+          : MainScreen(company: selectedCompany!),
     );
   }
 }
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+// Company Picker Screen
+class CompanyPickerScreen extends StatelessWidget {
+  final Function(CompanyProfile) onCompanySelected;
 
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  late TextEditingController _emailController;
-  late TextEditingController _passwordController;
-  bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _emailController = TextEditingController();
-    _passwordController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  void _handleLogin() {
-    setState(() {
-      _isLoading = true;
-    });
-
-    final email = _emailController.text;
-    final password = _passwordController.text;
-
-    // Simple hardcoded auth
-    if (email == 'james.bellano@acmecorp.com' && password == 'demo123') {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const MainScreen(
-            userName: 'James Bellano',
-            userRole: 'Director',
-          ),
-        ),
-      );
-    } else {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid credentials')),
-      );
-    }
-  }
+  const CompanyPickerScreen({
+    Key? key,
+    required this.onCompanySelected,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[50],
+      backgroundColor: elevateLightBg,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
-          child: Card(
-            elevation: 4,
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // ELEVATE Logo/Text
+              Container(
+                margin: const EdgeInsets.only(bottom: 48),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [elevateBlue, elevateGreen],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.trending_up,
+                              color: Colors.white, size: 28),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'ELEVATE',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: elevateBlue,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Real-time Performance Management',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                'Select Organization',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: elevateBlue,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 32),
+              _buildCompanyCard(context, companyA),
+              const SizedBox(height: 16),
+              _buildCompanyCard(context, companyB),
+              const SizedBox(height: 16),
+              _buildCompanyCard(context, companyC),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompanyCard(BuildContext context, CompanyProfile company) {
+    return GestureDetector(
+      onTap: () => onCompanySelected(company),
+      child: Card(
+        elevation: 2,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: company.accentColor, width: 2),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'PulseReview',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[700],
-                        ),
+                    company.name,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Text(
-                    'Real-time Performance Management',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                  ),
-                  const SizedBox(height: 32),
-                  TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      hintText: 'james.bellano@acmecorp.com',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      prefixIcon: const Icon(Icons.email),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      hintText: 'demo123',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      prefixIcon: const Icon(Icons.lock),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _handleLogin,
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Login'),
+                    company.tagline,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
                     ),
                   ),
                 ],
               ),
-            ),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: company.accentColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child:
+                    const Icon(Icons.arrow_forward, color: Colors.white),
+              ),
+            ],
           ),
         ),
       ),
@@ -152,15 +375,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
+// Main Screen (Tabs)
 class MainScreen extends StatefulWidget {
-  final String userName;
-  final String userRole;
+  final CompanyProfile company;
 
-  const MainScreen({
-    Key? key,
-    required this.userName,
-    required this.userRole,
-  }) : super(key: key);
+  const MainScreen({Key? key, required this.company}) : super(key: key);
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -173,53 +392,43 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.userName} - ${widget.userRole}'),
-        elevation: 0,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.company.name, style: const TextStyle(fontSize: 18)),
+            Text(
+              widget.company.tagline,
+              style:
+                  const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              );
-            },
-          )
+            icon: const Icon(Icons.business),
+            onPressed: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ElevateApp(),
+              ),
+            ),
+            tooltip: 'Switch Organization',
+          ),
         ],
       ),
       body: _buildScreen(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+        onTap: (index) => setState(() => _selectedIndex = index),
         type: BottomNavigationBarType.fixed,
+        selectedItemColor: widget.company.accentColor,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Team',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.feedback),
-            label: 'Feedback',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.flag),
-            label: 'Goals',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assessment),
-            label: 'Reviews',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.grid_on),
-            label: 'Heatmap',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Team'),
+          BottomNavigationBarItem(icon: Icon(Icons.feedback), label: 'Feedback'),
+          BottomNavigationBarItem(icon: Icon(Icons.flag), label: 'Goals'),
+          BottomNavigationBarItem(icon: Icon(Icons.assessment), label: 'Reviews'),
+          BottomNavigationBarItem(icon: Icon(Icons.grid_on), label: 'Heatmap'),
         ],
       ),
     );
@@ -228,26 +437,27 @@ class _MainScreenState extends State<MainScreen> {
   Widget _buildScreen(int index) {
     switch (index) {
       case 0:
-        return const DashboardScreen();
+        return DashboardScreen(company: widget.company);
       case 1:
-        return const TeamScreen();
+        return TeamScreen(company: widget.company);
       case 2:
-        return const FeedbackScreen();
+        return FeedbackScreen(company: widget.company);
       case 3:
-        return const GoalsScreen();
+        return GoalsScreen(company: widget.company);
       case 4:
-        return const ReviewsScreen();
+        return ReviewsScreen(company: widget.company);
       case 5:
-        return const HeatmapScreen();
+        return HeatmapScreen(company: widget.company);
       default:
-        return const DashboardScreen();
+        return DashboardScreen(company: widget.company);
     }
   }
 }
 
 // Dashboard Screen
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  final CompanyProfile company;
+  const DashboardScreen({Key? key, required this.company}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -256,18 +466,20 @@ class DashboardScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Performance Overview',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          Text('Performance Overview',
+              style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 16),
-          _buildMetricCard('Team Members', '12', Colors.blue),
+          _buildMetricCard('Team Members', '${company.employees.length}',
+              company.accentColor),
           const SizedBox(height: 8),
-          _buildMetricCard('Positive Feedback', '89', Colors.green),
+          _buildMetricCard('Positive', '${company.feedbacks.where((f) => f.type == 'Positive').length}',
+              Colors.green),
           const SizedBox(height: 8),
-          _buildMetricCard('Constructive Feedback', '23', Colors.orange),
+          _buildMetricCard('Constructive', '${company.feedbacks.where((f) => f.type == 'Constructive').length}',
+              Colors.orange),
           const SizedBox(height: 8),
-          _buildMetricCard('Avg Rating', '4.2', Colors.purple),
+          _buildMetricCard('Goals', '${company.goals.length}',
+              Colors.purple),
         ],
       ),
     );
@@ -305,35 +517,25 @@ class DashboardScreen extends StatelessWidget {
 
 // Team Screen
 class TeamScreen extends StatelessWidget {
-  const TeamScreen({Key? key}) : super(key: key);
+  final CompanyProfile company;
+  const TeamScreen({Key? key, required this.company}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final employees = [
-      'Alice Johnson - Engineering',
-      'Bob Smith - Sales',
-      'Carol Davis - Marketing',
-      'David Wilson - Engineering',
-      'Emma Brown - HR',
-      'Frank Miller - Finance',
-      'Grace Lee - Product',
-      'Henry Taylor - Customer Success',
-      'Ivy Chen - Engineering',
-      'Jack Robinson - Sales',
-    ];
-
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: employees.length,
+      itemCount: company.employees.length,
       itemBuilder: (context, index) {
+        final emp = company.employees[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: Colors.blue,
+              backgroundColor: company.accentColor,
               child: Text('${index + 1}'),
             ),
-            title: Text(employees[index]),
+            title: Text(emp.name),
+            subtitle: Text('${emp.dept} • ${emp.region}'),
             trailing: const Icon(Icons.arrow_forward),
           ),
         );
@@ -344,25 +546,17 @@ class TeamScreen extends StatelessWidget {
 
 // Feedback Screen
 class FeedbackScreen extends StatelessWidget {
-  const FeedbackScreen({Key? key}) : super(key: key);
+  final CompanyProfile company;
+  const FeedbackScreen({Key? key, required this.company}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final feedbacks = [
-      ('Alice Johnson', 'Positive', 'Great work on the project'),
-      ('Bob Smith', 'Constructive', 'Could improve communication'),
-      ('Carol Davis', 'Positive', 'Excellent presentation skills'),
-      ('David Wilson', 'Positive', 'Strong technical expertise'),
-      ('Emma Brown', 'Constructive', 'Needs to be more proactive'),
-    ];
-
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: feedbacks.length,
+      itemCount: company.feedbacks.length,
       itemBuilder: (context, index) {
-        final (name, type, comment) = feedbacks[index];
-        final color = type == 'Positive' ? Colors.green : Colors.orange;
-
+        final fb = company.feedbacks[index];
+        final color = fb.type == 'Positive' ? Colors.green : Colors.orange;
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: Padding(
@@ -373,19 +567,23 @@ class FeedbackScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(fb.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: color.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text(type, style: TextStyle(color: color, fontSize: 12)),
+                      child: Text(fb.type,
+                          style:
+                              TextStyle(color: color, fontSize: 12)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(comment),
+                Text(fb.comment),
               ],
             ),
           ),
@@ -397,24 +595,16 @@ class FeedbackScreen extends StatelessWidget {
 
 // Goals Screen
 class GoalsScreen extends StatelessWidget {
-  const GoalsScreen({Key? key}) : super(key: key);
+  final CompanyProfile company;
+  const GoalsScreen({Key? key, required this.company}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final goals = [
-      ('Improve code quality', 0.8),
-      ('Increase team engagement', 0.6),
-      ('Launch new feature', 0.9),
-      ('Reduce bugs', 0.7),
-      ('Improve documentation', 0.5),
-    ];
-
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: goals.length,
+      itemCount: company.goals.length,
       itemBuilder: (context, index) {
-        final (goal, progress) = goals[index];
-
+        final goal = company.goals[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: Padding(
@@ -425,16 +615,18 @@ class GoalsScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(goal, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text('${(progress * 100).toInt()}%'),
+                    Text(goal.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text('${(goal.progress * 100).toInt()}%'),
                   ],
                 ),
                 const SizedBox(height: 8),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
-                    value: progress,
+                    value: goal.progress,
                     minHeight: 8,
+                    color: company.accentColor,
                   ),
                 ),
               ],
@@ -448,39 +640,30 @@ class GoalsScreen extends StatelessWidget {
 
 // Reviews Screen
 class ReviewsScreen extends StatelessWidget {
-  const ReviewsScreen({Key? key}) : super(key: key);
+  final CompanyProfile company;
+  const ReviewsScreen({Key? key, required this.company}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final reviews = [
-      ('Alice Johnson', 'Annual', '4.5'),
-      ('Bob Smith', 'Quarterly', '4.0'),
-      ('Carol Davis', 'Annual', '4.8'),
-      ('David Wilson', 'Quarterly', '4.3'),
-      ('Emma Brown', 'Annual', '4.1'),
-      ('Frank Miller', 'Quarterly', '4.6'),
-    ];
-
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: reviews.length,
+      itemCount: company.reviews.length,
       itemBuilder: (context, index) {
-        final (name, cycle, rating) = reviews[index];
-
+        final review = company.reviews[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
-            title: Text(name),
-            subtitle: Text('$cycle Review'),
+            title: Text(review.name),
+            subtitle: Text('${review.cycle} Review'),
             trailing: Container(
               width: 50,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.2),
+                color: company.accentColor.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                rating,
+                review.rating,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -496,7 +679,8 @@ class ReviewsScreen extends StatelessWidget {
 
 // Heatmap Screen
 class HeatmapScreen extends StatelessWidget {
-  const HeatmapScreen({Key? key}) : super(key: key);
+  final CompanyProfile company;
+  const HeatmapScreen({Key? key, required this.company}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -505,17 +689,15 @@ class HeatmapScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Performance Heatmap',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          Text('Performance Heatmap',
+              style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 16),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  Text('Department Performance by Geography',
+                  Text('${company.departments.join(" • ")} by Region',
                       style: Theme.of(context).textTheme.labelLarge),
                   const SizedBox(height: 16),
                   _buildHeatmapGrid(),
@@ -529,52 +711,44 @@ class HeatmapScreen extends StatelessWidget {
   }
 
   Widget _buildHeatmapGrid() {
-    const data = [
-      [4.5, 4.2, 3.8],
-      [4.7, 4.1, 3.5],
-      [3.9, 3.6, 2.0],
-      [2.8, 3.2, 3.1],
-    ];
-
-    const departments = ['Engineering', 'Customer Success', 'Finance', 'Marketing'];
-    const regions = ['North America', 'EMEA', 'LATAM'];
-
     return Column(
       children: [
         Row(
           children: [
             const SizedBox(width: 100),
-            ...regions.map(
+            ...company.regions.map(
               (region) => Expanded(
                 child: Center(
-                  child: Text(region, style: const TextStyle(fontSize: 12)),
+                  child: Text(region, style: const TextStyle(fontSize: 11)),
                 ),
               ),
             ),
           ],
         ),
         ...List.generate(
-          data.length,
+          company.heatmapData.length,
           (deptIndex) => Row(
             children: [
               SizedBox(
                 width: 100,
-                child: Text(departments[deptIndex], style: const TextStyle(fontSize: 11)),
+                child: Text(company.departments[deptIndex],
+                    style: const TextStyle(fontSize: 10)),
               ),
               ...List.generate(
-                data[deptIndex].length,
+                company.heatmapData[deptIndex].length,
                 (regIndex) => Expanded(
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: Container(
                       margin: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: _getHeatmapColor(data[deptIndex][regIndex]),
+                        color: _getHeatmapColor(
+                            company.heatmapData[deptIndex][regIndex]),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        '${data[deptIndex][regIndex]}',
+                        '${company.heatmapData[deptIndex][regIndex]}',
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
