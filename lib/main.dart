@@ -277,6 +277,12 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
+    // Auto-login for demo
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _emailController.text = 'james.bellano@acmecorp.com';
+      _passwordController.text = 'demo123';
+      _handleLogin();
+    });
   }
 
   @override
@@ -329,6 +335,16 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.blue[100],
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Icon(Icons.favorite, size: 35, color: Colors.blue[700]),
+                  ),
+                  const SizedBox(height: 20),
                   Text(
                     'ELEVATE',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
