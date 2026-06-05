@@ -1,0 +1,82 @@
+import 'package:flutter/material.dart';
+
+/// MediFlow healthcare organization for demo with HR department.
+class HealthcareOrganization {
+  final String id;
+  final String name;
+  final String type; // e.g. "Hospital Network", "Teaching Hospital", "Clinic"
+  final String description;
+  final Color accentColor;
+  final IconData icon;
+  final List<HealthcarePersona> personas;
+
+  const HealthcareOrganization({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.description,
+    required this.accentColor,
+    required this.icon,
+    required this.personas,
+  });
+
+  static const List<HealthcareOrganization> all = [
+    HealthcareOrganization(
+      id: 'central-medical',
+      name: 'Central Medical Group',
+      type: 'Hospital Network',
+      description: 'Multi-specialty network with integrated HR',
+      accentColor: Color(0xFF0E7C7B), // Medical teal
+      icon: Icons.local_hospital_rounded,
+      personas: [
+        HealthcarePersona(name: 'James Peterson', role: 'Admin', dept: 'Operations'),
+        HealthcarePersona(name: 'Dr. Mehta', role: 'Doctor', dept: 'Clinical'),
+        HealthcarePersona(name: 'Sarah Chen', role: 'Nurse', dept: 'Nursing'),
+        HealthcarePersona(name: 'Priya Sharma', role: 'HR Director', dept: 'HR'),
+        HealthcarePersona(name: 'Maria Rodriguez', role: 'HR Specialist', dept: 'HR'),
+      ],
+    ),
+    HealthcareOrganization(
+      id: 'st-grace-hospital',
+      name: 'St. Grace Hospital',
+      type: 'Teaching Hospital',
+      description: 'Specialty care & research institution',
+      accentColor: Color(0xFF1A5F7A), // Deep blue
+      icon: Icons.favorite_rounded,
+      personas: [
+        HealthcarePersona(name: 'Hon Williams', role: 'Admin', dept: 'Operations'),
+        HealthcarePersona(name: 'Dr. Kapoor', role: 'Doctor', dept: 'Clinical'),
+        HealthcarePersona(name: 'Dr. Singh', role: 'Doctor', dept: 'Clinical'),
+        HealthcarePersona(name: 'Aisha Khan', role: 'Nurse', dept: 'Nursing'),
+      ],
+    ),
+    HealthcareOrganization(
+      id: 'sunrise-healthcare',
+      name: 'Sunrise Healthcare Network',
+      type: 'Clinic Network',
+      description: 'Primary care & ambulatory services',
+      accentColor: Color(0xFFE97C3D), // Sunrise orange
+      icon: Icons.medical_services_rounded,
+      personas: [
+        HealthcarePersona(name: 'Amit Kumar', role: 'Admin', dept: 'Operations'),
+        HealthcarePersona(name: 'Dr. Patel', role: 'Doctor', dept: 'Clinical'),
+        HealthcarePersona(name: 'Maria Jose', role: 'Nurse', dept: 'Nursing'),
+      ],
+    ),
+  ];
+}
+
+/// Healthcare staff persona for login demo.
+class HealthcarePersona {
+  final String name;
+  final String role; // Admin, Doctor, Nurse, HR Director, HR Specialist
+  final String dept; // Operations, Clinical, Nursing, HR
+
+  const HealthcarePersona({
+    required this.name,
+    required this.role,
+    required this.dept,
+  });
+
+  String get displayName => '$name ($role)';
+}
