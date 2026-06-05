@@ -10,7 +10,7 @@ class MediFlowApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'MediFlow - Healthcare Performance',
+      title: 'ELEVATE - MediFlow Healthcare',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         useMaterial3: true,
@@ -223,19 +223,27 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               const SizedBox(height: 30),
               const Text(
-                'MediFlow',
+                'ELEVATE',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 36,
+                  fontSize: 40,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
+              const Text(
+                'Powered by MediFlow',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 16),
               const Text(
                 'Healthcare Performance Management',
                 style: TextStyle(
                   color: Colors.white70,
-                  fontSize: 14,
+                  fontSize: 13,
                 ),
               ),
               const SizedBox(height: 50),
@@ -319,13 +327,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'MediFlow',
+                    'ELEVATE',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.blue[700],
                         ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Powered by MediFlow',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[500],
+                          fontStyle: FontStyle.italic,
+                        ),
+                  ),
+                  const SizedBox(height: 12),
                   Text(
                     'Healthcare Performance Management',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
