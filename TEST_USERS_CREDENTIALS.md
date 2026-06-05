@@ -9,20 +9,21 @@
 
 ## 10 Test User Accounts
 
-All passwords: `password123`
+All passwords: `password123`  
+All company: **Mediflow** 🏥
 
 | # | Email | Password | Company |
 |---|-------|----------|---------|
-| 1 | user01@gmail.com | password123 | Company A - Tech Solutions |
-| 2 | user02@gmail.com | password123 | Company A - Tech Solutions |
-| 3 | user03@gmail.com | password123 | Company A - Tech Solutions |
-| 4 | user04@gmail.com | password123 | Company A - Tech Solutions |
-| 5 | user05@gmail.com | password123 | Company A - Tech Solutions |
-| 6 | user06@gmail.com | password123 | Company B - Retail & Commerce |
-| 7 | user07@gmail.com | password123 | Company B - Retail & Commerce |
-| 8 | user08@gmail.com | password123 | Company B - Retail & Commerce |
-| 9 | user09@gmail.com | password123 | Company C - Financial Services |
-| 10 | user10@gmail.com | password123 | Company C - Financial Services |
+| 1 | user01@mediflow.com | password123 | Mediflow |
+| 2 | user02@mediflow.com | password123 | Mediflow |
+| 3 | user03@mediflow.com | password123 | Mediflow |
+| 4 | user04@mediflow.com | password123 | Mediflow |
+| 5 | user05@mediflow.com | password123 | Mediflow |
+| 6 | user06@mediflow.com | password123 | Mediflow |
+| 7 | user07@mediflow.com | password123 | Mediflow |
+| 8 | user08@mediflow.com | password123 | Mediflow |
+| 9 | user09@mediflow.com | password123 | Mediflow |
+| 10 | user10@mediflow.com | password123 | Mediflow |
 
 ---
 
@@ -46,7 +47,7 @@ All passwords: `password123`
 1. Clone repo: https://github.com/deshpandeatharv50-ai/pulse-review
 2. Run: `flutter pub get`
 3. Run: `flutter run` (on emulator)
-4. Login with any test user credential (e.g., user01@gmail.com / password123)
+4. Login with any test user credential (e.g., user01@mediflow.com / password123)
 5. Browse the 6 screens: Dashboard, Team, Feedback, Goals, Reviews, Heatmap
 
 ---
@@ -56,15 +57,16 @@ All passwords: `password123`
 ```
 Supabase Project URL: https://kylkksvxkkwdhatwuc.supabase.co
 Anon Key: sb_publishable_kv088wKh7vJsGhS0hYiCFQ_pVZSqZzT
-Test Users: user01@gmail.com through user10@gmail.com
+Test Users: user01@mediflow.com through user10@mediflow.com
 Password: password123 (all users)
+Company: Mediflow 🏥
 ```
 
 ---
 
 ## Quick Test
-- **Email:** user01@gmail.com
+- **Email:** user01@mediflow.com
 - **Password:** password123
-- **Expected:** See Dashboard with pulse scores, team list, feedback, goals, reviews, heatmap
+- **Expected:** See Mediflow Dashboard with pulse scores, team list, feedback, goals, reviews, heatmap
 
-✅ Everything ready to go!
+✅ Everything ready to go! 🏥
