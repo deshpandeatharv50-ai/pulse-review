@@ -4,16 +4,97 @@ void main() {
   runApp(const PulseReviewApp());
 }
 
+/// ELEVATE brand tokens — blue uptrend + green check.
+class ElevateColors {
+  static const Color blue = Color(0xFF0066CC); // primary
+  static const Color blueDark = Color(0xFF004C99);
+  static const Color green = Color(0xFF00A651); // accent / success
+  static const Color ink = Color(0xFF1A2233);
+  static const Color mist = Color(0xFFF4F8FC); // page background
+
+  static const LinearGradient brandGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [blue, green],
+  );
+}
+
+/// Small reusable ELEVATE logo mark (blue uptrend + green check badge).
+class ElevateLogo extends StatelessWidget {
+  final double size;
+  const ElevateLogo({super.key, this.size = 56});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        gradient: ElevateColors.brandGradient,
+        borderRadius: BorderRadius.circular(size * 0.28),
+        boxShadow: [
+          BoxShadow(
+            color: ElevateColors.blue.withOpacity(0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Icon(Icons.trending_up_rounded,
+          color: Colors.white, size: size * 0.6),
+    );
+  }
+}
+
+/// ELEVATE wordmark — "ELEV" blue, "ATE" green.
+class ElevateWordmark extends StatelessWidget {
+  final double fontSize;
+  const ElevateWordmark({super.key, this.fontSize = 32});
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      text: TextSpan(
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 2,
+        ),
+        children: const [
+          TextSpan(text: 'ELEV', style: TextStyle(color: ElevateColors.blue)),
+          TextSpan(text: 'ATE', style: TextStyle(color: ElevateColors.green)),
+        ],
+      ),
+    );
+  }
+}
+
 class PulseReviewApp extends StatelessWidget {
   const PulseReviewApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'PulseReview Mobile',
+      title: 'ELEVATE',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
         useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: ElevateColors.blue,
+          primary: ElevateColors.blue,
+          secondary: ElevateColors.green,
+        ),
+        scaffoldBackgroundColor: ElevateColors.mist,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: ElevateColors.blue,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: ElevateColors.blue,
+            foregroundColor: Colors.white,
+          ),
+        ),
       ),
       home: const LoginScreen(),
     );
@@ -237,7 +318,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[50],
+      backgroundColor: ElevateColors.mist,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -248,13 +329,9 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'PulseReview',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[700],
-                        ),
-                  ),
+                  const ElevateLogo(size: 64),
+                  const SizedBox(height: 16),
+                  const ElevateWordmark(fontSize: 34),
                   const SizedBox(height: 8),
                   Text(
                     'Real-time Performance Management',
@@ -335,7 +412,27 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.userName} - ${widget.userRole}'),
+        titleSpacing: 12,
+        title: Row(
+          children: [
+            const ElevateLogo(size: 30),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('ELEVATE',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5,
+                        fontSize: 16)),
+                Text('${widget.userName} · ${widget.userRole}',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w400, fontSize: 11)),
+              ],
+            ),
+          ],
+        ),
         elevation: 0,
         actions: [
           IconButton(
