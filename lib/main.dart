@@ -3,14 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/login_screen.dart';
 import 'widgets/app_navigation.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await Supabase.initialize(
-    url: 'https://kylkksvxkkwdhatwuc.supabase.co',
-    anonKey: 'sb_publishable_kv088wKh7vJsGhS0hYiCFQ_pVZSqZzT',
-  );
-
+void main() {
   runApp(const PulseReviewApp());
 }
 
