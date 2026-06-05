@@ -77,7 +77,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     autocorrect: false,
                     decoration: InputDecoration(
                       labelText: 'Username',
-                      hintText: 'admin',
                       prefixIcon: const Icon(Icons.person_outline),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12)),
@@ -90,7 +89,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     onSubmitted: (_) => _login(),
                     decoration: InputDecoration(
                       labelText: 'Password',
-                      hintText: '1234',
                       prefixIcon: const Icon(Icons.lock_outline),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12)),
@@ -116,27 +114,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text('Login',
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.w600)),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: teal.withOpacity(0.06),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      children: [
-                        Text('Demo logins',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: teal)),
-                        const SizedBox(height: 4),
-                        Text('admin / 1234   •   drmehta / 1234   •   nurse / 1234',
-                            style: TextStyle(
-                                fontSize: 11, color: Colors.grey[700])),
-                      ],
                     ),
                   ),
                 ],
