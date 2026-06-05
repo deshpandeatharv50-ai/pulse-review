@@ -96,7 +96,122 @@ class PulseReviewApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const LoginScreen(),
+      home: const CompanyPickerScreen(),
+    );
+  }
+}
+
+/// A selectable demo organisation (Company A / B / C).
+class Company {
+  final String name;
+  final String tagline;
+  final Color accent;
+  final IconData icon;
+  const Company(this.name, this.tagline, this.accent, this.icon);
+
+  static const List<Company> all = [
+    Company('Company A', 'Tech Solutions', ElevateColors.blue,
+        Icons.memory_rounded),
+    Company('Company B', 'Retail & Commerce', ElevateColors.green,
+        Icons.storefront_rounded),
+    Company('Company C', 'Financial Services', Color(0xFF6A4CCB),
+        Icons.account_balance_rounded),
+  ];
+}
+
+/// Entry screen — pick which organisation to demo.
+class CompanyPickerScreen extends StatelessWidget {
+  const CompanyPickerScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: ElevateColors.mist,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 24),
+              const Center(child: ElevateLogo(size: 64)),
+              const SizedBox(height: 16),
+              const Center(child: ElevateWordmark(fontSize: 34)),
+              const SizedBox(height: 8),
+              Text(
+                'Select an organisation',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[600],
+                    ),
+              ),
+              const SizedBox(height: 32),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: Company.all.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 16),
+                  itemBuilder: (context, i) {
+                    final c = Company.all[i];
+                    return Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () {
+                          AppState().currentCompany = c.name;
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => LoginScreen(company: c),
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 52,
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  color: c.accent.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Icon(c.icon, color: c.accent, size: 28),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(c.name,
+                                        style: const TextStyle(
+                                            fontSize: 17,
+                                            fontWeight: FontWeight.w700)),
+                                    const SizedBox(height: 2),
+                                    Text(c.tagline,
+                                        style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.grey[600])),
+                                  ],
+                                ),
+                              ),
+                              Icon(Icons.chevron_right_rounded,
+                                  color: c.accent),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -111,111 +226,114 @@ class AppState {
 
   AppState._internal();
 
-  List<Map<String, dynamic>> feedbackList = [
-    {
-      'id': 1,
-      'from': 'Alice Johnson',
-      'to': 'James Bellano',
-      'type': 'Positive',
-      'comment': 'Delivered critical feature ahead of schedule',
-      'date': DateTime.now().subtract(const Duration(days: 2)),
-      'importance': 'Critical',
-      'weight': 50,
-      'impact': 'Major deliverable',
-    },
-    {
-      'id': 2,
-      'from': 'Bob Smith',
-      'to': 'James Bellano',
-      'type': 'Constructive',
-      'comment': 'Could improve email communication',
-      'date': DateTime.now().subtract(const Duration(days: 1)),
-      'importance': 'Minor',
-      'weight': 10,
-      'impact': 'Process improvement',
-    },
-  ];
+  /// Currently selected organisation — set by the Company picker.
+  String currentCompany = 'Company A';
 
-  List<Map<String, dynamic>> goalsList = [
-    {
-      'id': 1,
-      'title': 'Improve code quality',
-      'progress': 0.8,
-      'status': 'in_progress',
-      'notes': 'Implementing better testing practices',
-      'priority': 'High',
-      'targetDate': DateTime.now().add(const Duration(days: 30)),
-      'quarter': 'Q1 2026',
-      'category': 'Engineering',
-      'createdBy': 'James Bellano',
-      'createdAt': DateTime.now().subtract(const Duration(days: 10)),
-      'history': [
+  // ---- Company-aware getters (return the current org's data) ----
+  List<Map<String, dynamic>> get feedbackList =>
+      _feedbackByCompany[currentCompany]!;
+  List<Map<String, dynamic>> get goalsList =>
+      _goalsByCompany[currentCompany]!;
+  List<Map<String, dynamic>> get reviewsList =>
+      _reviewsByCompany[currentCompany]!;
+  List<Map<String, dynamic>> get employees =>
+      _employeesByCompany[currentCompany]!;
+  List<String> get employeeNames =>
+      employees.map((e) => e['name'] as String).toList();
+
+  // ---- TEAM / EMPLOYEE DIRECTORIES (per company) ----
+  final Map<String, List<Map<String, dynamic>>> _employeesByCompany = {
+    'Company A': [
+      {'id': 'EMP-A01', 'name': 'Rajesh Kumar', 'title': 'Senior Engineer', 'department': 'Engineering', 'reportingTo': 'James Bellano', 'score': 4.5, 'email': 'rajesh.kumar@companya.com'},
+      {'id': 'EMP-A02', 'name': 'Michael Johnson', 'title': 'Sales Manager', 'department': 'Sales', 'reportingTo': 'James Bellano', 'score': 4.0, 'email': 'michael.johnson@companya.com'},
+      {'id': 'EMP-A03', 'name': 'Priya Sharma', 'title': 'Marketing Director', 'department': 'Marketing', 'reportingTo': 'James Bellano', 'score': 4.8, 'email': 'priya.sharma@companya.com'},
+      {'id': 'EMP-A04', 'name': 'David Wilson', 'title': 'Staff Engineer', 'department': 'Engineering', 'reportingTo': 'Rajesh Kumar', 'score': 4.3, 'email': 'david.wilson@companya.com'},
+      {'id': 'EMP-A05', 'name': 'Ananya Patel', 'title': 'HR Manager', 'department': 'HR', 'reportingTo': 'James Bellano', 'score': 4.1, 'email': 'ananya.patel@companya.com'},
+      {'id': 'EMP-A06', 'name': 'Robert Davis', 'title': 'Finance Lead', 'department': 'Finance', 'reportingTo': 'James Bellano', 'score': 4.6, 'email': 'robert.davis@companya.com'},
+      {'id': 'EMP-A07', 'name': 'Vikram Desai', 'title': 'Product Manager', 'department': 'Product', 'reportingTo': 'James Bellano', 'score': 4.7, 'email': 'vikram.desai@companya.com'},
+      {'id': 'EMP-A08', 'name': 'Sarah Anderson', 'title': 'Customer Success Manager', 'department': 'Customer Success', 'reportingTo': 'James Bellano', 'score': 4.2, 'email': 'sarah.anderson@companya.com'},
+    ],
+    'Company B': [
+      {'id': 'EMP-B01', 'name': 'Sarah Mitchell', 'title': 'Store Operations Lead', 'department': 'Store Ops', 'reportingTo': 'James Bellano', 'score': 4.4, 'email': 'sarah.mitchell@companyb.com'},
+      {'id': 'EMP-B02', 'name': 'Tom Nakamura', 'title': 'Merchandising Manager', 'department': 'Merchandising', 'reportingTo': 'James Bellano', 'score': 4.1, 'email': 'tom.nakamura@companyb.com'},
+      {'id': 'EMP-B03', 'name': 'Uma Patel', 'title': 'Supply Chain Lead', 'department': 'Supply Chain', 'reportingTo': 'James Bellano', 'score': 4.6, 'email': 'uma.patel@companyb.com'},
+      {'id': 'EMP-B04', 'name': 'Victor Lee', 'title': 'E-commerce Manager', 'department': 'E-commerce', 'reportingTo': 'James Bellano', 'score': 4.3, 'email': 'victor.lee@companyb.com'},
+      {'id': 'EMP-B05', 'name': 'Wendy Zhang', 'title': 'Customer Care Head', 'department': 'Customer Care', 'reportingTo': 'James Bellano', 'score': 4.5, 'email': 'wendy.zhang@companyb.com'},
+      {'id': 'EMP-B06', 'name': 'Xavier Lopez', 'title': 'Visual Merchandiser', 'department': 'Merchandising', 'reportingTo': 'Tom Nakamura', 'score': 3.9, 'email': 'xavier.lopez@companyb.com'},
+    ],
+    'Company C': [
+      {'id': 'EMP-C01', 'name': 'Charles Brown', 'title': 'Risk Analyst Lead', 'department': 'Risk', 'reportingTo': 'James Bellano', 'score': 4.7, 'email': 'charles.brown@companyc.com'},
+      {'id': 'EMP-C02', 'name': 'Diana Prince', 'title': 'Compliance Officer', 'department': 'Compliance', 'reportingTo': 'James Bellano', 'score': 4.8, 'email': 'diana.prince@companyc.com'},
+      {'id': 'EMP-C03', 'name': 'Eric Stone', 'title': 'Senior Trader', 'department': 'Trading', 'reportingTo': 'James Bellano', 'score': 4.2, 'email': 'eric.stone@companyc.com'},
+      {'id': 'EMP-C04', 'name': 'Fiona Scott', 'title': 'Operations Manager', 'department': 'Operations', 'reportingTo': 'James Bellano', 'score': 4.4, 'email': 'fiona.scott@companyc.com'},
+      {'id': 'EMP-C05', 'name': 'George Martin', 'title': 'Portfolio Manager', 'department': 'Trading', 'reportingTo': 'Eric Stone', 'score': 4.5, 'email': 'george.martin@companyc.com'},
+      {'id': 'EMP-C06', 'name': 'Helen Price', 'title': 'Audit Specialist', 'department': 'Compliance', 'reportingTo': 'Diana Prince', 'score': 4.0, 'email': 'helen.price@companyc.com'},
+    ],
+  };
+
+  // ---- FEEDBACK (per company) ----
+  final Map<String, List<Map<String, dynamic>>> _feedbackByCompany = {
+    'Company A': [
+      {'id': 1, 'from': 'Rajesh Kumar', 'to': 'James Bellano', 'type': 'Positive', 'comment': 'Delivered critical feature ahead of schedule', 'date': DateTime.now().subtract(const Duration(days: 2)), 'importance': 'Critical', 'weight': 50, 'impact': 'Major deliverable'},
+      {'id': 2, 'from': 'Michael Johnson', 'to': 'James Bellano', 'type': 'Constructive', 'comment': 'Could improve email communication', 'date': DateTime.now().subtract(const Duration(days: 1)), 'importance': 'Minor', 'weight': 10, 'impact': 'Process improvement'},
+    ],
+    'Company B': [
+      {'id': 1, 'from': 'Sarah Mitchell', 'to': 'James Bellano', 'type': 'Positive', 'comment': 'Hit 120% of festive-season store targets', 'date': DateTime.now().subtract(const Duration(days: 3)), 'importance': 'Critical', 'weight': 50, 'impact': 'Revenue growth'},
+      {'id': 2, 'from': 'Uma Patel', 'to': 'James Bellano', 'type': 'Constructive', 'comment': 'Reduce supplier lead-time variance', 'date': DateTime.now().subtract(const Duration(days: 2)), 'importance': 'Major', 'weight': 25, 'impact': 'Inventory health'},
+    ],
+    'Company C': [
+      {'id': 1, 'from': 'Diana Prince', 'to': 'James Bellano', 'type': 'Positive', 'comment': 'Cleared regulatory audit with zero findings', 'date': DateTime.now().subtract(const Duration(days: 4)), 'importance': 'Critical', 'weight': 50, 'impact': 'Compliance'},
+      {'id': 2, 'from': 'Eric Stone', 'to': 'James Bellano', 'type': 'Constructive', 'comment': 'Tighten end-of-day reconciliation window', 'date': DateTime.now().subtract(const Duration(days: 1)), 'importance': 'Major', 'weight': 25, 'impact': 'Operational risk'},
+    ],
+  };
+
+  // ---- GOALS (per company) ----
+  final Map<String, List<Map<String, dynamic>>> _goalsByCompany = {
+    'Company A': [
+      {'id': 1, 'title': 'Improve code quality', 'progress': 0.8, 'status': 'in_progress', 'notes': 'Implementing better testing practices', 'priority': 'High', 'targetDate': DateTime.now().add(const Duration(days: 30)), 'quarter': 'Q1 2026', 'category': 'Engineering', 'createdBy': 'James Bellano', 'createdAt': DateTime.now().subtract(const Duration(days: 10)), 'history': [
         {'action': 'Created', 'by': 'James Bellano', 'at': DateTime.now().subtract(const Duration(days: 10)), 'details': 'Goal created'},
-        {'action': 'Progress updated to 50%', 'by': 'James Bellano', 'at': DateTime.now().subtract(const Duration(days: 5)), 'details': 'Midpoint check'},
         {'action': 'Progress updated to 80%', 'by': 'James Bellano', 'at': DateTime.now().subtract(const Duration(days: 1)), 'details': 'Nearly complete'},
-      ],
-    },
-    {
-      'id': 2,
-      'title': 'Increase team engagement',
-      'progress': 0.6,
-      'status': 'in_progress',
-      'notes': 'Planning team building activities',
-      'priority': 'Medium',
-      'targetDate': DateTime.now().add(const Duration(days: 45)),
-      'quarter': 'Q1 2026',
-      'category': 'HR',
-      'createdBy': 'James Bellano',
-      'createdAt': DateTime.now().subtract(const Duration(days: 15)),
-      'history': [
+      ]},
+      {'id': 2, 'title': 'Increase team engagement', 'progress': 0.6, 'status': 'in_progress', 'notes': 'Planning team building activities', 'priority': 'Medium', 'targetDate': DateTime.now().add(const Duration(days: 45)), 'quarter': 'Q1 2026', 'category': 'HR', 'createdBy': 'James Bellano', 'createdAt': DateTime.now().subtract(const Duration(days: 15)), 'history': [
         {'action': 'Created', 'by': 'James Bellano', 'at': DateTime.now().subtract(const Duration(days: 15)), 'details': 'Goal created'},
-        {'action': 'Progress updated to 60%', 'by': 'James Bellano', 'at': DateTime.now().subtract(const Duration(days: 2)), 'details': 'Activities scheduled'},
-      ],
-    },
-    {
-      'id': 3,
-      'title': 'Launch new feature',
-      'progress': 0.9,
-      'status': 'in_progress',
-      'notes': 'Final testing phase',
-      'priority': 'High',
-      'targetDate': DateTime.now().add(const Duration(days: 14)),
-      'quarter': 'Q1 2026',
-      'category': 'Product',
-      'createdBy': 'James Bellano',
-      'createdAt': DateTime.now().subtract(const Duration(days: 20)),
-      'history': [
+      ]},
+      {'id': 3, 'title': 'Launch new feature', 'progress': 0.9, 'status': 'in_progress', 'notes': 'Final testing phase', 'priority': 'High', 'targetDate': DateTime.now().add(const Duration(days: 14)), 'quarter': 'Q1 2026', 'category': 'Product', 'createdBy': 'James Bellano', 'createdAt': DateTime.now().subtract(const Duration(days: 20)), 'history': [
         {'action': 'Created', 'by': 'James Bellano', 'at': DateTime.now().subtract(const Duration(days: 20)), 'details': 'Goal created'},
-        {'action': 'Progress updated to 50%', 'by': 'James Bellano', 'at': DateTime.now().subtract(const Duration(days: 10)), 'details': 'Dev phase complete'},
-        {'action': 'Progress updated to 90%', 'by': 'James Bellano', 'at': DateTime.now().subtract(const Duration(days: 1)), 'details': 'Testing phase final'},
-      ],
-    },
-  ];
+      ]},
+    ],
+    'Company B': [
+      {'id': 1, 'title': 'Cut stockouts by 30%', 'progress': 0.7, 'status': 'in_progress', 'notes': 'New replenishment model rollout', 'priority': 'High', 'targetDate': DateTime.now().add(const Duration(days: 30)), 'quarter': 'Q1 2026', 'category': 'Supply Chain', 'createdBy': 'James Bellano', 'createdAt': DateTime.now().subtract(const Duration(days: 12)), 'history': [
+        {'action': 'Created', 'by': 'James Bellano', 'at': DateTime.now().subtract(const Duration(days: 12)), 'details': 'Goal created'},
+      ]},
+      {'id': 2, 'title': 'Grow online sales share to 40%', 'progress': 0.55, 'status': 'in_progress', 'notes': 'Mobile checkout revamp', 'priority': 'High', 'targetDate': DateTime.now().add(const Duration(days: 50)), 'quarter': 'Q1 2026', 'category': 'E-commerce', 'createdBy': 'James Bellano', 'createdAt': DateTime.now().subtract(const Duration(days: 18)), 'history': [
+        {'action': 'Created', 'by': 'James Bellano', 'at': DateTime.now().subtract(const Duration(days: 18)), 'details': 'Goal created'},
+      ]},
+    ],
+    'Company C': [
+      {'id': 1, 'title': 'Automate compliance reporting', 'progress': 0.85, 'status': 'in_progress', 'notes': 'Replacing manual monthly returns', 'priority': 'High', 'targetDate': DateTime.now().add(const Duration(days: 20)), 'quarter': 'Q1 2026', 'category': 'Compliance', 'createdBy': 'James Bellano', 'createdAt': DateTime.now().subtract(const Duration(days: 22)), 'history': [
+        {'action': 'Created', 'by': 'James Bellano', 'at': DateTime.now().subtract(const Duration(days: 22)), 'details': 'Goal created'},
+      ]},
+      {'id': 2, 'title': 'Reduce trade settlement risk', 'progress': 0.5, 'status': 'in_progress', 'notes': 'Same-day reconciliation pilot', 'priority': 'Medium', 'targetDate': DateTime.now().add(const Duration(days: 40)), 'quarter': 'Q1 2026', 'category': 'Risk', 'createdBy': 'James Bellano', 'createdAt': DateTime.now().subtract(const Duration(days: 16)), 'history': [
+        {'action': 'Created', 'by': 'James Bellano', 'at': DateTime.now().subtract(const Duration(days: 16)), 'details': 'Goal created'},
+      ]},
+    ],
+  };
 
-  List<Map<String, dynamic>> reviewsList = [
-    {
-      'id': 1,
-      'employee': 'Alice Johnson',
-      'cycle': 'Annual',
-      'rating': 4.5,
-      'comment': 'Exceeds expectations - Key contributor to team success',
-      'date': DateTime.now().subtract(const Duration(days: 10)),
-      'weight': 100,
-      'importance': 'Annual Review',
-      'keyMetrics': ['Leadership', 'Technical Skills', 'Delivery'],
-    },
-    {
-      'id': 2,
-      'employee': 'Bob Smith',
-      'cycle': 'Quarterly',
-      'rating': 4.0,
-      'comment': 'Meets expectations - Consistent performer',
-      'date': DateTime.now().subtract(const Duration(days: 5)),
-      'weight': 60,
-      'importance': 'Quarterly Check-in',
-      'keyMetrics': ['Consistency', 'Collaboration'],
-    },
-  ];
+  // ---- REVIEWS (per company) ----
+  final Map<String, List<Map<String, dynamic>>> _reviewsByCompany = {
+    'Company A': [
+      {'id': 1, 'employee': 'Rajesh Kumar', 'cycle': 'Annual', 'rating': 4.5, 'comment': 'Exceeds expectations - Key contributor to team success', 'date': DateTime.now().subtract(const Duration(days: 10)), 'weight': 100, 'importance': 'Annual Review', 'keyMetrics': ['Leadership', 'Technical Skills', 'Delivery']},
+      {'id': 2, 'employee': 'Michael Johnson', 'cycle': 'Quarterly', 'rating': 4.0, 'comment': 'Meets expectations - Consistent performer', 'date': DateTime.now().subtract(const Duration(days: 5)), 'weight': 60, 'importance': 'Quarterly Check-in', 'keyMetrics': ['Consistency', 'Collaboration']},
+    ],
+    'Company B': [
+      {'id': 1, 'employee': 'Sarah Mitchell', 'cycle': 'Annual', 'rating': 4.4, 'comment': 'Outstanding store leadership through peak season', 'date': DateTime.now().subtract(const Duration(days: 8)), 'weight': 100, 'importance': 'Annual Review', 'keyMetrics': ['Leadership', 'Sales', 'Operations']},
+      {'id': 2, 'employee': 'Victor Lee', 'cycle': 'Quarterly', 'rating': 4.1, 'comment': 'Strong online conversion improvements', 'date': DateTime.now().subtract(const Duration(days: 4)), 'weight': 60, 'importance': 'Quarterly Check-in', 'keyMetrics': ['Growth', 'Execution']},
+    ],
+    'Company C': [
+      {'id': 1, 'employee': 'Diana Prince', 'cycle': 'Annual', 'rating': 4.8, 'comment': 'Exemplary compliance record - zero audit findings', 'date': DateTime.now().subtract(const Duration(days: 9)), 'weight': 100, 'importance': 'Annual Review', 'keyMetrics': ['Compliance', 'Diligence', 'Integrity']},
+      {'id': 2, 'employee': 'Eric Stone', 'cycle': 'Quarterly', 'rating': 4.2, 'comment': 'Solid trading performance within risk limits', 'date': DateTime.now().subtract(const Duration(days: 6)), 'weight': 60, 'importance': 'Quarterly Check-in', 'keyMetrics': ['Risk Mgmt', 'Returns']},
+    ],
+  };
 
   void addFeedback(String from, String to, String type, String comment) {
     feedbackList.add({
@@ -261,7 +379,8 @@ class AppState {
 
 // LOGIN SCREEN
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  final Company? company;
+  const LoginScreen({Key? key, this.company}) : super(key: key);
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -298,9 +417,10 @@ class _LoginScreenState extends State<LoginScreen> {
       if (email == 'james.bellano@acmecorp.com' && password == 'demo123') {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => const MainScreen(
+            builder: (context) => MainScreen(
               userName: 'James Bellano',
               userRole: 'Director',
+              companyName: widget.company?.name,
             ),
           ),
         );
@@ -339,6 +459,29 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: Colors.grey[600],
                         ),
                   ),
+                  if (widget.company != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: widget.company!.accent.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(widget.company!.icon,
+                              size: 16, color: widget.company!.accent),
+                          const SizedBox(width: 6),
+                          Text(widget.company!.name,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: widget.company!.accent)),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 32),
                   TextField(
                     controller: _emailController,
@@ -393,11 +536,13 @@ class _LoginScreenState extends State<LoginScreen> {
 class MainScreen extends StatefulWidget {
   final String userName;
   final String userRole;
+  final String? companyName;
 
   const MainScreen({
     Key? key,
     required this.userName,
     required this.userRole,
+    this.companyName,
   }) : super(key: key);
 
   @override
@@ -426,7 +571,10 @@ class _MainScreenState extends State<MainScreen> {
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.5,
                         fontSize: 16)),
-                Text('${widget.userName} · ${widget.userRole}',
+                Text(
+                    widget.companyName != null
+                        ? '${widget.companyName} · ${widget.userName}'
+                        : '${widget.userName} · ${widget.userRole}',
                     style: const TextStyle(
                         fontWeight: FontWeight.w400, fontSize: 11)),
               ],
@@ -437,9 +585,12 @@ class _MainScreenState extends State<MainScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
+            tooltip: 'Switch organisation',
             onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                    builder: (context) => const CompanyPickerScreen()),
+                (route) => false,
               );
             },
           )
@@ -642,98 +793,7 @@ class _TeamScreenState extends State<TeamScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final employees = [
-      {
-        'id': 'EMP-001',
-        'name': 'Rajesh Kumar',
-        'title': 'Senior Engineer',
-        'department': 'Engineering',
-        'reportingTo': 'James Bellano',
-        'score': 4.5,
-        'email': 'rajesh.kumar@acmecorp.com',
-      },
-      {
-        'id': 'EMP-002',
-        'name': 'Michael Johnson',
-        'title': 'Sales Manager',
-        'department': 'Sales',
-        'reportingTo': 'James Bellano',
-        'score': 4.0,
-        'email': 'michael.johnson@acmecorp.com',
-      },
-      {
-        'id': 'EMP-003',
-        'name': 'Priya Sharma',
-        'title': 'Marketing Director',
-        'department': 'Marketing',
-        'reportingTo': 'James Bellano',
-        'score': 4.8,
-        'email': 'priya.sharma@acmecorp.com',
-      },
-      {
-        'id': 'EMP-004',
-        'name': 'David Wilson',
-        'title': 'Staff Engineer',
-        'department': 'Engineering',
-        'reportingTo': 'Rajesh Kumar',
-        'score': 4.3,
-        'email': 'david.wilson@acmecorp.com',
-      },
-      {
-        'id': 'EMP-005',
-        'name': 'Ananya Patel',
-        'title': 'HR Manager',
-        'department': 'HR',
-        'reportingTo': 'James Bellano',
-        'score': 4.1,
-        'email': 'ananya.patel@acmecorp.com',
-      },
-      {
-        'id': 'EMP-006',
-        'name': 'Robert Davis',
-        'title': 'Finance Lead',
-        'department': 'Finance',
-        'reportingTo': 'James Bellano',
-        'score': 4.6,
-        'email': 'robert.davis@acmecorp.com',
-      },
-      {
-        'id': 'EMP-007',
-        'name': 'Vikram Desai',
-        'title': 'Product Manager',
-        'department': 'Product',
-        'reportingTo': 'James Bellano',
-        'score': 4.7,
-        'email': 'vikram.desai@acmecorp.com',
-      },
-      {
-        'id': 'EMP-008',
-        'name': 'Sarah Anderson',
-        'title': 'Customer Success Manager',
-        'department': 'Customer Success',
-        'reportingTo': 'James Bellano',
-        'score': 4.2,
-        'email': 'sarah.anderson@acmecorp.com',
-      },
-      {
-        'id': 'EMP-009',
-        'name': 'Neha Gupta',
-        'title': 'Senior Engineer',
-        'department': 'Engineering',
-        'reportingTo': 'Rajesh Kumar',
-        'score': 4.4,
-        'email': 'neha.gupta@acmecorp.com',
-      },
-      {
-        'id': 'EMP-010',
-        'name': 'James Mitchell',
-        'title': 'Sales Executive',
-        'department': 'Sales',
-        'reportingTo': 'Michael Johnson',
-        'score': 3.9,
-        'email': 'james.mitchell@acmecorp.com',
-      },
-    ];
+    final employees = AppState().employees;
 
     // Get unique departments
     final departments = {'All', ...employees.map((e) => e['department']).cast<String>()}.toList();
@@ -1003,10 +1063,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   String _filterStatus = 'All';
   String _filterCompetency = 'All';
 
-  final List<String> employees = [
-    'Alice Johnson', 'Bob Smith', 'Carol Davis', 'David Wilson', 'Emma Brown',
-    'Frank Miller', 'Grace Lee', 'Henry Taylor', 'Ivy Chen', 'Jack Robinson'
-  ];
+  List<String> get employees => AppState().employeeNames;
 
   final List<String> competencies = [
     'All', 'Leadership', 'Technical Skills', 'Communication', 'Collaboration',
@@ -2047,10 +2104,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   }
 
   void _showAddReviewDialog(BuildContext context) {
-    final employees = [
-      'Rajesh Kumar', 'Priya Sharma', 'Ananya Patel', 'Vikram Desai', 'Neha Gupta',
-      'Michael Johnson', 'David Wilson', 'Robert Davis', 'Sarah Anderson', 'James Mitchell'
-    ];
+    final employees = AppState().employeeNames;
 
     String selectedEmployee = '';
     String reviewCycle = 'Quarterly';
