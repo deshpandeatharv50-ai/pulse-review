@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/healthcare_organization.dart';
 import '../widgets/app_navigation.dart';
 
-/// Select a persona and password to login.
+/// Employee ID + password login (per organization).
 class PersonaLoginScreen extends StatefulWidget {
   final HealthcareOrganization organization;
 
@@ -16,24 +16,33 @@ class PersonaLoginScreen extends StatefulWidget {
 }
 
 class _PersonaLoginScreenState extends State<PersonaLoginScreen> {
-  HealthcarePersona? _selectedPersona;
+  final _idController = TextEditingController();
   final _passwordController = TextEditingController();
   String? _error;
 
   void _login() {
-    if (_selectedPersona == null) {
-      setState(() => _error = 'Please select a persona');
+    final id = _idController.text.trim();
+    final pwd = _passwordController.text.trim();
+    if (id.isEmpty || pwd.isEmpty) {
+      setState(() => _error = 'Enter Employee ID and password');
       return;
     }
-    if (_passwordController.text.trim() != '1234') {
-      setState(() => _error = 'Invalid password');
+    HealthcarePersona? match;
+    for (final p in widget.organization.personas) {
+      if (p.employeeId == id) {
+        match = p;
+        break;
+      }
+    }
+    if (match == null || match.password != pwd) {
+      setState(() => _error = 'Invalid Employee ID or password');
       return;
     }
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => AppNavigation(
           organization: widget.organization,
-          persona: _selectedPersona!,
+          persona: match!,
         ),
       ),
     );
@@ -46,12 +55,14 @@ class _PersonaLoginScreenState extends State<PersonaLoginScreen> {
       appBar: AppBar(
         title: Text(org.name),
         backgroundColor: org.accentColor,
+        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Org banner
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -67,8 +78,7 @@ class _PersonaLoginScreenState extends State<PersonaLoginScreen> {
                       color: org.accentColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child:
-                        Icon(org.icon, color: org.accentColor, size: 24),
+                    child: Icon(org.icon, color: org.accentColor, size: 24),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -89,60 +99,40 @@ class _PersonaLoginScreenState extends State<PersonaLoginScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
-            Text('Select Staff Member',
-                style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: 12),
-            SegmentedButton<HealthcarePersona>(
-              multiSelectionEnabled: false,
-              emptySelectionAllowed: true,
-              onSelectionChanged: (v) =>
-                  setState(() => _selectedPersona = v.isEmpty ? null : v.first),
-              selected: _selectedPersona == null ? {} : {_selectedPersona!},
-              segments: org.personas
-                  .map((p) => ButtonSegment(
-                        value: p,
-                        label: Text(p.name,
-                            style: const TextStyle(fontSize: 12)),
-                      ))
-                  .toList(),
-            ),
-            if (_selectedPersona != null) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: org.accentColor.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '${_selectedPersona!.displayName} · ${_selectedPersona!.dept}',
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: org.accentColor,
-                      fontWeight: FontWeight.w600),
-                ),
+            const SizedBox(height: 32),
+            // Employee ID
+            TextField(
+              controller: _idController,
+              autocorrect: false,
+              keyboardType: TextInputType.number,
+              maxLength: 4,
+              decoration: InputDecoration(
+                labelText: 'Employee ID',
+                counterText: '',
+                prefixIcon: const Icon(Icons.badge_outlined),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
-            ],
-            const SizedBox(height: 20),
+            ),
+            const SizedBox(height: 16),
+            // Password
             TextField(
               controller: _passwordController,
               obscureText: true,
               onSubmitted: (_) => _login(),
               decoration: InputDecoration(
                 labelText: 'Password',
-                hintText: '1234',
                 prefixIcon: const Icon(Icons.lock_outline),
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
             ),
             if (_error != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               Text(_error!,
                   style: const TextStyle(color: Colors.red, fontSize: 13)),
             ],
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             SizedBox(
               height: 50,
               child: ElevatedButton(
@@ -158,19 +148,6 @@ class _PersonaLoginScreenState extends State<PersonaLoginScreen> {
                         fontSize: 16, fontWeight: FontWeight.w600)),
               ),
             ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'Password: 1234 (all personas)',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 11, color: Colors.grey[700]),
-              ),
-            ),
           ],
         ),
       ),
@@ -179,6 +156,7 @@ class _PersonaLoginScreenState extends State<PersonaLoginScreen> {
 
   @override
   void dispose() {
+    _idController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
