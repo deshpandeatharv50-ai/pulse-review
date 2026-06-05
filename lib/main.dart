@@ -277,12 +277,6 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
-    // Auto-login for demo
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _emailController.text = 'james.bellano@acmecorp.com';
-      _passwordController.text = 'demo123';
-      _handleLogin();
-    });
   }
 
   @override
