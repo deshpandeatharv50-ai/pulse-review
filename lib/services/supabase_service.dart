@@ -103,6 +103,18 @@ class SupabaseService {
         .eq('organisation_id', orgId);
   }
 
+  // Submit feedback
+  Future<void> submitFeedback(String employeeName, String feedbackType, String comment) async {
+    final orgId = await getCurrentOrgId();
+
+    await client.from('feedbacks').insert({
+      'organisation_id': orgId,
+      'employee_name': employeeName,
+      'feedback_type': feedbackType,
+      'comment': comment,
+    });
+  }
+
   // Logout
   Future<void> logout() async {
     await client.auth.signOut();
