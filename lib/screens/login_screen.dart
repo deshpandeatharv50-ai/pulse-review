@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/app_navigation.dart';
 
-/// MediFlow healthcare login — simple local auth for the demo.
-/// No Supabase dependency: works fully offline, can't fail mid-demo.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
@@ -11,132 +10,122 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _userController = TextEditingController();
-  final _passController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
   String? _error;
 
-  // Short, healthcare-themed demo credentials (username -> {password, name}).
-  static const Map<String, Map<String, String>> _users = {
-    'admin': {'password': '1234', 'name': 'Hospital Admin'},
-    'drmehta': {'password': '1234', 'name': 'Dr. Mehta'},
-    'nurse': {'password': '1234', 'name': 'Head Nurse'},
-  };
+  Future<void> _login() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
 
-  void _login() {
-    final u = _userController.text.trim().toLowerCase();
-    final p = _passController.text.trim();
-    final match = _users[u];
-    if (match != null && match['password'] == p) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const AppNavigation()),
+    try {
+      await Supabase.instance.client.auth.signInWithPassword(
+        email: _emailController.text,
+        password: _passwordController.text,
       );
-    } else {
-      setState(() => _error = 'Invalid username or password');
+    } on AuthException catch (e) {
+      setState(() => _error = e.message);
+    } catch (e) {
+      setState(() => _error = 'An error occurred');
     }
+
+    setState(() => _isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    const teal = Color(0xFF0E7C7B);
     return Scaffold(
+      backgroundColor: Colors.blue[50],
       body: Center(
-        child: SingleChildScrollView(
+        child: Padding(
           padding: const EdgeInsets.all(24),
           child: Card(
             elevation: 4,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             child: Padding(
               padding: const EdgeInsets.all(32),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Logo badge
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: teal,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Icon(Icons.local_hospital_rounded,
-                        color: Colors.white, size: 40),
+                  Text(
+                    'PulseReview',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[700],
+                        ),
                   ),
-                  const SizedBox(height: 16),
-                  const Text('MediFlow',
-                      style: TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.w800,
-                          color: teal)),
-                  const SizedBox(height: 4),
-                  Text('Healthcare Performance Management',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Real-time Performance Management',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                  ),
+                  const SizedBox(height: 32),
                   TextField(
-                    controller: _userController,
-                    autocorrect: false,
+                    controller: _emailController,
                     decoration: InputDecoration(
-                      labelText: 'Username',
-                      hintText: 'admin',
-                      prefixIcon: const Icon(Icons.person_outline),
+                      labelText: 'Email',
+                      hintText: 'james.bellano@acmecorp.com',
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      prefixIcon: const Icon(Icons.email),
                     ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
-                    controller: _passController,
+                    controller: _passwordController,
                     obscureText: true,
-                    onSubmitted: (_) => _login(),
                     decoration: InputDecoration(
                       labelText: 'Password',
-                      hintText: '1234',
-                      prefixIcon: const Icon(Icons.lock_outline),
+                      hintText: 'demo123',
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      prefixIcon: const Icon(Icons.lock),
                     ),
                   ),
                   if (_error != null) ...[
-                    const SizedBox(height: 14),
-                    Text(_error!,
-                        style: const TextStyle(color: Colors.red, fontSize: 13)),
+                    const SizedBox(height: 16),
+                    Text(
+                      _error!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   ],
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
-                    height: 50,
+                    height: 48,
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: teal,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onPressed: _login,
-                      child: const Text('Login',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600)),
+                      onPressed: _isLoading ? null : _login,
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Login'),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: teal.withOpacity(0.06),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      children: [
-                        Text('Demo logins',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: teal)),
-                        const SizedBox(height: 4),
-                        Text('admin / 1234   •   drmehta / 1234   •   nurse / 1234',
-                            style: TextStyle(
-                                fontSize: 11, color: Colors.grey[700])),
-                      ],
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => const AppNavigation(),
+                          ),
+                        );
+                      },
+                      child: const Text('🚀 DEMO LOGIN'),
                     ),
                   ),
                 ],
@@ -150,8 +139,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _userController.dispose();
-    _passController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 }
