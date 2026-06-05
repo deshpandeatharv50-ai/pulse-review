@@ -6,15 +6,18 @@ class SupabaseConfig {
   static const String supabaseUrl = 'https://kylxkksvxkkwvdhatwuc.supabase.co';
   static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5bHhra3N2eGtrd3ZkaGF0d3VjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2Mzk5MzAsImV4cCI6MjA5NjIxNTkzMH0.p-LYMxX1IVMqaKLUJ2STVSYlLpnQROsIt8K5VsnijAI';
 
-  static late SupabaseClient supabase;
+  static late Supabase _supabase;
 
   /// Initialize Supabase connection
   static Future<void> init() async {
-    supabase = await Supabase.initialize(
+    _supabase = await Supabase.initialize(
       url: supabaseUrl,
       anonKey: supabaseAnonKey,
     );
   }
+
+  /// Get Supabase client
+  static SupabaseClient get supabase => _supabase.client;
 
   /// Get current user session
   static Session? get session => supabase.auth.currentSession;
