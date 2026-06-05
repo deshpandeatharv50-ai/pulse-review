@@ -9,12 +9,21 @@ class SupabaseService {
 
   // Get current organization (use first company for now)
   Future<String> getCurrentOrgId() async {
-    final orgs = await client
-        .from('organisations')
-        .select('id')
-        .limit(1);
+    try {
+      final orgs = await client
+          .from('organisations')
+          .select('id')
+          .limit(1);
 
-    return orgs[0]['id'];
+      if (orgs.isNotEmpty && orgs[0]['id'] != null) {
+        return orgs[0]['id'].toString();
+      }
+    } catch (e) {
+      print('Error getting org ID: $e');
+    }
+
+    // Fallback to empty string if no orgs found
+    return '';
   }
 
   // Get employees
