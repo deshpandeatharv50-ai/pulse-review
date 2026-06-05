@@ -19,7 +19,6 @@ class PulseReviewApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const AppNavigation(),
-      ),
     );
   }
 }
