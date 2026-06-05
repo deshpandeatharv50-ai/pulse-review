@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'supabase_config.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SupabaseConfig.init();
   runApp(const MediFlowApp());
 }
 

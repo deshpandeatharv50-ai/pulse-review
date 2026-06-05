@@ -2,9 +2,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Supabase Configuration for ELEVATE multi-org backend
 class SupabaseConfig {
-  // ⚠️ UPDATE THESE WITH YOUR SUPABASE PROJECT DETAILS
-  static const String supabaseUrl = 'https://YOUR_PROJECT.supabase.co';
-  static const String supabaseAnonKey = 'YOUR_ANON_KEY';
+  // ✅ ELEVATE Supabase Project Credentials (Pratham's backend)
+  static const String supabaseUrl = 'https://kylxkksvxkkwvdhatwuc.supabase.co';
+  static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5bHhra3N2eGtrd3ZkaGF0d3VjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2Mzk5MzAsImV4cCI6MjA5NjIxNTkzMH0.p-LYMxX1IVMqaKLUJ2STVSYlLpnQROsIt8K5VsnijAI';
 
   static late SupabaseClient supabase;
 
