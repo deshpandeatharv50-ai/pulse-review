@@ -318,7 +318,7 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
                         child: LinearProgressIndicator(value: score / 5, minHeight: 8, backgroundColor: Colors.grey[300]),
                       ),
                       Positioned(
-                        left: (benchmark / 5 * 100).toStringAsFixed(0) + '%',
+                        left: benchmark / 5 * 100,
                         child: Container(
                           width: 2,
                           height: 8,
