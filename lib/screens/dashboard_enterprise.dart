@@ -363,9 +363,9 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
             ),
             const SizedBox(height: 24),
 
-            // KPI Cards (Single Line)
+            // KPI Cards (Single Line - LARGE)
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -375,11 +375,11 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildKPILineSingle('👥 TEAM MEMBERS', totalMembers.toString(), Colors.blue),
-                  Container(width: 1, height: 50, color: Colors.grey[200]),
+                  Container(width: 2, height: 70, color: Colors.grey[200]),
                   _buildKPILineSingle('✓ POSITIVE', totalPositive.toString(), Colors.green),
-                  Container(width: 1, height: 50, color: Colors.grey[200]),
+                  Container(width: 2, height: 70, color: Colors.grey[200]),
                   _buildKPILineSingle('⚡ CONSTRUCTIVE', totalConstructive.toString(), Colors.orange),
-                  Container(width: 1, height: 50, color: Colors.grey[200]),
+                  Container(width: 2, height: 70, color: Colors.grey[200]),
                   _buildKPILineSingle('⭐ AVG RATING', avgRating.toString(), Colors.amber),
                 ],
               ),
@@ -700,17 +700,17 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 8, color: color, fontWeight: FontWeight.w700),
+          style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w700),
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
+        const SizedBox(height: 8),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 28)),
         const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-        const SizedBox(height: 3),
         Text(
-          label.contains('TEAM') ? 'Active' : label.contains('RATING') ? 'total' : 'week',
-          style: TextStyle(fontSize: 7, color: Colors.grey[600]),
+          label.contains('TEAM') ? 'Active employees' : label.contains('RATING') ? 'total entries' : 'this week',
+          style: TextStyle(fontSize: 10, color: Colors.grey[600]),
           textAlign: TextAlign.center,
         ),
       ],
