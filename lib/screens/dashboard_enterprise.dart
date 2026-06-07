@@ -398,16 +398,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Recent Feedback', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                        GestureDetector(
-                          onTap: _showRecentFeedbackPopup,
-                          child: Text('View all >', style: TextStyle(fontSize: 12, color: Colors.blue[600], fontWeight: FontWeight.w600)),
-                        ),
-                      ],
-                    ),
+                    const Text('Recent Feedback', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                     const SizedBox(height: 16),
                     ..._localFeedbacks.take(5).map((fb) {
                       final isPositive = fb.feedbackType == 'Positive';
@@ -550,16 +541,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Goals Snapshot', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                              GestureDetector(
-                                onTap: _showGoalsSnapshotPopup,
-                                child: Text('View all >', style: TextStyle(fontSize: 10, color: Colors.blue[600], fontWeight: FontWeight.w600)),
-                              ),
-                            ],
-                          ),
+                          const Text('Goals Snapshot', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                           const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
