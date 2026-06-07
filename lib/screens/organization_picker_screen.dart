@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/healthcare_organization.dart';
-import 'persona_login_screen.dart';
+import '../widgets/app_navigation.dart';
 
 /// Select a healthcare organization to demo.
 class OrganizationPickerScreen extends StatelessWidget {
@@ -76,8 +76,10 @@ class OrganizationPickerScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) =>
-                                PersonaLoginScreen(organization: org),
+                            builder: (_) => AppNavigation(
+                              organization: org,
+                              persona: org.personas.first,
+                            ),
                           ),
                         ),
                         child: Padding(

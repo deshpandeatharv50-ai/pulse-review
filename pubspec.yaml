@@ -41,7 +41,6 @@ dependencies:
   # State management
   provider: ^6.1.2
 
-  # UI
   google_fonts: ^6.2.1
 
   # Utilities

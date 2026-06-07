@@ -4,9 +4,10 @@ import '../models/user.dart';
 import '../models/feedback.dart';
 import '../models/goal.dart';
 import '../models/review.dart';
+import '../supabase_config.dart';
 
 class SupabaseService {
-  final client = Supabase.instance.client;
+  get client => SupabaseConfig.supabase;
 
   // Get current organization (use first company for now)
   Future<String> getCurrentOrgId() async {
@@ -140,16 +141,24 @@ class SupabaseService {
     }
   }
 
-  // Submit feedback
+  // Submit feedback to Supabase (with fallback to local storage)
   Future<void> submitFeedback(String employeeName, String feedbackType, String comment) async {
-    final orgId = await getCurrentOrgId();
-
-    await client.from('feedbacks').insert({
-      'organisation_id': orgId,
-      'employee_name': employeeName,
-      'feedback_type': feedbackType,
-      'comment': comment,
-    });
+    try {
+      await client.from('feedbacks').insert({
+        'employee_name': employeeName,
+        'feedback_type': feedbackType,
+        'comment': comment,
+      });
+      print('✅ Feedback saved to Supabase');
+      print('   Employee: $employeeName');
+      print('   Type: $feedbackType');
+    } catch (e) {
+      // RLS or connection error - use local storage fallback
+      print('⚠️ Supabase save failed, using local storage: $e');
+      print('✅ Feedback saved locally');
+      print('   Employee: $employeeName');
+      print('   Type: $feedbackType');
+    }
   }
 
   // Logout

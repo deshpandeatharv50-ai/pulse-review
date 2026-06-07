@@ -29,10 +29,10 @@ class HealthcareOrganization {
       accentColor: Color(0xFF0E7C7B), // Medical teal
       icon: Icons.local_hospital_rounded,
       personas: [
-        HealthcarePersona(employeeId: '7234', password: 'sunrise', name: 'James Peterson', role: 'Admin', dept: 'Operations'),
-        HealthcarePersona(employeeId: '4891', password: 'compass', name: 'Dr. Mehta', role: 'Doctor', dept: 'Clinical'),
-        HealthcarePersona(employeeId: '3056', password: 'pioneer', name: 'Sarah Chen', role: 'Nurse', dept: 'Nursing'),
-        HealthcarePersona(employeeId: '8127', password: 'horizon', name: 'Priya Sharma', role: 'HR Director', dept: 'HR'),
+        HealthcarePersona(employeeId: '7234', password: 'elevate123', name: 'James Peterson', role: 'Admin', dept: 'Operations'),
+        HealthcarePersona(employeeId: '4891', password: 'elevate123', name: 'Dr. Mehta', role: 'Doctor', dept: 'Clinical'),
+        HealthcarePersona(employeeId: '3056', password: 'elevate123', name: 'Sarah Chen', role: 'Nurse', dept: 'Nursing'),
+        HealthcarePersona(employeeId: '8127', password: 'elevate123', name: 'Priya Sharma', role: 'HR Director', dept: 'HR'),
       ],
     ),
     HealthcareOrganization(
@@ -43,9 +43,9 @@ class HealthcareOrganization {
       accentColor: Color(0xFF1A5F7A), // Deep blue
       icon: Icons.favorite_rounded,
       personas: [
-        HealthcarePersona(employeeId: '2945', password: 'breeze',  name: 'Hon Williams', role: 'Admin', dept: 'Operations'),
-        HealthcarePersona(employeeId: '6738', password: 'falcon',  name: 'Dr. Kapoor', role: 'Doctor', dept: 'Clinical'),
-        HealthcarePersona(employeeId: '5421', password: 'meadow',  name: 'Aisha Khan', role: 'Nurse', dept: 'Nursing'),
+        HealthcarePersona(employeeId: '2945', password: 'elevate123',  name: 'Hon Williams', role: 'Admin', dept: 'Operations'),
+        HealthcarePersona(employeeId: '6738', password: 'elevate123',  name: 'Dr. Kapoor', role: 'Doctor', dept: 'Clinical'),
+        HealthcarePersona(employeeId: '5421', password: 'elevate123',  name: 'Aisha Khan', role: 'Nurse', dept: 'Nursing'),
       ],
     ),
     HealthcareOrganization(
@@ -56,9 +56,9 @@ class HealthcareOrganization {
       accentColor: Color(0xFFE97C3D), // Sunrise orange
       icon: Icons.medical_services_rounded,
       personas: [
-        HealthcarePersona(employeeId: '9183', password: 'summit',  name: 'Amit Kumar', role: 'Admin', dept: 'Operations'),
-        HealthcarePersona(employeeId: '1672', password: 'cascade', name: 'Dr. Patel', role: 'Doctor', dept: 'Clinical'),
-        HealthcarePersona(employeeId: '4509', password: 'harbor',  name: 'Maria Jose', role: 'Nurse', dept: 'Nursing'),
+        HealthcarePersona(employeeId: '9183', password: 'elevate123',  name: 'Amit Kumar', role: 'Admin', dept: 'Operations'),
+        HealthcarePersona(employeeId: '1672', password: 'elevate123', name: 'Dr. Patel', role: 'Doctor', dept: 'Clinical'),
+        HealthcarePersona(employeeId: '4509', password: 'elevate123',  name: 'Maria Jose', role: 'Nurse', dept: 'Nursing'),
       ],
     ),
   ];

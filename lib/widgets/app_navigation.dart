@@ -7,7 +7,6 @@ import '../screens/team_screen.dart';
 import '../screens/feedback_screen.dart';
 import '../screens/goals_screen.dart';
 import '../screens/reviews_screen.dart';
-import '../screens/heatmap_screen.dart';
 
 class AppNavigation extends StatefulWidget {
   final HealthcareOrganization organization;
@@ -37,7 +36,6 @@ class _AppNavigationState extends State<AppNavigation> {
       const FeedbackScreen(),
       const GoalsScreen(),
       const ReviewsScreen(),
-      const HeatmapScreen(),
     ];
   }
 
@@ -62,6 +60,7 @@ class _AppNavigationState extends State<AppNavigation> {
       appBar: AppBar(
         backgroundColor: org.accentColor,
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -78,7 +77,7 @@ class _AppNavigationState extends State<AppNavigation> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: _logout,
-            tooltip: 'Switch organization',
+            tooltip: 'Logout',
           ),
         ],
       ),
@@ -107,10 +106,6 @@ class _AppNavigationState extends State<AppNavigation> {
           BottomNavigationBarItem(
             icon: Icon(Icons.star),
             label: 'Reviews',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.grid_3x3),
-            label: 'Heatmap',
           ),
         ],
       ),
