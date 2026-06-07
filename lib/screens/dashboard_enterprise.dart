@@ -349,10 +349,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
           ),
         ],
       ),
-      body: Container(
-        color: Colors.grey[50],
-        clipBehavior: Clip.hardEdge,
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -664,7 +661,6 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
             ),
           ],
         ),
-      ),
       ),
     );
   }
