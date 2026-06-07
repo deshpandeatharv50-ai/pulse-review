@@ -348,11 +348,13 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+      body: Container(
+        color: Colors.grey[50],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             // Header
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -660,6 +662,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
