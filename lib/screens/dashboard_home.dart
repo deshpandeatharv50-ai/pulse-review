@@ -4,6 +4,7 @@ import 'dashboard_option2.dart';
 import 'dashboard_option3.dart';
 import 'dashboard_option4.dart';
 import 'dashboard_option5.dart';
+import 'dashboard_enterprise.dart';
 
 class DashboardHome extends StatefulWidget {
   const DashboardHome({Key? key}) : super(key: key);
@@ -13,9 +14,10 @@ class DashboardHome extends StatefulWidget {
 }
 
 class _DashboardHomeState extends State<DashboardHome> {
-  int _selectedOption = 1;
+  int _selectedOption = 0;
 
   final List<Map<String, dynamic>> _dashboards = [
+    {'id': 0, 'label': 'Enterprise', 'subtitle': 'Professional overview', 'screen': const DashboardEnterprise()},
     {'id': 1, 'label': 'Rankings', 'subtitle': 'Top performers', 'screen': const DashboardScreen()},
     {'id': 2, 'label': 'Health Metrics', 'subtitle': 'Team health gauge', 'screen': const DashboardOption2()},
     {'id': 3, 'label': 'Alerts & Risks', 'subtitle': 'What needs attention', 'screen': const DashboardOption3()},
