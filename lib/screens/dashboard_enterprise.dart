@@ -136,7 +136,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                           Text(fb.comment, style: TextStyle(fontSize: 12, color: Colors.grey[700], height: 1.4)),
                           const SizedBox(height: 6),
                           Text(
-                            '${fb.createdAt.day}/${fb.createdAt.month}, ${fb.createdAt.hour}:${fb.createdAt.minute.toString().padLeft(2, '0')} AM',
+                            '${(fb.createdAt ?? DateTime.now()).day}/${(fb.createdAt ?? DateTime.now()).month}, ${(fb.createdAt ?? DateTime.now()).hour}:${(fb.createdAt ?? DateTime.now()).minute.toString().padLeft(2, '0')} AM',
                             style: TextStyle(fontSize: 10, color: Colors.grey[500]),
                           ),
                         ],
