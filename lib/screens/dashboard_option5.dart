@@ -73,7 +73,7 @@ class _DashboardOption5State extends State<DashboardOption5> {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Colors.green[50]!, Colors.emerald[100]!],
+                  colors: [Colors.green[50]!, Colors.green[100]!],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.green[300]!, width: 2),
