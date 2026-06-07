@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/healthcare_organization.dart';
 import '../screens/organization_picker_screen.dart';
-import '../screens/dashboard_home.dart';
+import '../screens/dashboard_enterprise.dart';
 import '../screens/team_screen.dart';
 import '../screens/feedback_screen.dart';
 import '../screens/goals_screen.dart';
@@ -31,7 +31,7 @@ class _AppNavigationState extends State<AppNavigation> {
   void initState() {
     super.initState();
     _screens = [
-      const DashboardHome(),
+      const DashboardEnterprise(),
       const TeamScreen(),
       const FeedbackScreen(),
       const GoalsScreen(),
