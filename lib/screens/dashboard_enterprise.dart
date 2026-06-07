@@ -302,8 +302,8 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                       child: LinearProgressIndicator(
                         value: 0.34,
                         minHeight: 6,
-                        backgroundColor: Colors.orange[100],
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.orange[600]),
+                        backgroundColor: Colors.orange[100]!,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.orange[600]!),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -471,7 +471,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  '${fb.createdAt.day}/${fb.createdAt.month}, ${fb.createdAt.hour}:${fb.createdAt.minute.toString().padLeft(2, '0')} AM',
+                                  '${fb.createdAt!.day}/${fb.createdAt!.month}, ${fb.createdAt!.hour}:${fb.createdAt!.minute.toString().padLeft(2, '0')} AM',
                                   style: TextStyle(fontSize: 9, color: Colors.grey[500]),
                                 ),
                                 Container(
