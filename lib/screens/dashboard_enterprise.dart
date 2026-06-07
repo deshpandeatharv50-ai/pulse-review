@@ -351,7 +351,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Header
             Column(
