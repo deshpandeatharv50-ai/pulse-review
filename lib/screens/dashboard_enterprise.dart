@@ -363,25 +363,26 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
             ),
             const SizedBox(height: 24),
 
-            // KPI Cards
-            Row(
-              children: [
-                Expanded(
-                  child: _buildKPICard('👥 TEAM MEMBERS', totalMembers.toString(), Colors.blue),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildKPICard('✓ POSITIVE', totalPositive.toString(), Colors.green),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildKPICard('⚡ CONSTRUCTIVE', totalConstructive.toString(), Colors.orange),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildKPICard('⭐ AVG RATING', avgRating.toString(), Colors.amber),
-                ),
-              ],
+            // KPI Cards (Single Line)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildKPILineSingle('👥 TEAM MEMBERS', totalMembers.toString(), Colors.blue),
+                  Container(width: 1, height: 50, color: Colors.grey[200]),
+                  _buildKPILineSingle('✓ POSITIVE', totalPositive.toString(), Colors.green),
+                  Container(width: 1, height: 50, color: Colors.grey[200]),
+                  _buildKPILineSingle('⚡ CONSTRUCTIVE', totalConstructive.toString(), Colors.orange),
+                  Container(width: 1, height: 50, color: Colors.grey[200]),
+                  _buildKPILineSingle('⭐ AVG RATING', avgRating.toString(), Colors.amber),
+                ],
+              ),
             ),
             const SizedBox(height: 32),
 
@@ -688,6 +689,31 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildKPILineSingle(String label, String value, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 8, color: color, fontWeight: FontWeight.w700),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 4),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+        const SizedBox(height: 3),
+        Text(
+          label.contains('TEAM') ? 'Active' : label.contains('RATING') ? 'total' : 'week',
+          style: TextStyle(fontSize: 7, color: Colors.grey[600]),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 
