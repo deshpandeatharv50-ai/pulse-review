@@ -610,8 +610,8 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                                   child: LinearProgressIndicator(
                                     value: 0.34,
                                     minHeight: 4,
-                                    backgroundColor: Colors.orange[100],
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.orange[600]),
+                                    backgroundColor: Colors.orange[100]!,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.orange[600]!),
                                   ),
                                 ),
                               ],
