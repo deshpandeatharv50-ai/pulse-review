@@ -483,8 +483,10 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
             const SizedBox(height: 24),
 
             // Bottom Row: Pending Meetings + Goals Snapshot
-            Row(
-              children: [
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
                 Expanded(
                   child: GestureDetector(
                     onTap: _showPendingMeetingsPopup,
@@ -585,6 +587,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                   ),
                 ),
               ],
+              ),
             ),
             const SizedBox(height: 24),
 
