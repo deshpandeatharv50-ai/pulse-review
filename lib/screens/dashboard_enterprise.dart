@@ -543,29 +543,10 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                         children: [
                           const Text('Goals Snapshot', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                           const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          Column(
                             children: [
-                              Column(
-                                children: [
-                                  const Text('1', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: Colors.blue)),
-                                  const Text('Active', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 10)),
-                                ],
-                              ),
-                              Container(width: 1, height: 40, color: Colors.grey[300]),
-                              Column(
-                                children: [
-                                  const Text('0', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: Colors.green)),
-                                  const Text('Done', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 10)),
-                                ],
-                              ),
-                              Container(width: 1, height: 40, color: Colors.grey[300]),
-                              Column(
-                                children: [
-                                  const Text('0', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: Colors.red)),
-                                  const Text('Overdue', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 10)),
-                                ],
-                              ),
+                              const Text('1', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: Colors.blue)),
+                              const Text('Active', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 10)),
                             ],
                           ),
                           const SizedBox(height: 12),
