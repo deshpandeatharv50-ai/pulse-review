@@ -15,21 +15,21 @@ class DashboardHome extends StatefulWidget {
 class _DashboardHomeState extends State<DashboardHome> {
   int _selectedOption = 1;
 
-  final List<({int id, String label, String subtitle, Widget screen})> _dashboards = [
-    (id: 1, label: 'Rankings', subtitle: 'Top performers', screen: const DashboardScreen()),
-    (id: 2, label: 'Health Metrics', subtitle: 'Team health gauge', screen: const DashboardOption2()),
-    (id: 3, label: 'Alerts & Risks', subtitle: 'What needs attention', screen: const DashboardOption3()),
-    (id: 4, label: 'Departments', subtitle: 'By specialty', screen: const DashboardOption4()),
-    (id: 5, label: 'Sentiment', subtitle: 'Team culture', screen: const DashboardOption5()),
+  final List<Map<String, dynamic>> _dashboards = [
+    {'id': 1, 'label': 'Rankings', 'subtitle': 'Top performers', 'screen': const DashboardScreen()},
+    {'id': 2, 'label': 'Health Metrics', 'subtitle': 'Team health gauge', 'screen': const DashboardOption2()},
+    {'id': 3, 'label': 'Alerts & Risks', 'subtitle': 'What needs attention', 'screen': const DashboardOption3()},
+    {'id': 4, 'label': 'Departments', 'subtitle': 'By specialty', 'screen': const DashboardOption4()},
+    {'id': 5, 'label': 'Sentiment', 'subtitle': 'Team culture', 'screen': const DashboardOption5()},
   ];
 
   @override
   Widget build(BuildContext context) {
-    final selected = _dashboards.firstWhere((d) => d.id == _selectedOption);
+    final selected = _dashboards.firstWhere((d) => d['id'] == _selectedOption);
 
     return Stack(
       children: [
-        selected.screen,
+        selected['screen'] as Widget,
         // Dashboard variant selector (top-right corner)
         Positioned(
           top: 0,
@@ -51,7 +51,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        selected.label,
+                        selected['label'] as String,
                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(width: 4),
@@ -61,12 +61,12 @@ class _DashboardHomeState extends State<DashboardHome> {
                 ),
                 itemBuilder: (BuildContext context) => _dashboards
                     .map((dash) => PopupMenuItem<int>(
-                          value: dash.id,
+                          value: dash['id'] as int,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(dash.label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                              Text(dash.subtitle, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                              Text(dash['label'] as String, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                              Text(dash['subtitle'] as String, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
                             ],
                           ),
                         ))
