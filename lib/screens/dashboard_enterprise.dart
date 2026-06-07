@@ -363,24 +363,21 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
             ),
             const SizedBox(height: 24),
 
-            // KPI Cards (Single Line - LARGE)
+            // KPI Cards (Single Line - LARGE & CLEAN)
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.grey[200]!),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildKPILineSingle('👥 TEAM MEMBERS', totalMembers.toString(), Colors.blue),
-                  Container(width: 2, height: 70, color: Colors.grey[200]),
-                  _buildKPILineSingle('✓ POSITIVE', totalPositive.toString(), Colors.green),
-                  Container(width: 2, height: 70, color: Colors.grey[200]),
-                  _buildKPILineSingle('⚡ CONSTRUCTIVE', totalConstructive.toString(), Colors.orange),
-                  Container(width: 2, height: 70, color: Colors.grey[200]),
-                  _buildKPILineSingle('⭐ AVG RATING', avgRating.toString(), Colors.amber),
+                  Flexible(child: _buildKPILineSingle('👥 TEAM\nMEMBERS', totalMembers.toString(), Colors.blue)),
+                  Flexible(child: _buildKPILineSingle('✓ POSITIVE', totalPositive.toString(), Colors.green)),
+                  Flexible(child: _buildKPILineSingle('⚡ CONSTRUCTIVE', totalConstructive.toString(), Colors.orange)),
+                  Flexible(child: _buildKPILineSingle('⭐ AVG\nRATING', avgRating.toString(), Colors.amber)),
                 ],
               ),
             ),
@@ -693,27 +690,31 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
   }
 
   Widget _buildKPILineSingle(String label, String value, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w700),
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 8),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 28)),
-        const SizedBox(height: 4),
-        Text(
-          label.contains('TEAM') ? 'Active employees' : label.contains('RATING') ? 'total entries' : 'this week',
-          style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-          textAlign: TextAlign.center,
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w700),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 32, color: Colors.black),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label.contains('TEAM') ? 'Active' : label.contains('RATING') ? 'total' : 'week',
+            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
