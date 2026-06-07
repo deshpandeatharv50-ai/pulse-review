@@ -332,6 +332,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
+        clipBehavior: Clip.hardEdge,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
@@ -350,6 +351,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
       ),
       body: Container(
         color: Colors.grey[50],
+        clipBehavior: Clip.hardEdge,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
