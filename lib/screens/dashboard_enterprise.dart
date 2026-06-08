@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/feedback.dart';
-import 'feedback_screen.dart';
 
 // ENTERPRISE PROFESSIONAL DASHBOARD
 // Like Yashoda, Apollo - with collapsible popups for feedback, meetings, goals
@@ -334,25 +333,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         clipBehavior: Clip.hardEdge,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const FeedbackScreen()),
-                );
-              },
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Add Feedback'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[600],
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              ),
-            ),
-          ),
-        ],
+        actions: [],
       ),
       body: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
