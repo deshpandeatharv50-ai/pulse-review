@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/feedback.dart';
 import 'team_screen.dart';
 import 'goals_screen.dart';
@@ -336,7 +337,22 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         clipBehavior: Clip.hardEdge,
-        actions: [],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              try {
+                await Supabase.instance.client.auth.signOut();
+              } catch (_) {
+                // No active session
+              }
+              if (mounted) {
+                Navigator.of(context).pushReplacementNamed('/');
+              }
+            },
+            tooltip: 'Logout',
+          ),
+        ],
       ),
       body: SingleChildScrollView(
           padding: const EdgeInsets.all(24),

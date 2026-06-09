@@ -73,13 +73,7 @@ class _AppNavigationState extends State<AppNavigation> {
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
-            tooltip: 'Logout',
-          ),
-        ],
+        actions: [],
       ),
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
