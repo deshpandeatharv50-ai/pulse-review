@@ -21,11 +21,13 @@ class _GoalsScreenState extends State<GoalsScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: ClipRRect(
+        clipBehavior: Clip.hardEdge,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -120,8 +122,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
               progress: 34,
             ),
           ],
+            ),
+          ),
         ),
-      ),
     );
   }
 
