@@ -443,6 +443,7 @@ class _ReviewsListState extends State<ReviewsList> {
               const Text('Employee', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -460,6 +461,7 @@ class _ReviewsListState extends State<ReviewsList> {
               const Text('Review Type', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
