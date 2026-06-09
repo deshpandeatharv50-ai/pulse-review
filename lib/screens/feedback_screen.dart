@@ -23,7 +23,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   final _searchController = TextEditingController();
   final _yourNameController = TextEditingController();
   String _feedbackType = 'Positive';
-  String _category = 'Performance';
+  String _category = 'Clinical Excellence';
   int _rating = 0;
   bool _requestMeeting = false;
   bool _isSubmitting = false;
@@ -320,8 +320,27 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           ),
-                          items: ['Performance', 'Behavior', 'Teamwork'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                          onChanged: (value) => setState(() => _category = value ?? 'Performance'),
+                          items: [
+                            'Clinical Excellence',
+                            'Patient Care',
+                            'Team Collaboration',
+                            'Leadership',
+                            'Communication',
+                            'Reliability',
+                            'Documentation',
+                            'Innovation',
+                            'Professionalism',
+                            'Safety & Compliance',
+                            'Training & Development',
+                            'Research & Analysis',
+                            'Problem Solving',
+                            'Time Management',
+                            'Adaptability',
+                            'Mentoring',
+                            'Quality of Work',
+                            'Attendance',
+                          ].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                          onChanged: (value) => setState(() => _category = value ?? 'Clinical Excellence'),
                         ),
                       ],
                     ),
