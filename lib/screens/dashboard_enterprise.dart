@@ -471,7 +471,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
             ),
             const SizedBox(height: 24),
 
-            // Pending Meetings
+            // Pending Meetings (Top 5)
             GestureDetector(
               onTap: _showPendingMeetingsPopup,
               child: Container(
@@ -499,8 +499,20 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 16),
+                    _buildMeetingItem('P', 'Priya Sharma', 'Requested by none'),
+                    const SizedBox(height: 8),
+                    _buildMeetingItem('D', 'David Park', 'Requested by none'),
+                    const SizedBox(height: 8),
+                    _buildMeetingItem('M', 'Marcus Johnson', 'Requested by none'),
+                    const SizedBox(height: 8),
+                    _buildMeetingItem('J', 'James Bellano', 'Requested by supervisor'),
+                    const SizedBox(height: 8),
+                    _buildMeetingItem('S', 'Sarah Chen', 'Requested by none'),
                     const SizedBox(height: 12),
-                    const Text('View pending meeting requests', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    Center(
+                      child: Text('Tap to view all 9 meetings →', style: TextStyle(fontSize: 10, color: Colors.grey[500], fontStyle: FontStyle.italic)),
+                    ),
                   ],
                 ),
               ),
