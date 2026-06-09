@@ -276,22 +276,33 @@ class _ReviewsListState extends State<ReviewsList> {
 
             // Action Button
             const SizedBox(width: 16),
-            OutlinedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const ReviewsAdvancedClassic(),
+            review['status'] == 'shared'
+                ? OutlinedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ReviewsAdvancedClassic(),
+                        ),
+                      );
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.grey[600],
+                      side: BorderSide(color: Colors.grey[400]!),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
+                    child: const Text('View', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                  )
+                : OutlinedButton(
+                    onPressed: () => _showFinalizeDialog(review, index),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.blue[600],
+                      side: BorderSide(color: Colors.blue[600]!, width: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
+                    child: const Text('Finalize', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                   ),
-                );
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.blue[600],
-                side: BorderSide(color: Colors.blue[600]!, width: 2),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              ),
-              child: const Text('Finalize', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-            ),
           ],
         ),
       ),
@@ -470,6 +481,97 @@ class _ReviewsListState extends State<ReviewsList> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.grey[900],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFinalizeDialog(Map<String, dynamic> review, int index) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Finalize & Share Review'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Finalize review for ${review['employeeName']}?',
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'This action will:',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildChecklistItem('Lock the review (no more edits)'),
+                  _buildChecklistItem('Mark as "Shared"'),
+                  _buildChecklistItem('Send notification to employee'),
+                  _buildChecklistItem('Create official record'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '⚠️ This action cannot be undone.',
+              style: TextStyle(fontSize: 11, color: Colors.orange[700], fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              // Update review status
+              _reviewsData[index]['status'] = 'shared';
+              setState(() {});
+
+              // Show success message
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('✓ ${review['employeeName']}\'s review finalized and shared!'),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+
+              Navigator.pop(context);
+            },
+            icon: const Icon(Icons.check_circle),
+            label: const Text('Finalize & Share'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChecklistItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('✓ ', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w700)),
+          Expanded(
+            child: Text(text, style: const TextStyle(fontSize: 12)),
           ),
         ],
       ),
