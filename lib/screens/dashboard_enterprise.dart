@@ -471,6 +471,42 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
             ),
             const SizedBox(height: 24),
 
+            // Pending Meetings
+            GestureDetector(
+              onTap: _showPendingMeetingsPopup,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[200]!),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Pending Meetings', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.purple[100],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Text('9', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.purple)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    const Text('View pending meeting requests', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
             // Goals Snapshot
             GestureDetector(
               onTap: _showGoalsSnapshotPopup,
