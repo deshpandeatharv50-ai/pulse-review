@@ -59,17 +59,15 @@ class _GoalsScreenState extends State<GoalsScreen> {
             const SizedBox(height: 24),
 
             // KPI Cards
-            GridView.count(
-              crossAxisCount: 4,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
+            Row(
               children: [
-                _buildKPICard('TOTAL GOALS', '1', Icons.adjust, Colors.blue),
-                _buildKPICard('IN PROGRESS', '1', Icons.flag, Colors.orange),
-                _buildKPICard('COMPLETED', '0', Icons.check_circle, Colors.green),
-                _buildKPICard('OVERDUE', '0', Icons.schedule, Colors.red),
+                Expanded(child: _buildKPICard('TOTAL GOALS', '1', Icons.adjust, Colors.blue)),
+                const SizedBox(width: 12),
+                Expanded(child: _buildKPICard('IN PROGRESS', '1', Icons.flag, Colors.orange)),
+                const SizedBox(width: 12),
+                Expanded(child: _buildKPICard('COMPLETED', '0', Icons.check_circle, Colors.green)),
+                const SizedBox(width: 12),
+                Expanded(child: _buildKPICard('OVERDUE', '0', Icons.schedule, Colors.red)),
               ],
             ),
             const SizedBox(height: 32),
@@ -130,23 +128,24 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
   Widget _buildKPICard(String label, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         color: Colors.white,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 24),
+          Icon(icon, color: color, size: 20),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w500)),
-              const SizedBox(height: 4),
-              Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+              const SizedBox(height: 2),
+              Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
         ],
