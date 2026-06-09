@@ -21,13 +21,11 @@ class _GoalsScreenState extends State<GoalsScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: ClipRRect(
-        clipBehavior: Clip.hardEdge,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
             // Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -59,16 +57,19 @@ class _GoalsScreenState extends State<GoalsScreen> {
             const SizedBox(height: 24),
 
             // KPI Cards
-            Row(
-              children: [
-                Expanded(child: _buildKPICard('TOTAL GOALS', '1', Icons.adjust, Colors.blue)),
-                const SizedBox(width: 12),
-                Expanded(child: _buildKPICard('IN PROGRESS', '1', Icons.flag, Colors.orange)),
-                const SizedBox(width: 12),
-                Expanded(child: _buildKPICard('COMPLETED', '0', Icons.check_circle, Colors.green)),
-                const SizedBox(width: 12),
-                Expanded(child: _buildKPICard('OVERDUE', '0', Icons.schedule, Colors.red)),
-              ],
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: double.infinity),
+              child: Row(
+                children: [
+                  Expanded(child: _buildKPICard('TOTAL GOALS', '1', Icons.adjust, Colors.blue)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildKPICard('IN PROGRESS', '1', Icons.flag, Colors.orange)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildKPICard('COMPLETED', '0', Icons.check_circle, Colors.green)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildKPICard('OVERDUE', '0', Icons.schedule, Colors.red)),
+                ],
+              ),
             ),
             const SizedBox(height: 32),
 
@@ -120,10 +121,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
               progress: 34,
             ),
           ],
-            ),
-          ),
         ),
-    );
+      );
   }
 
   Widget _buildKPICard(String label, String value, IconData icon, Color color) {
