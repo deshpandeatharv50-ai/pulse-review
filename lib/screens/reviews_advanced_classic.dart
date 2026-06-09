@@ -23,13 +23,9 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
       'cycle': 'Q2 2026',
       'reviewerName': 'Dr. Priya Sharma',
       'status': 'Approved',
-
-      // CLASSIC SECTION: Core Rating
       'overallScore': 4.5,
       'performanceLevel': 'Exceeds Expectations',
       'compareTo': 'Department Avg: 4.1',
-
-      // CLASSIC: Competencies (timeless structure)
       'competencies': [
         {'name': 'Clinical Excellence', 'score': 5, 'weight': 25, 'benchmark': 4.2, 'trend': '↑'},
         {'name': 'Patient Care', 'score': 5, 'weight': 25, 'benchmark': 4.3, 'trend': '↑'},
@@ -37,8 +33,6 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
         {'name': 'Leadership', 'score': 4, 'weight': 15, 'benchmark': 3.8, 'trend': '↑'},
         {'name': 'Innovation', 'score': 4, 'weight': 15, 'benchmark': 3.5, 'trend': '↑'},
       ],
-
-      // ADVANCED: AI Behavioral Intelligence
       'aiInsights': {
         'sentiment': 'Positive',
         'sentimentScore': 92,
@@ -47,78 +41,34 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
         'reliability': '98.5% attendance, zero missed deadlines',
         'adaptability': 'Quick learner, implements feedback immediately',
       },
-
-      // ADVANCED: Skill Velocity (growth trajectory)
       'skillVelocity': [
         {'skill': 'Diagnostic Accuracy', 'growth': 12, 'trajectory': 'Ascending'},
         {'skill': 'Mentoring', 'growth': 18, 'trajectory': 'Ascending'},
         {'skill': 'Research', 'growth': 8, 'trajectory': 'Stable'},
         {'skill': 'Documentation', 'growth': -3, 'trajectory': 'Descending'},
       ],
-
-      // CLASSIC: Objectives & Goals
       'objectives': [
         {'goal': 'Publish 2 research papers', 'status': 'In Progress', 'progress': 50, 'dueDate': '30-Sep-2026'},
         {'goal': 'Advance Echocardiography', 'status': 'In Progress', 'progress': 75, 'dueDate': '31-Aug-2026'},
         {'goal': 'Mentor 2 junior residents', 'status': 'Completed', 'progress': 100, 'dueDate': '30-Jun-2026'},
       ],
-
-      // ADVANCED: Peer Benchmarking
-      'peerBenchmark': {
-        'yourRank': '1st',
-        'totalPeers': 12,
-        'percentile': 92,
-        'topQuartile': true,
-      },
-
-      // ADVANCED: Engagement & Culture Fit
-      'engagementMetrics': {
-        'teamSentiment': 95,
-        'cultureFit': 94,
-        'leadershipReady': 88,
-        'retentionRisk': 5,
-      },
-
-      // CLASSIC: Strengths (narrative)
-      'strengths': [
-        'Exceptional diagnostic accuracy (98% rate)',
-        'Natural mentor - develops junior talent',
-        'Proactive in adopting new protocols',
-        'Strong patient outcomes',
-      ],
-
-      // CLASSIC: Development Areas
-      'development': [
-        'Time management in documentation (85% vs 95% target)',
-        'Delegate more tasks to team',
-      ],
-
-      // ADVANCED: Predictive Analytics
-      'predictiveInsights': {
-        'promotionReadiness': 92,
-        'leadershipPotential': 'Very High',
-        'retentionScore': 95,
-        'nextCareerPath': 'Department Head in 2-3 years',
-        'skillGapsForPromotion': ['Executive leadership', 'Strategic planning'],
-      },
-
-      // ADVANCED: Development Roadmap
+      'peerBenchmark': {'yourRank': '1st', 'totalPeers': 12, 'percentile': 92, 'topQuartile': true},
+      'engagementMetrics': {'teamSentiment': 95, 'cultureFit': 94, 'leadershipReady': 88, 'retentionRisk': 5},
+      'strengths': ['Exceptional diagnostic accuracy (98% rate)', 'Natural mentor - develops junior talent', 'Proactive in adopting new protocols', 'Strong patient outcomes'],
+      'development': ['Time management in documentation (85% vs 95% target)', 'Delegate more tasks to team'],
+      'predictiveInsights': {'promotionReadiness': 92, 'leadershipPotential': 'Very High', 'retentionScore': 95, 'nextCareerPath': 'Department Head in 2-3 years', 'skillGapsForPromotion': ['Executive leadership', 'Strategic planning']},
       'developmentRoadmap': [
         {'q': 'Q3 2026', 'action': 'Executive Leadership Workshop', 'priority': 'High'},
         {'q': 'Q4 2026', 'action': 'MBA in Healthcare Management', 'priority': 'High'},
         {'q': 'Q1 2027', 'action': 'Lead Strategic Initiative', 'priority': 'Medium'},
         {'q': 'Q2 2027', 'action': 'Department Head Shadowing', 'priority': 'High'},
       ],
-
-      // ADVANCED: Real-time Feedback Pulse
       'feedbackPulse': [
         {'date': 'Jun 10', 'sentiment': 'Positive', 'category': 'Clinical Excellence'},
         {'date': 'Jun 5', 'sentiment': 'Positive', 'category': 'Mentoring'},
         {'date': 'May 28', 'sentiment': 'Constructive', 'category': 'Documentation'},
         {'date': 'May 15', 'sentiment': 'Positive', 'category': 'Collaboration'},
       ],
-
-      // ADVANCED: Comparison Trends (6 months)
       'trendData': [
         {'month': 'Jan', 'score': 4.1},
         {'month': 'Feb', 'score': 4.2},
@@ -126,6 +76,189 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
         {'month': 'Apr', 'score': 4.4},
         {'month': 'May', 'score': 4.5},
         {'month': 'Jun', 'score': 4.5},
+      ],
+    },
+    {
+      'name': 'Dr. Sarah Mitchell',
+      'role': 'Chief Medical Officer',
+      'dept': 'Clinical',
+      'tenure': '15 years',
+      'profileImage': '👩‍⚕️',
+      'cycle': 'Q2 2026',
+      'reviewerName': 'Hospital Director',
+      'status': 'Approved',
+      'overallScore': 4.8,
+      'performanceLevel': 'Exceeds Expectations',
+      'compareTo': 'Department Avg: 4.1',
+      'competencies': [
+        {'name': 'Clinical Excellence', 'score': 5, 'weight': 25, 'benchmark': 4.2, 'trend': '↑'},
+        {'name': 'Patient Care', 'score': 5, 'weight': 25, 'benchmark': 4.3, 'trend': '↑'},
+        {'name': 'Team Collaboration', 'score': 5, 'weight': 20, 'benchmark': 4.0, 'trend': '↑'},
+        {'name': 'Leadership', 'score': 5, 'weight': 15, 'benchmark': 3.8, 'trend': '↑'},
+        {'name': 'Innovation', 'score': 5, 'weight': 15, 'benchmark': 3.5, 'trend': '↑'},
+      ],
+      'aiInsights': {
+        'sentiment': 'Positive',
+        'sentimentScore': 96,
+        'communication': 'Visionary communicator, strategic thinker',
+        'collaboration': 'Exceptional team builder, mentors 8+ staff members',
+        'reliability': '99.2% attendance, exceeds all deadlines',
+        'adaptability': 'Innovation champion, drives organizational change',
+      },
+      'skillVelocity': [
+        {'skill': 'Strategic Planning', 'growth': 22, 'trajectory': 'Ascending'},
+        {'skill': 'Team Leadership', 'growth': 25, 'trajectory': 'Ascending'},
+        {'skill': 'Clinical Excellence', 'growth': 10, 'trajectory': 'Stable'},
+        {'skill': 'Patient Relations', 'growth': 15, 'trajectory': 'Ascending'},
+      ],
+      'objectives': [
+        {'goal': 'Launch new cardiac unit', 'status': 'Completed', 'progress': 100, 'dueDate': '30-May-2026'},
+        {'goal': 'Implement AI diagnostics', 'status': 'In Progress', 'progress': 85, 'dueDate': '31-Dec-2026'},
+        {'goal': 'Train 15 new physicians', 'status': 'In Progress', 'progress': 90, 'dueDate': '30-Aug-2026'},
+      ],
+      'peerBenchmark': {'yourRank': '1st', 'totalPeers': 12, 'percentile': 98, 'topQuartile': true},
+      'engagementMetrics': {'teamSentiment': 98, 'cultureFit': 96, 'leadershipReady': 95, 'retentionRisk': 2},
+      'strengths': ['Visionary leadership driving organizational growth', 'Exceptional mentorship record', 'Award-winning patient care outcomes', 'Strategic decision-maker'],
+      'development': ['Work-life balance management', 'Delegation of routine tasks'],
+      'predictiveInsights': {'promotionReadiness': 98, 'leadershipPotential': 'Executive Ready', 'retentionScore': 98, 'nextCareerPath': 'Hospital Director potential', 'skillGapsForPromotion': ['None identified']},
+      'developmentRoadmap': [
+        {'q': 'Q3 2026', 'action': 'Executive Board Leadership Course', 'priority': 'High'},
+        {'q': 'Q4 2026', 'action': 'Healthcare Economics Certification', 'priority': 'Medium'},
+      ],
+      'feedbackPulse': [
+        {'date': 'Jun 12', 'sentiment': 'Positive', 'category': 'Leadership'},
+        {'date': 'Jun 8', 'sentiment': 'Positive', 'category': 'Strategic Vision'},
+        {'date': 'May 30', 'sentiment': 'Positive', 'category': 'Team Development'},
+      ],
+      'trendData': [
+        {'month': 'Jan', 'score': 4.6},
+        {'month': 'Feb', 'score': 4.7},
+        {'month': 'Mar', 'score': 4.7},
+        {'month': 'Apr', 'score': 4.8},
+        {'month': 'May', 'score': 4.8},
+        {'month': 'Jun', 'score': 4.8},
+      ],
+    },
+    {
+      'name': 'RN. Emily Rodriguez',
+      'role': 'Charge Nurse',
+      'dept': 'OR',
+      'tenure': '10 years',
+      'profileImage': '👩‍⚕️',
+      'cycle': 'Q2 2026',
+      'reviewerName': 'OR Supervisor',
+      'status': 'Approved',
+      'overallScore': 4.6,
+      'performanceLevel': 'Exceeds Expectations',
+      'compareTo': 'Department Avg: 4.0',
+      'competencies': [
+        {'name': 'Clinical Excellence', 'score': 5, 'weight': 25, 'benchmark': 4.2, 'trend': '↑'},
+        {'name': 'Patient Care', 'score': 4, 'weight': 25, 'benchmark': 4.3, 'trend': '→'},
+        {'name': 'Team Collaboration', 'score': 5, 'weight': 20, 'benchmark': 4.0, 'trend': '↑'},
+        {'name': 'Leadership', 'score': 4, 'weight': 15, 'benchmark': 3.8, 'trend': '↑'},
+        {'name': 'Innovation', 'score': 4, 'weight': 15, 'benchmark': 3.5, 'trend': '→'},
+      ],
+      'aiInsights': {
+        'sentiment': 'Positive',
+        'sentimentScore': 88,
+        'communication': 'Clear communicator, efficient in operations',
+        'collaboration': 'Strong team player, handles complex cases',
+        'reliability': '97% attendance, dependable schedule',
+        'adaptability': 'Adapts well to new procedures and protocols',
+      },
+      'skillVelocity': [
+        {'skill': 'Surgical Protocols', 'growth': 14, 'trajectory': 'Ascending'},
+        {'skill': 'Team Coordination', 'growth': 16, 'trajectory': 'Ascending'},
+        {'skill': 'Patient Safety', 'growth': 12, 'trajectory': 'Ascending'},
+        {'skill': 'Documentation', 'growth': 5, 'trajectory': 'Stable'},
+      ],
+      'objectives': [
+        {'goal': 'Certify in advanced surgical nursing', 'status': 'In Progress', 'progress': 65, 'dueDate': '31-Oct-2026'},
+        {'goal': 'Reduce surgical errors by 30%', 'status': 'In Progress', 'progress': 78, 'dueDate': '30-Sep-2026'},
+        {'goal': 'Mentor 3 new nurses', 'status': 'In Progress', 'progress': 80, 'dueDate': '30-Nov-2026'},
+      ],
+      'peerBenchmark': {'yourRank': '2nd', 'totalPeers': 10, 'percentile': 88, 'topQuartile': true},
+      'engagementMetrics': {'teamSentiment': 90, 'cultureFit': 88, 'leadershipReady': 82, 'retentionRisk': 8},
+      'strengths': ['Exceptional surgical expertise', 'Strong patient advocacy', 'Reliable and consistent performer', 'Good mentoring ability'],
+      'development': ['Supervisory skills development', 'Public speaking confidence'],
+      'predictiveInsights': {'promotionReadiness': 85, 'leadershipPotential': 'High', 'retentionScore': 92, 'nextCareerPath': 'Senior OR Charge Nurse in 2 years', 'skillGapsForPromotion': ['Formal management training']},
+      'developmentRoadmap': [
+        {'q': 'Q3 2026', 'action': 'Nursing Leadership Certificate', 'priority': 'High'},
+        {'q': 'Q4 2026', 'action': 'Advanced Surgical Certification', 'priority': 'High'},
+      ],
+      'feedbackPulse': [
+        {'date': 'Jun 9', 'sentiment': 'Positive', 'category': 'Patient Safety'},
+        {'date': 'Jun 1', 'sentiment': 'Positive', 'category': 'Team Coordination'},
+        {'date': 'May 25', 'sentiment': 'Positive', 'category': 'Clinical Skills'},
+      ],
+      'trendData': [
+        {'month': 'Jan', 'score': 4.2},
+        {'month': 'Feb', 'score': 4.3},
+        {'month': 'Mar', 'score': 4.4},
+        {'month': 'Apr', 'score': 4.5},
+        {'month': 'May', 'score': 4.6},
+        {'month': 'Jun', 'score': 4.6},
+      ],
+    },
+    {
+      'name': 'Dr. James Anderson',
+      'role': 'Senior Cardiologist',
+      'dept': 'Cardiac Care',
+      'tenure': '18 years',
+      'profileImage': '👨‍⚕️',
+      'cycle': 'Q2 2026',
+      'reviewerName': 'Cardiology Head',
+      'status': 'Pending',
+      'overallScore': 4.4,
+      'performanceLevel': 'Meets Expectations',
+      'compareTo': 'Department Avg: 4.1',
+      'competencies': [
+        {'name': 'Clinical Excellence', 'score': 5, 'weight': 25, 'benchmark': 4.2, 'trend': '↑'},
+        {'name': 'Patient Care', 'score': 4, 'weight': 25, 'benchmark': 4.3, 'trend': '→'},
+        {'name': 'Team Collaboration', 'score': 4, 'weight': 20, 'benchmark': 4.0, 'trend': '→'},
+        {'name': 'Leadership', 'score': 4, 'weight': 15, 'benchmark': 3.8, 'trend': '↑'},
+        {'name': 'Innovation', 'score': 3, 'weight': 15, 'benchmark': 3.5, 'trend': '↓'},
+      ],
+      'aiInsights': {
+        'sentiment': 'Neutral',
+        'sentimentScore': 75,
+        'communication': 'Effective but formal communicator',
+        'collaboration': 'Solid peer relationships, focuses on specialization',
+        'reliability': '96% attendance, occasional deadline delays',
+        'adaptability': 'Prefers established methods, slower to embrace change',
+      },
+      'skillVelocity': [
+        {'skill': 'Interventional Cardiology', 'growth': 8, 'trajectory': 'Stable'},
+        {'skill': 'Patient Education', 'growth': 5, 'trajectory': 'Stable'},
+        {'skill': 'Research', 'growth': -2, 'trajectory': 'Descending'},
+        {'skill': 'Digital Tools', 'growth': 3, 'trajectory': 'Stable'},
+      ],
+      'objectives': [
+        {'goal': 'Complete catheterization cases', 'status': 'Completed', 'progress': 100, 'dueDate': '30-Jun-2026'},
+        {'goal': 'Attend cardiology conference', 'status': 'In Progress', 'progress': 50, 'dueDate': '30-Oct-2026'},
+        {'goal': 'Publish case studies', 'status': 'Not Started', 'progress': 0, 'dueDate': '31-Dec-2026'},
+      ],
+      'peerBenchmark': {'yourRank': '6th', 'totalPeers': 12, 'percentile': 65, 'topQuartile': false},
+      'engagementMetrics': {'teamSentiment': 78, 'cultureFit': 75, 'leadershipReady': 68, 'retentionRisk': 18},
+      'strengths': ['Deep clinical expertise in cardiology', 'Excellent patient relationships', 'Reliable clinical performer', 'Strong diagnostic skills'],
+      'development': ['Embrace innovative treatment methods', 'Enhance collaborative research efforts', 'Upgrade digital competency'],
+      'predictiveInsights': {'promotionReadiness': 62, 'leadershipPotential': 'Moderate', 'retentionScore': 70, 'nextCareerPath': 'Specialist consultant role', 'skillGapsForPromotion': ['Leadership training', 'Innovation mindset', 'Digital transformation']},
+      'developmentRoadmap': [
+        {'q': 'Q3 2026', 'action': 'Innovation in Healthcare Workshop', 'priority': 'High'},
+        {'q': 'Q4 2026', 'action': 'Digital Health Certification', 'priority': 'High'},
+      ],
+      'feedbackPulse': [
+        {'date': 'Jun 7', 'sentiment': 'Positive', 'category': 'Clinical Skills'},
+        {'date': 'May 22', 'sentiment': 'Constructive', 'category': 'Team Collaboration'},
+        {'date': 'May 10', 'sentiment': 'Constructive', 'category': 'Innovation'},
+      ],
+      'trendData': [
+        {'month': 'Jan', 'score': 4.4},
+        {'month': 'Feb', 'score': 4.4},
+        {'month': 'Mar', 'score': 4.4},
+        {'month': 'Apr', 'score': 4.4},
+        {'month': 'May', 'score': 4.4},
+        {'month': 'Jun', 'score': 4.4},
       ],
     },
   ];
@@ -159,6 +292,70 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // EMPLOYEE SELECTOR - Horizontal Scrollable List
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              color: Colors.grey[100],
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: List.generate(
+                    _employees.length,
+                    (index) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: GestureDetector(
+                        onTap: () => setState(() {
+                          _selectedEmployeeIndex = index;
+                          _tabController.animateTo(0);
+                        }),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: _selectedEmployeeIndex == index ? const Color(0xFF1A237E) : Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: _selectedEmployeeIndex == index ? const Color(0xFF1A237E) : Colors.grey[300]!,
+                              width: 2,
+                            ),
+                            boxShadow: _selectedEmployeeIndex == index
+                                ? [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 8)]
+                                : [],
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _employees[index]['profileImage'] as String,
+                                style: const TextStyle(fontSize: 24),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                (_employees[index]['name'] as String).split(' ')[0],
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12,
+                                  color: _selectedEmployeeIndex == index ? Colors.white : Colors.grey[800],
+                                ),
+                              ),
+                              Text(
+                                (_employees[index]['name'] as String).split(' ').last,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 11,
+                                  color: _selectedEmployeeIndex == index ? Colors.white70 : Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
             // HEADER - Classic Professional Format
             _buildClassicHeader(emp),
 
@@ -237,10 +434,10 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.green[400],
+                  color: emp['status'] == 'Approved' ? Colors.green[400] : Colors.orange[400],
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text('Approved', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
+                child: Text(emp['status'] as String, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
               ),
             ],
           ),
