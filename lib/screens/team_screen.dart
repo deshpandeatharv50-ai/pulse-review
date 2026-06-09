@@ -270,7 +270,7 @@ class _TeamScreenState extends State<TeamScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        childAspectRatio: 0.85,
+                        childAspectRatio: 0.75,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
                       ),
@@ -328,7 +328,7 @@ class _TeamScreenState extends State<TeamScreen> {
             Text(
               emp['title'],
               style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 8),
@@ -338,7 +338,7 @@ class _TeamScreenState extends State<TeamScreen> {
               runSpacing: 4,
               children: [
                 _tagChip(emp['department']),
-                _tagChip(emp['specialty'].length > 8 ? emp['specialty'].substring(0, 8) + '...' : emp['specialty']),
+                _tagChip(emp['specialty']),
               ],
             ),
           ],
