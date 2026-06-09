@@ -266,8 +266,14 @@ class _TeamScreenState extends State<TeamScreen> {
                         ],
                       ),
                     )
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                  : GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 1,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
                       itemCount: filtered.length,
                       itemBuilder: (_, i) => _staffCard(filtered[i]),
                     ),
@@ -279,126 +285,77 @@ class _TeamScreenState extends State<TeamScreen> {
   }
 
   Widget _staffCard(Map<String, dynamic> emp) {
-    final statusColor = emp['status'] == 'Available'
-        ? Colors.green
-        : emp['status'] == 'On-Shift'
-            ? Colors.blue
-            : Colors.orange;
+    final initials = emp['name']
+        .toString()
+        .split(' ')
+        .map((name) => name[0])
+        .join()
+        .toUpperCase();
+
+    final avatarColors = [Colors.blue, Colors.pink, Colors.purple, Colors.orange, Colors.green, Colors.red, Colors.amber, Colors.cyan];
+    final colorIndex = emp['name'].toString().hashCode % avatarColors.length;
+    final avatarColor = avatarColors[colorIndex];
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 1.5,
+      elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border(left: BorderSide(color: statusColor, width: 5)),
-        ),
-        padding: const EdgeInsets.all(14),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        emp['name'],
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        emp['title'],
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: teal),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 7,
-                        height: 7,
-                        decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        emp['status'],
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            // Avatar
+            CircleAvatar(
+              radius: 32,
+              backgroundColor: avatarColor,
+              child: Text(
+                initials,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(child: _chip(Icons.local_hospital, 'Specialty', emp['specialty'])),
-                const SizedBox(width: 8),
-                Expanded(child: _chip(Icons.badge, 'License', emp['licenseNumber'])),
-              ],
+            // Name
+            Text(
+              emp['name'],
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(child: _chip(Icons.people, 'Patients', '${emp['patientLoad']}')),
-                const SizedBox(width: 8),
-                Expanded(child: _chip(Icons.star, 'Score', '${emp['performanceScore']}/5.0')),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${emp['yearsExperience']} yrs • ${emp['qualifications']}',
-                  style: TextStyle(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w500),
-                ),
-              ],
+            // Designation
+            Text(
+              emp['title'],
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 10),
-            Row(
+            // Department Tags
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.phone, size: 14),
-                    label: const Text('Call', style: TextStyle(fontSize: 12)),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: teal,
-                      side: const BorderSide(color: teal),
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                    ),
-                    onPressed: () {},
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.feedback, size: 14),
-                    label: const Text('Feedback', style: TextStyle(fontSize: 12)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: teal,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                    ),
-                    onPressed: () {},
-                  ),
-                ),
+                _tagChip(emp['department']),
+                _tagChip(emp['specialty'].length > 10 ? emp['specialty'].substring(0, 10) + '...' : emp['specialty']),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _tagChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 10, color: Colors.grey[700]),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
