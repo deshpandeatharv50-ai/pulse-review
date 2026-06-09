@@ -438,7 +438,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               setState(() {
                 _rating = 0;
                 _feedbackType = 'Positive';
-                _category = 'Performance';
+                _category = 'Clinical Excellence';
                 _requestMeeting = false;
               });
               Navigator.pop(ctx);
@@ -475,7 +475,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               setState(() {
                 _rating = 0;
                 _feedbackType = 'Positive';
-                _category = 'Performance';
+                _category = 'Clinical Excellence';
                 _requestMeeting = false;
               });
               Navigator.pop(ctx);
