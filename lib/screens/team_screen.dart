@@ -270,7 +270,7 @@ class _TeamScreenState extends State<TeamScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        childAspectRatio: 1,
+                        childAspectRatio: 0.85,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
                       ),
@@ -300,42 +300,45 @@ class _TeamScreenState extends State<TeamScreen> {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             // Avatar
-            CircleAvatar(
-              radius: 32,
-              backgroundColor: avatarColor,
-              child: Text(
-                initials,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+            Center(
+              child: CircleAvatar(
+                radius: 28,
+                backgroundColor: avatarColor,
+                child: Text(
+                  initials,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             // Name
             Text(
               emp['name'],
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             // Designation
             Text(
               emp['title'],
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             // Department Tags
             Wrap(
-              spacing: 6,
-              runSpacing: 6,
+              spacing: 4,
+              runSpacing: 4,
               children: [
                 _tagChip(emp['department']),
-                _tagChip(emp['specialty'].length > 10 ? emp['specialty'].substring(0, 10) + '...' : emp['specialty']),
+                _tagChip(emp['specialty'].length > 8 ? emp['specialty'].substring(0, 8) + '...' : emp['specialty']),
               ],
             ),
           ],
@@ -346,14 +349,14 @@ class _TeamScreenState extends State<TeamScreen> {
 
   Widget _tagChip(String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
         color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
         label,
-        style: TextStyle(fontSize: 10, color: Colors.grey[700]),
+        style: TextStyle(fontSize: 9, color: Colors.grey[700]),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
