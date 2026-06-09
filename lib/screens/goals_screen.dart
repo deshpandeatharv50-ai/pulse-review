@@ -122,7 +122,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
             ),
           ],
         ),
-      );
+      ),
+    );
   }
 
   Widget _buildKPICard(String label, String value, IconData icon, Color color) {
