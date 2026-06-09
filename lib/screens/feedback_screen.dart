@@ -229,11 +229,12 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             ),
           ],
         ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        content: ClipRRect(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               // Employee
               const Text('Employee *', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
               const SizedBox(height: 8),
@@ -402,6 +403,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 ),
               ),
             ],
+            ),
           ),
         ),
         actions: [
