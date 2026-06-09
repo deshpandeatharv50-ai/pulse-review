@@ -29,12 +29,12 @@ class _GoalsScreenState extends State<GoalsScreen> {
       'progress': 62,
     },
     {
-      'title': 'Complete advanced certification training',
-      'status': 'Not Started',
+      'title': 'Complete quarterly compliance audit',
+      'status': 'Overdue',
       'owner': 'Sarah Chen',
-      'category': 'Professional Development',
-      'dueDate': 'Due Mar 31, 2027',
-      'progress': 0,
+      'category': 'Compliance',
+      'dueDate': 'Due Sep 30, 2026',
+      'progress': 25,
     },
     {
       'title': 'Reduce medication errors by 50%',
@@ -49,16 +49,16 @@ class _GoalsScreenState extends State<GoalsScreen> {
       'status': 'Completed',
       'owner': 'Priya Sharma',
       'category': 'Operations',
-      'dueDate': 'Due Nov 30, 2026',
+      'dueDate': 'Completed Nov 30, 2026',
       'progress': 100,
     },
     {
-      'title': 'Mentor 2 junior staff members',
-      'status': 'In Progress',
+      'title': 'Update staff training materials',
+      'status': 'Overdue',
       'owner': 'Dr. Kapoor',
-      'category': 'Leadership',
-      'dueDate': 'Due Apr 30, 2027',
-      'progress': 50,
+      'category': 'Training',
+      'dueDate': 'Due Oct 15, 2026',
+      'progress': 15,
     },
   ];
 
@@ -109,7 +109,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   const SizedBox(width: 12),
                   Expanded(child: _buildKPICard('COMPLETED', _goals.where((g) => g['status'] == 'Completed').length.toString(), Icons.check_circle, Colors.green)),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildKPICard('OVERDUE', '0', Icons.schedule, Colors.red)),
+                  Expanded(child: _buildKPICard('OVERDUE', _goals.where((g) => g['status'] == 'Overdue').length.toString(), Icons.schedule, Colors.red)),
                 ],
               ),
             ),
@@ -131,7 +131,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: ['All', 'Not Started', 'In Progress', 'Completed']
+                      children: ['All', 'In Progress', 'Completed', 'Overdue']
                           .map((status) => Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: FilterChip(
@@ -307,15 +307,29 @@ class _GoalsScreenState extends State<GoalsScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: status == 'Completed' ? Colors.green[50] : Colors.orange[50],
-                            border: Border.all(color: status == 'Completed' ? Colors.green[200]! : Colors.orange[200]!),
+                            color: status == 'Completed'
+                                ? Colors.green[50]
+                                : status == 'Overdue'
+                                    ? Colors.red[50]
+                                    : Colors.orange[50],
+                            border: Border.all(
+                              color: status == 'Completed'
+                                  ? Colors.green[200]!
+                                  : status == 'Overdue'
+                                      ? Colors.red[200]!
+                                      : Colors.orange[200]!,
+                            ),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             status,
                             style: TextStyle(
                               fontSize: 11,
-                              color: status == 'Completed' ? Colors.green[700] : Colors.orange[700],
+                              color: status == 'Completed'
+                                  ? Colors.green[700]
+                                  : status == 'Overdue'
+                                      ? Colors.red[700]
+                                      : Colors.orange[700],
                               fontWeight: FontWeight.w600,
                             ),
                           ),
