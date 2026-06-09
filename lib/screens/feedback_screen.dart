@@ -242,7 +242,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               const Text('Employee', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _nameController.text.isEmpty ? null : _nameController.text,
+                isExpanded: true,
+                value: null,
                 decoration: InputDecoration(
                   hintText: 'Select employee...',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
