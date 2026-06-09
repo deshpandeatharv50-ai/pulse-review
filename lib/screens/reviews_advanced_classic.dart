@@ -13,6 +13,149 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
   late TabController _tabController;
   int _selectedEmployeeIndex = 0;
 
+  // Sample feedback submissions from feedback_screen
+  final List<Map<String, dynamic>> _feedbackSubmissions = [
+    {
+      'employeeName': 'Dr. Rajesh Mehta',
+      'feedbackType': 'Positive',
+      'category': 'Clinical Excellence',
+      'details': 'Outstanding diagnostic accuracy in complex cardiac cases. Exceptional patient outcomes this quarter.',
+      'rating': 5,
+      'submittedBy': 'Dr. Priya Sharma',
+      'date': 'Jun 10, 2026',
+    },
+    {
+      'employeeName': 'Dr. Rajesh Mehta',
+      'feedbackType': 'Positive',
+      'category': 'Team Collaboration',
+      'details': 'Excellent mentor for junior residents. Demonstrates patience and clear communication.',
+      'rating': 5,
+      'submittedBy': 'Dr. Priya Sharma',
+      'date': 'Jun 5, 2026',
+    },
+    {
+      'employeeName': 'Dr. Rajesh Mehta',
+      'feedbackType': 'Constructive',
+      'category': 'Documentation',
+      'details': 'Documentation needs improvement. Sometimes delayed in updating patient records.',
+      'rating': 3,
+      'submittedBy': 'Dr. Priya Sharma',
+      'date': 'May 28, 2026',
+    },
+    {
+      'employeeName': 'Dr. Sarah Mitchell',
+      'feedbackType': 'Positive',
+      'category': 'Leadership',
+      'details': 'Visionary leader. Successfully launched cardiac unit ahead of schedule. Inspires team confidence.',
+      'rating': 5,
+      'submittedBy': 'Hospital Director',
+      'date': 'Jun 12, 2026',
+    },
+    {
+      'employeeName': 'Dr. Sarah Mitchell',
+      'feedbackType': 'Positive',
+      'category': 'Strategic Vision',
+      'details': 'Champion of innovation. Pushing organization toward digital transformation effectively.',
+      'rating': 5,
+      'submittedBy': 'Hospital Director',
+      'date': 'Jun 8, 2026',
+    },
+    {
+      'employeeName': 'Dr. Sarah Mitchell',
+      'feedbackType': 'Positive',
+      'category': 'Team Development',
+      'details': 'Exceptional mentorship. Has developed 8+ staff members for advancement. Strong bench strength.',
+      'rating': 5,
+      'submittedBy': 'Hospital Director',
+      'date': 'May 30, 2026',
+    },
+    {
+      'employeeName': 'RN. Emily Rodriguez',
+      'feedbackType': 'Positive',
+      'category': 'Patient Safety',
+      'details': 'Maintains highest safety standards in OR. Zero incidents under her coordination this quarter.',
+      'rating': 5,
+      'submittedBy': 'OR Supervisor',
+      'date': 'Jun 9, 2026',
+    },
+    {
+      'employeeName': 'RN. Emily Rodriguez',
+      'feedbackType': 'Positive',
+      'category': 'Team Coordination',
+      'details': 'Excellent surgical team leader. Handles complex multi-department coordination seamlessly.',
+      'rating': 5,
+      'submittedBy': 'OR Supervisor',
+      'date': 'Jun 1, 2026',
+    },
+    {
+      'employeeName': 'RN. Emily Rodriguez',
+      'feedbackType': 'Positive',
+      'category': 'Clinical Skills',
+      'details': 'Advanced surgical nursing expertise. Consistently delivers high-quality patient care.',
+      'rating': 4,
+      'submittedBy': 'OR Supervisor',
+      'date': 'May 25, 2026',
+    },
+    {
+      'employeeName': 'Dr. James Anderson',
+      'feedbackType': 'Positive',
+      'category': 'Clinical Skills',
+      'details': 'Strong clinical expertise in interventional cardiology. Excellent technical skills.',
+      'rating': 5,
+      'submittedBy': 'Cardiology Head',
+      'date': 'Jun 7, 2026',
+    },
+    {
+      'employeeName': 'Dr. James Anderson',
+      'feedbackType': 'Constructive',
+      'category': 'Team Collaboration',
+      'details': 'Could improve collaboration on research initiatives. Prefers working independently.',
+      'rating': 3,
+      'submittedBy': 'Cardiology Head',
+      'date': 'May 22, 2026',
+    },
+    {
+      'employeeName': 'Dr. James Anderson',
+      'feedbackType': 'Constructive',
+      'category': 'Innovation',
+      'details': 'Slower to adopt new technologies. Prefers traditional methods. Needs upskilling in digital tools.',
+      'rating': 2,
+      'submittedBy': 'Cardiology Head',
+      'date': 'May 10, 2026',
+    },
+  ];
+
+  // Calculate review metrics based on feedback
+  Map<String, dynamic> _calculateReviewMetrics(String employeeName) {
+    final employeeFeedback = _feedbackSubmissions
+        .where((f) => f['employeeName'] == employeeName)
+        .toList();
+
+    if (employeeFeedback.isEmpty) {
+      return {'score': 0.0, 'sentiment': 'No Data', 'sentimentScore': 0};
+    }
+
+    final positive = employeeFeedback.where((f) => f['feedbackType'] == 'Positive').length;
+    final constructive = employeeFeedback.where((f) => f['feedbackType'] == 'Constructive').length;
+    final avgRating = employeeFeedback.fold<double>(0, (sum, f) => sum + (f['rating'] as int)) / employeeFeedback.length;
+
+    final sentimentScore = ((positive / employeeFeedback.length) * 100).toInt();
+    final sentiment = sentimentScore > 75
+        ? 'Positive'
+        : sentimentScore > 50
+            ? 'Neutral'
+            : 'Needs Improvement';
+
+    return {
+      'score': avgRating,
+      'sentiment': sentiment,
+      'sentimentScore': sentimentScore,
+      'totalFeedback': employeeFeedback.length,
+      'positiveFeedback': positive,
+      'constructiveFeedback': constructive,
+    };
+  }
+
   final List<Map<String, dynamic>> _employees = [
     {
       'name': 'Dr. Rajesh Mehta',
@@ -600,8 +743,41 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
 
   // ============ TAB 3: AI INSIGHTS ============
   Widget _buildAIInsightsTab(Map<String, dynamic> emp) {
-    final ai = emp['aiInsights'] as Map<String, dynamic>;
-    final sentimentScore = ai['sentimentScore'] as int;
+    final employeeName = emp['name'] as String;
+    final metrics = _calculateReviewMetrics(employeeName);
+    final sentimentScore = metrics['sentimentScore'] as int;
+    final sentiment = metrics['sentiment'] as String;
+
+    // Generate insights from actual feedback
+    final employeeFeedback = _feedbackSubmissions
+        .where((f) => f['employeeName'] == employeeName)
+        .toList();
+
+    final positiveFeedbackItems = employeeFeedback
+        .where((f) => f['feedbackType'] == 'Positive')
+        .map((f) => f['details'] as String)
+        .toList();
+
+    final constructiveItems = employeeFeedback
+        .where((f) => f['feedbackType'] == 'Constructive')
+        .map((f) => f['details'] as String)
+        .toList();
+
+    if (employeeFeedback.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.analytics_outlined, size: 48, color: Colors.grey[300]),
+              const SizedBox(height: 16),
+              Text('No feedback data available for analysis', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -613,7 +789,11 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.green[400]!, Colors.green[600]!],
+                colors: sentiment == 'Positive'
+                    ? [Colors.green[400]!, Colors.green[600]!]
+                    : sentiment == 'Neutral'
+                        ? [Colors.blue[400]!, Colors.blue[600]!]
+                        : [Colors.orange[400]!, Colors.orange[600]!],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -638,9 +818,7 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Center(
-                        child: Text('🤖', style: TextStyle(fontSize: 32)),
-                      ),
+                      child: const Center(child: Text('🤖', style: TextStyle(fontSize: 32))),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -648,7 +826,7 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'AI Behavioral Intelligence',
+                            'Feedback-Based AI Analysis',
                             style: TextStyle(
                               fontWeight: FontWeight.w800,
                               fontSize: 16,
@@ -657,7 +835,7 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Analysis powered by feedback patterns & performance data',
+                            'Derived from ${metrics['totalFeedback']} feedback submissions',
                             style: TextStyle(
                               fontSize: 11,
                               color: Colors.white.withOpacity(0.9),
@@ -685,7 +863,7 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            ai['sentiment'] as String,
+                            sentiment,
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.w800,
@@ -715,7 +893,7 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Confidence',
+                            'Positive',
                             style: TextStyle(
                               fontSize: 11,
                               color: Colors.white.withOpacity(0.8),
@@ -732,54 +910,38 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
           ),
           const SizedBox(height: 24),
 
-          // Section Title
+          // Feedback Themes Section
           const Text(
-            'Behavioral Profile',
+            'Key Feedback Themes',
             style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.3),
           ),
           const SizedBox(height: 12),
 
-          // Communication Card
-          _buildAdvancedInsightCard(
-            icon: '💬',
-            title: 'Communication Style',
-            content: ai['communication'] as String,
-            color: Colors.blue,
-            badges: ['Articulate', 'Clear Decision-Maker'],
-          ),
+          if (positiveFeedbackItems.isNotEmpty)
+            _buildAdvancedInsightCard(
+              icon: '✅',
+              title: 'Positive Feedback Themes',
+              content: positiveFeedbackItems.take(2).join(' • '),
+              color: Colors.green,
+              badges: _extractBadges(employeeFeedback.where((f) => f['feedbackType'] == 'Positive').toList()),
+            ),
 
-          // Collaboration Card
-          _buildAdvancedInsightCard(
-            icon: '🤝',
-            title: 'Collaboration & Teamwork',
-            content: ai['collaboration'] as String,
-            color: Colors.purple,
-            badges: ['Strong Peer Relations', 'Mentors 3 Juniors'],
-          ),
-
-          // Reliability Card
-          _buildAdvancedInsightCard(
-            icon: '⏱️',
-            title: 'Reliability & Accountability',
-            content: ai['reliability'] as String,
-            color: Colors.orange,
-            badges: ['98.5% Attendance', 'Zero Missed Deadlines'],
-          ),
-
-          // Adaptability Card
-          _buildAdvancedInsightCard(
-            icon: '🔄',
-            title: 'Adaptability & Learning',
-            content: ai['adaptability'] as String,
-            color: Colors.teal,
-            badges: ['Quick Learner', 'Feedback-Responsive'],
-          ),
+          if (constructiveItems.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _buildAdvancedInsightCard(
+              icon: '📝',
+              title: 'Development Areas',
+              content: constructiveItems.take(2).join(' • '),
+              color: Colors.orange,
+              badges: _extractBadges(employeeFeedback.where((f) => f['feedbackType'] == 'Constructive').toList()),
+            ),
+          ],
 
           const SizedBox(height: 24),
 
-          // Engagement Metrics Section
+          // Feedback Statistics
           const Text(
-            'Organizational Fit',
+            'Feedback Distribution',
             style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.3),
           ),
           const SizedBox(height: 12),
@@ -793,13 +955,11 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
             ),
             child: Column(
               children: [
-                _buildMetricRow('Team Sentiment', emp['engagementMetrics']['teamSentiment'] as int, Colors.green),
+                _buildMetricRow('Positive Feedback', metrics['positiveFeedback'] as int, Colors.green,
+                    maxValue: metrics['totalFeedback'] as int),
                 const SizedBox(height: 12),
-                _buildMetricRow('Culture Fit', emp['engagementMetrics']['cultureFit'] as int, Colors.blue),
-                const SizedBox(height: 12),
-                _buildMetricRow('Leadership Potential', emp['engagementMetrics']['leadershipReady'] as int, Colors.purple),
-                const SizedBox(height: 12),
-                _buildMetricRow('Retention Risk', 100 - (emp['engagementMetrics']['retentionRisk'] as int), Colors.red, inverted: true),
+                _buildMetricRow('Constructive Feedback', metrics['constructiveFeedback'] as int, Colors.orange,
+                    maxValue: metrics['totalFeedback'] as int),
               ],
             ),
           ),
@@ -973,43 +1133,167 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
 
   // ============ TAB 6: FEEDBACK ============
   Widget _buildFeedbackTab(Map<String, dynamic> emp) {
-    final pulse = emp['feedbackPulse'] as List<Map<String, dynamic>>;
+    final employeeName = emp['name'] as String;
+    final employeeFeedback = _feedbackSubmissions
+        .where((f) => f['employeeName'] == employeeName)
+        .toList();
+
+    if (employeeFeedback.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.comment_outlined, size: 48, color: Colors.grey[300]),
+              const SizedBox(height: 16),
+              Text('No feedback submitted yet', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final metrics = _calculateReviewMetrics(employeeName);
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
-        children: pulse
-            .map((fb) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: BorderRadius.circular(8),
-                      color: fb['sentiment'] == 'Positive' ? Colors.green[50] : Colors.orange[50],
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Feedback Summary Card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.blue[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.blue[200]!),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Column(
+                  children: [
+                    Text('Total Feedback', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                    const SizedBox(height: 4),
+                    Text('${metrics['totalFeedback']}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 20)),
+                  ],
+                ),
+                Container(width: 1, height: 50, color: Colors.blue[200]),
+                Column(
+                  children: [
+                    Text('Positive', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${metrics['positiveFeedback']}',
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20, color: Colors.green[700]),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          fb['sentiment'] == 'Positive' ? Icons.check_circle : Icons.info,
-                          color: fb['sentiment'] == 'Positive' ? Colors.green : Colors.orange,
-                          size: 24,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  ],
+                ),
+                Container(width: 1, height: 50, color: Colors.blue[200]),
+                Column(
+                  children: [
+                    Text('Constructive', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${metrics['constructiveFeedback']}',
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20, color: Colors.orange[700]),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          const Text('Feedback Entries', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+          const SizedBox(height: 12),
+
+          // Individual Feedback Items
+          ...employeeFeedback.map((fb) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[300]!),
+                    borderRadius: BorderRadius.circular(10),
+                    color: fb['feedbackType'] == 'Positive' ? Colors.green[50] : Colors.orange[50],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  fb['category'] as String,
+                                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'By ${fb['submittedBy']}',
+                                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: fb['feedbackType'] == 'Positive'
+                                  ? Colors.green[200]
+                                  : Colors.orange[200],
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              fb['feedbackType'] as String,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: fb['feedbackType'] == 'Positive'
+                                    ? Colors.green[800]
+                                    : Colors.orange[800],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        fb['details'] as String,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[700], height: 1.5),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
                             children: [
-                              Text(fb['category'] as String, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
-                              Text(fb['sentiment'] as String, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                              ...List.generate(
+                                5,
+                                (i) => Icon(
+                                  Icons.star,
+                                  size: 14,
+                                  color: i < (fb['rating'] as int) ? Colors.amber : Colors.grey[300],
+                                ),
+                              ),
                             ],
                           ),
-                        ),
-                        Text(fb['date'] as String, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
-                      ],
-                    ),
+                          Text(
+                            fb['date'] as String,
+                            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ))
-            .toList(),
+                ),
+              )),
+        ],
       ),
     );
   }
@@ -1149,8 +1433,9 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
     );
   }
 
-  Widget _buildMetricRow(String label, int value, Color color, {bool inverted = false}) {
-    final displayValue = inverted ? 100 - value : value;
+  Widget _buildMetricRow(String label, int value, Color color, {bool inverted = false, int maxValue = 100}) {
+    final displayValue = inverted ? maxValue - value : value;
+    final percentage = (displayValue / maxValue * 100).toInt();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1162,7 +1447,7 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
             ),
             Text(
-              '$displayValue/100',
+              '$displayValue/$maxValue',
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
@@ -1175,7 +1460,7 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
         ClipRRect(
           borderRadius: BorderRadius.circular(6),
           child: LinearProgressIndicator(
-            value: displayValue / 100,
+            value: displayValue / maxValue,
             minHeight: 8,
             backgroundColor: Colors.grey[300],
             valueColor: AlwaysStoppedAnimation<Color>(color),
@@ -1183,5 +1468,16 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
         ),
       ],
     );
+  }
+
+  List<String> _extractBadges(List<Map<String, dynamic>> feedbackItems) {
+    final badges = <String>{};
+    for (var item in feedbackItems) {
+      final category = item['category'] as String;
+      if (category.isNotEmpty) {
+        badges.add(category);
+      }
+    }
+    return badges.toList().take(3).toList();
   }
 }
