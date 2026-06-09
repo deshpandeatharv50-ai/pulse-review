@@ -149,7 +149,10 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
     return Scaffold(
       appBar: AppBar(
         title: const Text('Advanced Performance Reviews', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20)),
-        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         elevation: 0,
         backgroundColor: const Color(0xFF1A237E),
       ),
