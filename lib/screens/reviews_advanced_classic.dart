@@ -579,7 +579,7 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
                     const SizedBox(height: 2),
                     Text(
                       '${emp['role']} • ${emp['dept']}',
-                      style: const TextStyle(fontSize: 12, color: Colors.white87, fontWeight: FontWeight.w500),
+                      style: const TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.87), fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 2),
                     Text(
