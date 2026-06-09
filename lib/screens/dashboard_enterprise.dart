@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/feedback.dart';
+import 'team_screen.dart';
+import 'goals_screen.dart';
+import 'reviews_advanced_classic.dart';
 
 // ENTERPRISE PROFESSIONAL DASHBOARD
 // Like Yashoda, Apollo - with collapsible popups for feedback, meetings, goals
@@ -585,19 +588,27 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                   Row(
                     children: [
                       Expanded(
-                        child: _buildQuickActionButton('👥 View Team', Colors.grey[400]!),
+                        child: _buildQuickActionButton('👥 View Team', Colors.grey[400]!, onPressed: () {
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const TeamScreen()));
+                        }),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: _buildQuickActionButton('🎯 SMART Goals', Colors.grey[400]!),
+                        child: _buildQuickActionButton('🎯 SMART Goals', Colors.grey[400]!, onPressed: () {
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const GoalsScreen()));
+                        }),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: _buildQuickActionButton('📋 Generate Review', Colors.grey[400]!),
+                        child: _buildQuickActionButton('📋 Generate Review', Colors.grey[400]!, onPressed: () {
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ReviewsAdvancedClassic()));
+                        }),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: _buildQuickActionButton('📊 Performance Heatmap', Colors.grey[400]!),
+                        child: _buildQuickActionButton('📊 Performance Heatmap', Colors.grey[400]!, onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Performance Heatmap coming soon')));
+                        }),
                       ),
                     ],
                   ),
@@ -692,19 +703,22 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
     );
   }
 
-  Widget _buildQuickActionButton(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
-      ),
-      child: Center(
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11, color: Colors.white),
+  Widget _buildQuickActionButton(String label, Color color, {VoidCallback? onPressed}) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white.withOpacity(0.2)),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11, color: Colors.white),
+          ),
         ),
       ),
     );
