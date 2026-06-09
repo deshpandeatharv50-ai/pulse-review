@@ -21,8 +21,11 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   final _nameController = TextEditingController();
   final _commentController = TextEditingController();
   final _searchController = TextEditingController();
+  final _yourNameController = TextEditingController();
   String _feedbackType = 'Positive';
+  String _category = 'Performance';
   int _rating = 0;
+  bool _requestMeeting = false;
   bool _isSubmitting = false;
 
   // Sample feedback data
@@ -206,136 +209,258 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   }
 
   void _showFeedbackForm() {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: SingleChildScrollView(
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Row(
               children: [
-                const Text('Add Feedback', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 22)),
-                const SizedBox(height: 20),
-                DropdownButtonFormField<String>(
-                  value: _nameController.text.isEmpty ? null : _nameController.text,
-                  decoration: InputDecoration(
-                    hintText: 'Select Employee',
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  ),
-                  items: _buildEmployeeList(),
-                  onChanged: (value) => setState(() => _nameController.text = value ?? ''),
+                Icon(Icons.feedback_outlined, size: 24, color: Colors.grey),
+                SizedBox(width: 8),
+                Text('New Feedback', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
+              ],
+            ),
+            GestureDetector(
+              onTap: () => Navigator.pop(ctx),
+              child: const Icon(Icons.close, color: Colors.grey),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Employee
+              const Text('Employee *', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _nameController.text.isEmpty ? null : _nameController.text,
+                decoration: InputDecoration(
+                  hintText: 'Select employee...',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
-                const SizedBox(height: 16),
-                const Text('Rating:', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                const SizedBox(height: 12),
-                StatefulBuilder(
-                  builder: (context, setModalState) {
-                    return Row(
-                      children: List.generate(5, (i) =>
-                        GestureDetector(
-                          onTap: () {
-                            setModalState(() => _rating = i + 1);
-                            setState(() => _rating = i + 1);
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: Icon(
-                              i < _rating ? Icons.star_rounded : Icons.star_outline_rounded,
-                              color: i < _rating ? Colors.amber[600] : Colors.grey[400],
-                              size: 36,
-                            ),
-                          ),
+                items: _buildEmployeeList(),
+                onChanged: (value) => setState(() => _nameController.text = value ?? ''),
+              ),
+              const SizedBox(height: 16),
+
+              // Feedback Type
+              const Text('Feedback Type *', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _feedbackType = 'Positive'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: _feedbackType == 'Positive' ? Colors.teal : Colors.grey[300]!, width: 2),
+                          borderRadius: BorderRadius.circular(8),
+                          color: _feedbackType == 'Positive' ? Colors.teal[50] : Colors.white,
                         ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _commentController,
-                        maxLines: 4,
-                        style: const TextStyle(fontSize: 14),
-                        decoration: InputDecoration(
-                          hintText: 'Your feedback...',
-                          hintStyle: TextStyle(color: Colors.grey[500]),
-                          filled: true,
-                          fillColor: Colors.grey[100],
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.trending_up, size: 16, color: _feedbackType == 'Positive' ? Colors.teal : Colors.grey),
+                            const SizedBox(width: 4),
+                            Text('Positive', style: TextStyle(fontWeight: FontWeight.w600, color: _feedbackType == 'Positive' ? Colors.teal : Colors.grey)),
+                          ],
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Column(
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _feedbackType = 'Constructive'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: _feedbackType == 'Constructive' ? Colors.orange : Colors.grey[300]!, width: 2),
+                          borderRadius: BorderRadius.circular(8),
+                          color: _feedbackType == 'Constructive' ? Colors.orange[50] : Colors.white,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.feedback, size: 16, color: _feedbackType == 'Constructive' ? Colors.orange : Colors.grey),
+                            const SizedBox(width: 4),
+                            Text('Constructive', style: TextStyle(fontWeight: FontWeight.w600, color: _feedbackType == 'Constructive' ? Colors.orange : Colors.grey)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Category & Your Name Row
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        GestureDetector(
-                          onTap: _showAISuggestions,
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: [Colors.purple[600]!, Colors.purple[400]!]),
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: [BoxShadow(color: Colors.purple.withOpacity(0.3), blurRadius: 8)],
-                            ),
-                            child: const Icon(Icons.auto_awesome, color: Colors.white, size: 24),
+                        const Text('Category', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          value: _category,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          ),
+                          items: ['Performance', 'Behavior', 'Teamwork'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                          onChanged: (value) => setState(() => _category = value ?? 'Performance'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Your Name', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _yourNameController,
+                          decoration: InputDecoration(
+                            hintText: 'Supervisor name',
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), backgroundColor: Colors.blue[600], shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                    onPressed: () {
-                      final employeeName = _nameController.text.trim();
-                      final comment = _commentController.text.trim();
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
 
-                      if (employeeName.isEmpty || comment.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please fill all fields')),
-                        );
-                        return;
-                      }
-
-                      final newFeedback = FeedbackItem(
-                        id: DateTime.now().millisecondsSinceEpoch.toString(),
-                        employeeName: employeeName,
-                        feedbackType: _feedbackType,
-                        comment: comment,
-                        createdAt: DateTime.now(),
-                      );
-
-                      setState(() => _localFeedbacks.insert(0, newFeedback));
-                      _nameController.clear();
-                      _commentController.clear();
-                      setState(() => _rating = 0);
-                      Navigator.pop(ctx);
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Feedback submitted for $employeeName ✓')),
-                      );
-                    },
-                    child: const Text('Submit', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Colors.white)),
+              // Rating
+              const Text('Performance Rating *', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
+              const SizedBox(height: 8),
+              Row(
+                children: List.generate(5, (i) =>
+                  GestureDetector(
+                    onTap: () => setState(() => _rating = i + 1),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Icon(
+                        i < _rating ? Icons.star : Icons.star_outline,
+                        color: i < _rating ? Colors.amber : Colors.grey[300],
+                        size: 28,
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16),
+
+              // Feedback Details
+              const Text('Feedback Details *', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _commentController,
+                maxLines: 5,
+                maxLength: 200,
+                decoration: InputDecoration(
+                  hintText: 'Describe the specific behavior, outcome, or observation...',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Request a Meeting
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.calendar_today, size: 18, color: Colors.grey[700]),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: const Text('Request a Meeting', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    ),
+                    Switch(
+                      value: _requestMeeting,
+                      onChanged: (value) => setState(() => _requestMeeting = value),
+                      activeColor: Colors.teal,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              _nameController.clear();
+              _commentController.clear();
+              _yourNameController.clear();
+              setState(() {
+                _rating = 0;
+                _feedbackType = 'Positive';
+                _category = 'Performance';
+                _requestMeeting = false;
+              });
+              Navigator.pop(ctx);
+            },
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.check, size: 18),
+            label: const Text('Save Feedback'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[700]),
+            onPressed: () {
+              final employeeName = _nameController.text.trim();
+              final comment = _commentController.text.trim();
+
+              if (employeeName.isEmpty || comment.isEmpty || _rating == 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please fill all required fields')),
+                );
+                return;
+              }
+
+              final newFeedback = FeedbackItem(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                employeeName: employeeName,
+                feedbackType: _feedbackType,
+                comment: comment,
+                createdAt: DateTime.now(),
+              );
+
+              setState(() => _localFeedbacks.insert(0, newFeedback));
+              _nameController.clear();
+              _commentController.clear();
+              _yourNameController.clear();
+              setState(() {
+                _rating = 0;
+                _feedbackType = 'Positive';
+                _category = 'Performance';
+                _requestMeeting = false;
+              });
+              Navigator.pop(ctx);
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Feedback saved for $employeeName ✓')),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
