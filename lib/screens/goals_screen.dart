@@ -168,25 +168,15 @@ class _GoalsScreenState extends State<GoalsScreen> {
           ],
         ),
       ),
-      floatingActionButton: SizedBox(
-        width: double.infinity,
-        height: 60,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.add, size: 20),
-            label: const Text('Set SMART Goal'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey[900],
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            onPressed: _showAddGoalDialog,
-          ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showAddGoalDialog,
+        backgroundColor: Colors.grey[900],
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text(
+          'Add Goal',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
