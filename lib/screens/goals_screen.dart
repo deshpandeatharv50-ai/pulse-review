@@ -11,6 +11,11 @@ class _GoalsScreenState extends State<GoalsScreen> {
   String _selectedEmployee = 'All Employees';
   String _selectedStatus = 'All';
 
+  // Add goal form controllers
+  late TextEditingController _goalTitleController;
+  late TextEditingController _goalCategoryController;
+  late TextEditingController _goalDueDateController;
+
   final List<Map<String, dynamic>> _goals = [
     {
       'title': 'Decrease complaint resolution from 72 hours to 24 hours',
@@ -61,6 +66,22 @@ class _GoalsScreenState extends State<GoalsScreen> {
       'progress': 15,
     },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _goalTitleController = TextEditingController();
+    _goalCategoryController = TextEditingController();
+    _goalDueDateController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _goalTitleController.dispose();
+    _goalCategoryController.dispose();
+    _goalDueDateController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -205,6 +226,10 @@ class _GoalsScreenState extends State<GoalsScreen> {
   }
 
   void _showAddGoalDialog() {
+    _goalTitleController.clear();
+    _goalCategoryController.clear();
+    _goalDueDateController.clear();
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -213,25 +238,53 @@ class _GoalsScreenState extends State<GoalsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Goal Title
               TextField(
+                controller: _goalTitleController,
                 decoration: InputDecoration(
                   hintText: 'Goal title',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
               const SizedBox(height: 12),
+              // Category
               TextField(
+                controller: _goalCategoryController,
                 decoration: InputDecoration(
-                  hintText: 'Category',
+                  hintText: 'Category (e.g., Clinical, Safety)',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
               const SizedBox(height: 12),
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Due date',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                ),
+              // Due Date with Quick Suggestions
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Due Date', style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _goalDueDateController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      hintText: 'Select due date',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      suffixIcon: const Icon(Icons.calendar_today),
+                    ),
+                    onTap: () => _selectDueDate(ctx),
+                  ),
+                  const SizedBox(height: 8),
+                  // Quick suggestions
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      _quickDateButton('30 days', 30),
+                      _quickDateButton('60 days', 60),
+                      _quickDateButton('90 days', 90),
+                      _quickDateButton('End of Q', 120),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
@@ -241,8 +294,37 @@ class _GoalsScreenState extends State<GoalsScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[900]),
             onPressed: () {
+              if (_goalTitleController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a goal title')),
+                );
+                return;
+              }
+              if (_goalDueDateController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please select a due date')),
+                );
+                return;
+              }
+
+              // Add new goal to list
+              setState(() {
+                _goals.insert(0, {
+                  'title': _goalTitleController.text,
+                  'status': 'In Progress',
+                  'owner': 'Current User',
+                  'category': _goalCategoryController.text.isEmpty ? 'General' : _goalCategoryController.text,
+                  'dueDate': 'Due ${_goalDueDateController.text}',
+                  'progress': 0,
+                });
+              });
+
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Goal added successfully! ✓')),
+                SnackBar(
+                  content: const Text('Goal added successfully! ✓'),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 2),
+                ),
               );
               Navigator.pop(ctx);
             },
@@ -251,6 +333,44 @@ class _GoalsScreenState extends State<GoalsScreen> {
         ],
       ),
     );
+  }
+
+  Widget _quickDateButton(String label, int days) {
+    return GestureDetector(
+      onTap: () {
+        final dueDate = DateTime.now().add(Duration(days: days));
+        final formatted = '${dueDate.year}-${dueDate.month.toString().padLeft(2, '0')}-${dueDate.day.toString().padLeft(2, '0')}';
+        setState(() {
+          _goalDueDateController.text = formatted;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectDueDate(BuildContext ctx) async {
+    final DateTime? picked = await showDatePicker(
+      context: ctx,
+      initialDate: DateTime.now().add(const Duration(days: 30)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() {
+        _goalDueDateController.text = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      });
+    }
   }
 
   Widget _buildKPICard(String label, String value, IconData icon, Color color) {
