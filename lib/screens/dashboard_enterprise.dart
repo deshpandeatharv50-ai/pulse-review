@@ -469,7 +469,8 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
             const SizedBox(height: 24),
 
             // Bottom Row: Pending Meetings + Goals Snapshot
-            Row(
+            ClipRRect(
+              child: Row(
               children: [
                 Expanded(
                   child: GestureDetector(
@@ -571,6 +572,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                   ),
                 ),
               ],
+              ),
             ),
             const SizedBox(height: 24),
 
