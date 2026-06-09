@@ -390,7 +390,30 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               const SizedBox(height: 16),
 
               // Feedback Details
-              const Text('Feedback Details', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Feedback Details', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
+                  GestureDetector(
+                    onTap: () => _showAIFeedbackSuggestions(),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.purple[50],
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.purple[200]!),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.auto_awesome, size: 14, color: Colors.purple[600]),
+                          const SizedBox(width: 4),
+                          Text('AI Polish', style: TextStyle(fontSize: 11, color: Colors.purple[600], fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
               TextField(
                 controller: _commentController,
@@ -859,5 +882,176 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
+  }
+
+  void _showAIFeedbackSuggestions() {
+    if (_commentController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter feedback text first')),
+      );
+      return;
+    }
+
+    final originalText = _commentController.text;
+    final suggestions = _analyzeAndSuggestImprovements(originalText);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.auto_awesome, color: Colors.purple[600]),
+            const SizedBox(width: 8),
+            const Text('AI Feedback Polish'),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Original:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                    const SizedBox(height: 6),
+                    Text(originalText, style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Improved:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                    const SizedBox(height: 6),
+                    Text(suggestions['improved'] as String, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...(suggestions['corrections'] as List<String>).map((correction) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.check_circle_outline, size: 16, color: Colors.green[600]),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(correction, style: const TextStyle(fontSize: 11)),
+                    ),
+                  ],
+                ),
+              )),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Decline'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              _commentController.text = suggestions['improved'] as String;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('✓ Feedback polished! You can still edit before saving.'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              Navigator.pop(ctx);
+            },
+            icon: const Icon(Icons.check),
+            label: const Text('Apply'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Map<String, dynamic> _analyzeAndSuggestImprovements(String text) {
+    String improved = text;
+    final corrections = <String>[];
+
+    // Spelling & Grammar Suggestions
+    final commonMistakes = {
+      'teh': 'the',
+      'recieve': 'receive',
+      'occured': 'occurred',
+      'exellent': 'excellent',
+      'seperate': 'separate',
+      'thier': 'their',
+      'wich': 'which',
+      'becuase': 'because',
+      'untill': 'until',
+      'ocasion': 'occasion',
+    };
+
+    commonMistakes.forEach((mistake, correct) {
+      if (improved.toLowerCase().contains(mistake)) {
+        improved = improved.replaceAllMapped(
+          RegExp(mistake, caseSensitive: false),
+          (match) => correct,
+        );
+        corrections.add('Fixed: "$mistake" → "$correct"');
+      }
+    });
+
+    // Grammar & Clarity Suggestions
+    if (improved.isNotEmpty && improved[0] == improved[0].toLowerCase()) {
+      improved = improved[0].toUpperCase() + improved.substring(1);
+      corrections.add('Capitalized first letter');
+    }
+
+    if (!improved.endsWith('.') && !improved.endsWith('!') && !improved.endsWith('?')) {
+      improved += '.';
+      corrections.add('Added period at end');
+    }
+
+    // Phrase improvements
+    if (improved.contains('very good')) {
+      improved = improved.replaceAll('very good', 'excellent');
+      corrections.add('Enhanced: "very good" → "excellent"');
+    }
+
+    if (improved.contains('really nice')) {
+      improved = improved.replaceAll('really nice', 'commendable');
+      corrections.add('Enhanced: "really nice" → "commendable"');
+    }
+
+    if (improved.contains('not bad')) {
+      improved = improved.replaceAll('not bad', 'satisfactory');
+      corrections.add('Improved clarity: "not bad" → "satisfactory"');
+    }
+
+    // Remove extra spaces
+    improved = improved.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+    if (corrections.isEmpty) {
+      corrections.add('Text looks great! Clear and professional.');
+    }
+
+    return {
+      'improved': improved,
+      'corrections': corrections,
+    };
   }
 }
