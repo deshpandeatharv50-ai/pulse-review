@@ -129,7 +129,7 @@ class _ReviewsListState extends State<ReviewsList> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: _showQuestionTemplates,
                       icon: Icon(Icons.help_outline, color: Colors.grey[700]),
                       label: Text(
                         'Question Templates',
@@ -141,7 +141,7 @@ class _ReviewsListState extends State<ReviewsList> {
                       ),
                     ),
                     ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: _showGenerateReview,
                       icon: const Icon(Icons.auto_awesome, size: 18),
                       label: const Text('Generate Review'),
                       style: ElevatedButton.styleFrom(
@@ -320,5 +320,159 @@ class _ReviewsListState extends State<ReviewsList> {
       default:
         return Colors.grey[500]!;
     }
+  }
+
+  void _showQuestionTemplates() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Review Question Templates'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTemplateSection('Clinical Performance', [
+                'What were the key clinical achievements this period?',
+                'How effectively did you manage patient outcomes?',
+                'Describe your approach to quality assurance.',
+                'How do you stay updated with latest clinical practices?',
+              ]),
+              const SizedBox(height: 16),
+              _buildTemplateSection('Professional Development', [
+                'What certifications or training did you complete?',
+                'How have you contributed to team development?',
+                'What areas would you like to improve?',
+                'Describe your career goals for the next year.',
+              ]),
+              const SizedBox(height: 16),
+              _buildTemplateSection('Leadership & Collaboration', [
+                'How did you contribute to team success?',
+                'Describe your collaboration with other departments.',
+                'What leadership qualities did you demonstrate?',
+                'How do you handle feedback and challenges?',
+              ]),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTemplateSection(String title, List<String> questions) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+        ),
+        const SizedBox(height: 8),
+        ...questions.map((q) => Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('• ', style: TextStyle(fontWeight: FontWeight.w700)),
+              Expanded(
+                child: Text(q, style: const TextStyle(fontSize: 12)),
+              ),
+            ],
+          ),
+        )),
+      ],
+    );
+  }
+
+  void _showGenerateReview() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Generate New Review'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Select review details to generate:',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              const Text('Employee', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'rajesh', child: Text('Dr. Rajesh Mehta')),
+                  DropdownMenuItem(value: 'sarah', child: Text('Dr. Sarah Mitchell')),
+                  DropdownMenuItem(value: 'emily', child: Text('RN. Emily Rodriguez')),
+                  DropdownMenuItem(value: 'james', child: Text('Dr. James Anderson')),
+                ],
+                onChanged: (_) {},
+                hint: const Text('Select employee'),
+              ),
+              const SizedBox(height: 16),
+              const Text('Review Type', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'annual', child: Text('Annual Review')),
+                  DropdownMenuItem(value: 'quarterly', child: Text('Quarterly Review')),
+                  DropdownMenuItem(value: 'monthly', child: Text('Monthly Review')),
+                ],
+                onChanged: (_) {},
+                hint: const Text('Select review type'),
+              ),
+              const SizedBox(height: 16),
+              const Text('Review Period', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+              const SizedBox(height: 8),
+              TextFormField(
+                decoration: InputDecoration(
+                  hintText: 'e.g., Q2 2026, June 2026',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('✓ Review generated successfully!'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              Navigator.pop(context);
+            },
+            icon: const Icon(Icons.check),
+            label: const Text('Generate'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.grey[900],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
