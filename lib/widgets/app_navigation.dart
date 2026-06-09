@@ -61,18 +61,7 @@ class _AppNavigationState extends State<AppNavigation> {
         backgroundColor: org.accentColor,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('MediFlow',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-            Text(
-              '${org.name} · ${persona.name}',
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-            ),
-          ],
-        ),
+        title: null,
         actions: [],
       ),
       body: _screens[_selectedIndex],

@@ -331,15 +331,20 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20)),
-        automaticallyImplyLeading: false,
+        backgroundColor: Colors.teal,
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        clipBehavior: Clip.hardEdge,
+        automaticallyImplyLeading: false,
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('MediFlow', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.black)),
+            Text('Central Medical Group · James Peterson', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400, color: Colors.black54)),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.black),
             onPressed: () async {
               try {
                 await Supabase.instance.client.auth.signOut();
