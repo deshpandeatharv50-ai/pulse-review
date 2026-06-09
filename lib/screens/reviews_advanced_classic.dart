@@ -404,39 +404,208 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
   // ============ TAB 3: AI INSIGHTS ============
   Widget _buildAIInsightsTab(Map<String, dynamic> emp) {
     final ai = emp['aiInsights'] as Map<String, dynamic>;
+    final sentimentScore = ai['sentimentScore'] as int;
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Main AI Sentiment Card
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.green[50],
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.green[200]!),
+              gradient: LinearGradient(
+                colors: [Colors.green[400]!, Colors.green[600]!],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.green.withOpacity(0.2),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('🤖', style: const TextStyle(fontSize: 24)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('AI Assessment', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                      Text('Sentiment: ${ai['sentiment']} (${ai['sentimentScore']}%)', style: TextStyle(fontSize: 11, color: Colors.grey[700])),
-                    ],
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Center(
+                        child: Text('🤖', style: TextStyle(fontSize: 32)),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'AI Behavioral Intelligence',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Analysis powered by feedback patterns & performance data',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.white.withOpacity(0.9),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Overall Sentiment',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withOpacity(0.85),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            ai['sentiment'] as String,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '$sentimentScore%',
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Confidence',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.white.withOpacity(0.8),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          _buildInsightCard('💬 Communication', ai['communication'] as String),
-          _buildInsightCard('🤝 Collaboration', ai['collaboration'] as String),
-          _buildInsightCard('⏱️ Reliability', ai['reliability'] as String),
-          _buildInsightCard('🔄 Adaptability', ai['adaptability'] as String),
+          const SizedBox(height: 24),
+
+          // Section Title
+          const Text(
+            'Behavioral Profile',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.3),
+          ),
+          const SizedBox(height: 12),
+
+          // Communication Card
+          _buildAdvancedInsightCard(
+            icon: '💬',
+            title: 'Communication Style',
+            content: ai['communication'] as String,
+            color: Colors.blue,
+            badges: ['Articulate', 'Clear Decision-Maker'],
+          ),
+
+          // Collaboration Card
+          _buildAdvancedInsightCard(
+            icon: '🤝',
+            title: 'Collaboration & Teamwork',
+            content: ai['collaboration'] as String,
+            color: Colors.purple,
+            badges: ['Strong Peer Relations', 'Mentors 3 Juniors'],
+          ),
+
+          // Reliability Card
+          _buildAdvancedInsightCard(
+            icon: '⏱️',
+            title: 'Reliability & Accountability',
+            content: ai['reliability'] as String,
+            color: Colors.orange,
+            badges: ['98.5% Attendance', 'Zero Missed Deadlines'],
+          ),
+
+          // Adaptability Card
+          _buildAdvancedInsightCard(
+            icon: '🔄',
+            title: 'Adaptability & Learning',
+            content: ai['adaptability'] as String,
+            color: Colors.teal,
+            badges: ['Quick Learner', 'Feedback-Responsive'],
+          ),
+
+          const SizedBox(height: 24),
+
+          // Engagement Metrics Section
+          const Text(
+            'Organizational Fit',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.3),
+          ),
+          const SizedBox(height: 12),
+
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Column(
+              children: [
+                _buildMetricRow('Team Sentiment', emp['engagementMetrics']['teamSentiment'] as int, Colors.green),
+                const SizedBox(height: 12),
+                _buildMetricRow('Culture Fit', emp['engagementMetrics']['cultureFit'] as int, Colors.blue),
+                const SizedBox(height: 12),
+                _buildMetricRow('Leadership Potential', emp['engagementMetrics']['leadershipReady'] as int, Colors.purple),
+                const SizedBox(height: 12),
+                _buildMetricRow('Retention Risk', 100 - (emp['engagementMetrics']['retentionRisk'] as int), Colors.red, inverted: true),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -687,6 +856,135 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAdvancedInsightCard({
+    required String icon,
+    required String title,
+    required String content,
+    required Color color,
+    required List<String> badges,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.04),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.15)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with Icon and Title
+            Row(
+              children: [
+                Text(icon, style: const TextStyle(fontSize: 24)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '✓ Strong',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // Content Text
+            Text(
+              content,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[700],
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // Badges
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: badges
+                  .map((badge) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(5),
+                          border: Border.all(color: color.withOpacity(0.3)),
+                        ),
+                        child: Text(
+                          badge,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: color.withOpacity(0.9),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ))
+                  .toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetricRow(String label, int value, Color color, {bool inverted = false}) {
+    final displayValue = inverted ? 100 - value : value;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+            ),
+            Text(
+              '$displayValue/100',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: LinearProgressIndicator(
+            value: displayValue / 100,
+            minHeight: 8,
+            backgroundColor: Colors.grey[300],
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+          ),
+        ),
+      ],
     );
   }
 }
