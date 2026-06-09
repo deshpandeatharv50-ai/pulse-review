@@ -429,6 +429,34 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            tooltip: 'Logout',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Logout'),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      child: const Text('Logout'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
         elevation: 0,
         backgroundColor: const Color(0xFF1A237E),
         toolbarHeight: 56,
@@ -436,70 +464,6 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // EMPLOYEE SELECTOR - Horizontal Scrollable List
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              color: Colors.grey[100],
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  children: List.generate(
-                    _employees.length,
-                    (index) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      child: GestureDetector(
-                        onTap: () => setState(() {
-                          _selectedEmployeeIndex = index;
-                          _tabController.animateTo(0);
-                        }),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: _selectedEmployeeIndex == index ? const Color(0xFF1A237E) : Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: _selectedEmployeeIndex == index ? const Color(0xFF1A237E) : Colors.grey[300]!,
-                              width: 2,
-                            ),
-                            boxShadow: _selectedEmployeeIndex == index
-                                ? [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 8)]
-                                : [],
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                _employees[index]['profileImage'] as String,
-                                style: const TextStyle(fontSize: 24),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                (_employees[index]['name'] as String).split(' ')[0],
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 12,
-                                  color: _selectedEmployeeIndex == index ? Colors.white : Colors.grey[800],
-                                ),
-                              ),
-                              Text(
-                                (_employees[index]['name'] as String).split(' ').last,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 11,
-                                  color: _selectedEmployeeIndex == index ? Colors.white70 : Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
             // HEADER - Classic Professional Format
             _buildClassicHeader(emp),
 
