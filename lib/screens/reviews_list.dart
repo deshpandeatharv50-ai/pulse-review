@@ -98,10 +98,6 @@ class _ReviewsListState extends State<ReviewsList> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reviews', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20)),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
