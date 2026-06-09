@@ -471,104 +471,60 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
             ),
             const SizedBox(height: 24),
 
-            // Bottom Row: Pending Meetings + Goals Snapshot
-            ClipRRect(
-              child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _showPendingMeetingsPopup,
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[200]!),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Pending Meetings', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.purple[100],
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Text('9', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.purple)),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          const Text('View pending meeting requests', style: TextStyle(fontSize: 10, color: Colors.grey))
-                        ],
-                      ),
-                    ),
-                  ),
+            // Goals Snapshot
+            GestureDetector(
+              onTap: _showGoalsSnapshotPopup,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[200]!),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _showGoalsSnapshotPopup,
-                    child: Container(
-                      padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Goals Snapshot', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                    const SizedBox(height: 16),
+                    Column(
+                      children: [
+                        const Text('1', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24, color: Colors.blue)),
+                        const Text('Active', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[200]!),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)],
+                        color: Colors.orange[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.orange[200]!),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Goals Snapshot', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                          const SizedBox(height: 16),
-                          Column(
-                            children: [
-                              const Text('1', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: Colors.blue)),
-                              const Text('Active', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 10)),
-                            ],
+                          Text(
+                            'Decrease complaint resolution from 72 hours to 24...',
+                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.grey[800]),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.orange[50],
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: Colors.orange[200]!),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Decrease complaint resolution from 72 hours to 24...',
-                                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 10, color: Colors.grey[800]),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(2),
-                                  child: LinearProgressIndicator(
-                                    value: 0.34,
-                                    minHeight: 4,
-                                    backgroundColor: Colors.orange[100]!,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.orange[600]!),
-                                  ),
-                                ),
-                              ],
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(2),
+                            child: LinearProgressIndicator(
+                              value: 0.34,
+                              minHeight: 6,
+                              backgroundColor: Colors.orange[100]!,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.orange[600]!),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
               ),
             ),
             const SizedBox(height: 24),
