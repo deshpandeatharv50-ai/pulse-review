@@ -11,6 +11,57 @@ class _GoalsScreenState extends State<GoalsScreen> {
   String _selectedEmployee = 'All Employees';
   String _selectedStatus = 'All';
 
+  final List<Map<String, dynamic>> _goals = [
+    {
+      'title': 'Decrease complaint resolution from 72 hours to 24 hours',
+      'status': 'In Progress',
+      'owner': 'Aisha Williams',
+      'category': 'Customer Success',
+      'dueDate': 'Due Dec 31, 2026',
+      'progress': 34,
+    },
+    {
+      'title': 'Improve patient satisfaction scores to 95%',
+      'status': 'In Progress',
+      'owner': 'Dr. Mehta',
+      'category': 'Clinical',
+      'dueDate': 'Due Jan 15, 2027',
+      'progress': 62,
+    },
+    {
+      'title': 'Complete advanced certification training',
+      'status': 'Not Started',
+      'owner': 'Sarah Chen',
+      'category': 'Professional Development',
+      'dueDate': 'Due Mar 31, 2027',
+      'progress': 0,
+    },
+    {
+      'title': 'Reduce medication errors by 50%',
+      'status': 'In Progress',
+      'owner': 'James Peterson',
+      'category': 'Safety',
+      'dueDate': 'Due Feb 28, 2027',
+      'progress': 45,
+    },
+    {
+      'title': 'Implement new documentation system',
+      'status': 'Completed',
+      'owner': 'Priya Sharma',
+      'category': 'Operations',
+      'dueDate': 'Due Nov 30, 2026',
+      'progress': 100,
+    },
+    {
+      'title': 'Mentor 2 junior staff members',
+      'status': 'In Progress',
+      'owner': 'Dr. Kapoor',
+      'category': 'Leadership',
+      'dueDate': 'Due Apr 30, 2027',
+      'progress': 50,
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,7 +73,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -43,15 +94,6 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     ),
                   ],
                 ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Set SMART Goal'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[900],
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  ),
-                  onPressed: () {},
-                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -61,11 +103,11 @@ class _GoalsScreenState extends State<GoalsScreen> {
               constraints: const BoxConstraints(maxWidth: double.infinity),
               child: Row(
                 children: [
-                  Expanded(child: _buildKPICard('TOTAL GOALS', '1', Icons.adjust, Colors.blue)),
+                  Expanded(child: _buildKPICard('TOTAL GOALS', _goals.length.toString(), Icons.adjust, Colors.blue)),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildKPICard('IN PROGRESS', '1', Icons.flag, Colors.orange)),
+                  Expanded(child: _buildKPICard('IN PROGRESS', _goals.where((g) => g['status'] == 'In Progress').length.toString(), Icons.flag, Colors.orange)),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildKPICard('COMPLETED', '0', Icons.check_circle, Colors.green)),
+                  Expanded(child: _buildKPICard('COMPLETED', _goals.where((g) => g['status'] == 'Completed').length.toString(), Icons.check_circle, Colors.green)),
                   const SizedBox(width: 12),
                   Expanded(child: _buildKPICard('OVERDUE', '0', Icons.schedule, Colors.red)),
                 ],
@@ -78,7 +120,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
               children: [
                 DropdownButton<String>(
                   value: _selectedEmployee,
-                  items: ['All Employees', 'Aisha Williams', 'James Peterson']
+                  items: ['All Employees', 'Aisha Williams', 'Dr. Mehta', 'Sarah Chen']
                       .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                       .toList(),
                   onChanged: (value) => setState(() => _selectedEmployee = value ?? 'All Employees'),
@@ -89,7 +131,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: ['All', 'Not Started', 'In Progress', 'Completed', 'Cancelled']
+                      children: ['All', 'Not Started', 'In Progress', 'Completed']
                           .map((status) => Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: FilterChip(
@@ -112,16 +154,87 @@ class _GoalsScreenState extends State<GoalsScreen> {
             const SizedBox(height: 24),
 
             // Goals List
-            _buildGoalCard(
-              title: 'Decrease complaint resolution from 72 hours to 24 hours',
-              status: 'In Progress',
-              owner: 'Aisha Williams',
-              category: 'Customer Success',
-              dueDate: 'Due Dec 31, 2026',
-              progress: 34,
-            ),
+            ..._goals.map((goal) => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildGoalCard(
+                title: goal['title'],
+                status: goal['status'],
+                owner: goal['owner'],
+                category: goal['category'],
+                dueDate: goal['dueDate'],
+                progress: goal['progress'],
+              ),
+            )).toList(),
           ],
         ),
+      ),
+      floatingActionButton: SizedBox(
+        width: double.infinity,
+        height: 60,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.add, size: 20),
+            label: const Text('Set SMART Goal'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.grey[900],
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: _showAddGoalDialog,
+          ),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+    );
+  }
+
+  void _showAddGoalDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Add New SMART Goal'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: InputDecoration(
+                  hintText: 'Goal title',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                decoration: InputDecoration(
+                  hintText: 'Category',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                decoration: InputDecoration(
+                  hintText: 'Due date',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[900]),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Goal added successfully! ✓')),
+              );
+              Navigator.pop(ctx);
+            },
+            child: const Text('Add Goal'),
+          ),
+        ],
       ),
     );
   }
@@ -194,13 +307,17 @@ class _GoalsScreenState extends State<GoalsScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.orange[50],
-                            border: Border.all(color: Colors.orange[200]!),
+                            color: status == 'Completed' ? Colors.green[50] : Colors.orange[50],
+                            border: Border.all(color: status == 'Completed' ? Colors.green[200]! : Colors.orange[200]!),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             status,
-                            style: TextStyle(fontSize: 11, color: Colors.orange[700], fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: status == 'Completed' ? Colors.green[700] : Colors.orange[700],
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
