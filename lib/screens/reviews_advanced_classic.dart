@@ -424,13 +424,14 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Advanced Performance Reviews', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20)),
+        title: const Text('Advanced Performance Reviews', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white, letterSpacing: 0.3)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
         elevation: 0,
         backgroundColor: const Color(0xFF1A237E),
+        toolbarHeight: 56,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -554,64 +555,123 @@ class _ReviewsAdvancedClassicState extends State<ReviewsAdvancedClassic> with Si
           Row(
             children: [
               Container(
-                width: 60,
-                height: 60,
+                width: 68,
+                height: 68,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue[200]!),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.blue[200]!, width: 2),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2)),
+                  ],
                 ),
-                child: Center(child: Text(emp['profileImage'] as String, style: const TextStyle(fontSize: 32))),
+                child: Center(child: Text(emp['profileImage'] as String, style: const TextStyle(fontSize: 38))),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(emp['name'] as String, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 20, color: Colors.white)),
-                    Text('${emp['role']} • ${emp['dept']}', style: const TextStyle(fontSize: 13, color: Colors.white70)),
-                    Text('${emp['tenure']} tenure', style: const TextStyle(fontSize: 11, color: Colors.white60)),
+                    Text(
+                      emp['name'] as String,
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Colors.white, letterSpacing: 0.2),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${emp['role']} • ${emp['dept']}',
+                      style: const TextStyle(fontSize: 12, color: Colors.white87, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${emp['tenure']} tenure',
+                      style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.75), fontWeight: FontWeight.w400),
+                    ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: emp['status'] == 'Approved' ? Colors.green[400] : Colors.orange[400],
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 4, offset: const Offset(0, 2)),
+                  ],
                 ),
-                child: Text(emp['status'] as String, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
+                child: Text(
+                  emp['status'] as String,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12, letterSpacing: 0.3),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           // Classic Overall Score (Centered, Professional)
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
+              color: Colors.white.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withOpacity(0.15), width: 1.5),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4)),
+              ],
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  children: [
-                    const Text('Overall Score', style: TextStyle(fontSize: 11, color: Colors.white70)),
-                    Text('${emp['overallScore']}/5.0', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 22, color: Colors.white)),
-                    Text(emp['performanceLevel'] as String, style: const TextStyle(fontSize: 11, color: Colors.greenAccent)),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Overall Score',
+                        style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.8), fontWeight: FontWeight.w600, letterSpacing: 0.5),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${emp['overallScore']}/5.0',
+                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 28, color: Colors.white, letterSpacing: -0.5),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        emp['performanceLevel'] as String,
+                        style: const TextStyle(fontSize: 12, color: Colors.greenAccent, fontWeight: FontWeight.w700, letterSpacing: 0.2),
+                      ),
+                    ],
+                  ),
                 ),
-                Container(width: 1, height: 50, color: Colors.white.withOpacity(0.2)),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(emp['compareTo'] as String, style: const TextStyle(fontSize: 11, color: Colors.white70)),
-                    Text('${emp['peerBenchmark']['yourRank']} of ${emp['peerBenchmark']['totalPeers']}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white)),
-                    Text('${emp['peerBenchmark']['percentile']}th percentile', style: const TextStyle(fontSize: 11, color: Colors.amber)),
-                  ],
+                Container(width: 1.5, height: 80, color: Colors.white.withOpacity(0.15), margin: const EdgeInsets.symmetric(horizontal: 16)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Ranking',
+                        style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.8), fontWeight: FontWeight.w600, letterSpacing: 0.5),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Text(
+                            '${emp['peerBenchmark']['yourRank']}',
+                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: Colors.amber, letterSpacing: -0.5),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'of ${emp['peerBenchmark']['totalPeers']}',
+                            style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.8), fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${emp['peerBenchmark']['percentile']}th percentile',
+                        style: const TextStyle(fontSize: 12, color: Colors.cyanAccent, fontWeight: FontWeight.w700, letterSpacing: 0.2),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
