@@ -378,20 +378,15 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               // Rating
               const Text('Performance Rating', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
               const SizedBox(height: 8),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: List.generate(5, (i) =>
-                    GestureDetector(
-                      onTap: () => setState(() => _rating = i + 1),
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: Icon(
-                          i < _rating ? Icons.star : Icons.star_outline,
-                          color: i < _rating ? Colors.amber : Colors.grey[300],
-                          size: 28,
-                        ),
-                      ),
+              Wrap(
+                spacing: 8,
+                children: List.generate(5, (i) =>
+                  GestureDetector(
+                    onTap: () => setState(() => _rating = i + 1),
+                    child: Icon(
+                      i < _rating ? Icons.star : Icons.star_outline,
+                      color: i < _rating ? Colors.amber : Colors.grey[300],
+                      size: 32,
                     ),
                   ),
                 ),
