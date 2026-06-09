@@ -57,13 +57,6 @@ class _AppNavigationState extends State<AppNavigation> {
     final org = widget.organization;
     final persona = widget.persona;
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: org.accentColor,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: null,
-        actions: [],
-      ),
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
