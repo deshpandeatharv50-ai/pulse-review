@@ -239,7 +239,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
               // Employee
-              const Text('Employee *', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
+              const Text('Employee', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: _nameController.text.isEmpty ? null : _nameController.text,
@@ -254,7 +254,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               const SizedBox(height: 16),
 
               // Feedback Type
-              const Text('Feedback Type *', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
+              const Text('Feedback Type', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -349,7 +349,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               const SizedBox(height: 16),
 
               // Rating
-              const Text('Performance Rating *', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
+              const Text('Performance Rating', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
               const SizedBox(height: 8),
               Row(
                 children: List.generate(5, (i) =>
@@ -369,7 +369,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               const SizedBox(height: 16),
 
               // Feedback Details
-              const Text('Feedback Details *', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
+              const Text('Feedback Details', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
               const SizedBox(height: 8),
               TextField(
                 controller: _commentController,
