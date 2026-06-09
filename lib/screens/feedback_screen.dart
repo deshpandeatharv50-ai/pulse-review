@@ -261,7 +261,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => setState(() => _feedbackType = 'Positive'),
+                      onTap: () => setState(() {
+                        _feedbackType = 'Positive';
+                        _rating = 5; // Auto-set to 5 stars for Positive
+                      }),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
@@ -283,7 +286,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => setState(() => _feedbackType = 'Constructive'),
+                      onTap: () => setState(() {
+                        _feedbackType = 'Constructive';
+                        _rating = 3; // Auto-set to 3 stars for Constructive
+                      }),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
