@@ -26,6 +26,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   String _category = 'Clinical Excellence';
   int _rating = 0;
   bool _requestMeeting = false;
+  String? _selectedEmployee;
   bool _isSubmitting = false;
 
   // Sample feedback data
@@ -208,7 +209,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     return corrected;
   }
 
-  void _showFeedbackForm() {
+  void _showFeedbackForm({String? employee}) {
+    // Pre-fill the employee when launched from a specific staff card's "+".
+    _selectedEmployee = employee;
+    _nameController.text = employee ?? '';
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -241,16 +245,21 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               // Employee
               const Text('Employee', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
               const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                isExpanded: true,
-                value: null,
-                decoration: InputDecoration(
-                  hintText: 'Select employee...',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              StatefulBuilder(
+                builder: (context, setLocalState) => DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  value: _selectedEmployee,
+                  decoration: InputDecoration(
+                    hintText: 'Select employee...',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                  items: _buildEmployeeList(),
+                  onChanged: (value) => setLocalState(() {
+                    _selectedEmployee = value;
+                    _nameController.text = value ?? '';
+                  }),
                 ),
-                items: _buildEmployeeList(),
-                onChanged: (value) => setState(() => _nameController.text = value ?? ''),
               ),
               const SizedBox(height: 16),
 
@@ -469,6 +478,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 _feedbackType = 'Positive';
                 _category = 'Clinical Excellence';
                 _requestMeeting = false;
+                _selectedEmployee = null;
               });
               Navigator.pop(ctx);
             },
@@ -477,7 +487,12 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           ElevatedButton.icon(
             icon: const Icon(Icons.check, size: 18),
             label: const Text('Save Feedback'),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[700]),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0E7C7B),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
             onPressed: () {
               final employeeName = _nameController.text.trim();
               final comment = _commentController.text.trim();
@@ -506,6 +521,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 _feedbackType = 'Positive';
                 _category = 'Clinical Excellence';
                 _requestMeeting = false;
+                _selectedEmployee = null;
               });
               Navigator.pop(ctx);
 
@@ -844,10 +860,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                                   ),
                                 ),
                                 GestureDetector(
-                                  onTap: _showFeedbackForm,
+                                  onTap: () => _showFeedbackForm(employee: emp.employeeName),
                                   child: Container(
                                     padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.blue[600]!, Colors.blue[400]!]), borderRadius: BorderRadius.circular(8), boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 2))]),
+                                    decoration: BoxDecoration(color: const Color(0xFF0E7C7B), borderRadius: BorderRadius.circular(8)),
                                     child: const Icon(Icons.add, color: Colors.white, size: 18),
                                   ),
                                 ),
@@ -880,8 +896,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showFeedbackForm,
-        backgroundColor: Colors.blue[600],
+        onPressed: () => _showFeedbackForm(),
+        backgroundColor: const Color(0xFF0E7C7B),
         elevation: 6,
         child: const Icon(Icons.add, color: Colors.white),
       ),

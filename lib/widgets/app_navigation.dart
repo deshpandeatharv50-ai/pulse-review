@@ -24,6 +24,7 @@ class AppNavigation extends StatefulWidget {
 
 class _AppNavigationState extends State<AppNavigation> {
   int _selectedIndex = 0;
+  final PageController _pageController = PageController();
 
   late final List<Widget> _screens;
 
@@ -37,6 +38,21 @@ class _AppNavigationState extends State<AppNavigation> {
       const GoalsScreen(),
       const ReviewsList(),
     ];
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  // Tap on the bottom bar — animate the pager to that tab.
+  void _onTabTapped(int index) {
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+    );
   }
 
   void _logout() async {
@@ -57,11 +73,17 @@ class _AppNavigationState extends State<AppNavigation> {
     final org = widget.organization;
     final persona = widget.persona;
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) => setState(() => _selectedIndex = index),
+        children: _screens,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
+        onTap: _onTabTapped,
         type: BottomNavigationBarType.fixed,
+        selectedItemColor: const Color(0xFF0E7C7B),
+        unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
