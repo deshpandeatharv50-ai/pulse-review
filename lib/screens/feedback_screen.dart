@@ -20,6 +20,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   late Future<List<FeedbackItem>> _feedbacksFuture;
   String _searchQuery = '';
   String _dateFilter = 'This Quarter';
+  String _typeFilter = 'All'; // All | Positive | Constructive (set by tapping a metric)
 
   final _nameController = TextEditingController();
   final _commentController = TextEditingController();
@@ -729,13 +730,28 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     );
   }
 
-  Widget _buildMetric(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(value, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: color)),
-        const SizedBox(height: 2),
-        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w500)),
-      ],
+  Widget _buildMetric(String label, String value, Color color, {String? filterKey}) {
+    final selected = filterKey != null && _typeFilter == filterKey;
+    return GestureDetector(
+      onTap: filterKey == null
+          ? null
+          : () => setState(() => _typeFilter = _typeFilter == filterKey ? 'All' : filterKey),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? color.withOpacity(0.10) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: selected ? color.withOpacity(0.5) : Colors.transparent),
+        ),
+        child: Column(
+          children: [
+            Text(value, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: color)),
+            const SizedBox(height: 2),
+            Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -905,9 +921,9 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildMetric('Overall Avg', '${avgRating.toStringAsFixed(2)}/5.0', heatColor),
-                      _buildMetric('Total Feedback', filteredFeedbacks.length.toString(), Colors.blue),
-                      _buildMetric('Team Health', _getHealthStatus(filteredFeedbacks), _getHealthColor(filteredFeedbacks)),
+                      _buildMetric('Overall Avg', '${avgRating.toStringAsFixed(2)}/5.0', heatColor, filterKey: 'Positive'),
+                      _buildMetric('Total Feedback', filteredFeedbacks.length.toString(), Colors.blue, filterKey: 'All'),
+                      _buildMetric('Team Health', _getHealthStatus(filteredFeedbacks), _getHealthColor(filteredFeedbacks), filterKey: 'Constructive'),
                     ],
                   ),
                 );
@@ -936,23 +952,61 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   final q = _searchQuery.toLowerCase();
                   final logItems = _filterFeedbacksByDate(allFeedbacks, _dateFilter)
                       .where((f) =>
-                          f.employeeName.toLowerCase().contains(q) ||
-                          f.comment.toLowerCase().contains(q))
+                          (_typeFilter == 'All' || f.feedbackType == _typeFilter) &&
+                          (f.employeeName.toLowerCase().contains(q) ||
+                              f.comment.toLowerCase().contains(q)))
                       .toList()
                     ..sort((a, b) => (b.createdAt ?? DateTime.now())
                         .compareTo(a.createdAt ?? DateTime.now()));
+                  final banner = _typeFilter == 'All'
+                      ? const SizedBox.shrink()
+                      : Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                          child: InkWell(
+                            onTap: () => setState(() => _typeFilter = 'All'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.filter_alt, size: 14, color: Colors.grey[700]),
+                                  const SizedBox(width: 6),
+                                  Text('Showing $_typeFilter feedback',
+                                      style: TextStyle(fontSize: 12, color: Colors.grey[800], fontWeight: FontWeight.w600)),
+                                  const Spacer(),
+                                  const Icon(Icons.close, size: 16, color: Colors.grey),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
                   if (logItems.isEmpty) {
-                    return Center(
-                      child: Text('No feedback in this period',
-                          style: TextStyle(color: Colors.grey[500])),
-                    );
+                    return Column(children: [
+                      banner,
+                      Expanded(
+                        child: Center(
+                          child: Text('No feedback in this period',
+                              style: TextStyle(color: Colors.grey[500])),
+                        ),
+                      ),
+                    ]);
                   }
-                  return ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    itemCount: logItems.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) =>
-                        _buildLogRow(logItems[index], allFeedbacks),
+                  return Column(
+                    children: [
+                      banner,
+                      Expanded(
+                        child: ListView.separated(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          itemCount: logItems.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                          itemBuilder: (context, index) =>
+                              _buildLogRow(logItems[index], allFeedbacks),
+                        ),
+                      ),
+                    ],
                   );
                 }),
               ),
