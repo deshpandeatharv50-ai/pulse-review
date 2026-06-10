@@ -265,25 +265,23 @@ class _GoalsScreenState extends State<GoalsScreen> {
               ),
             ),
             const SizedBox(height: 14),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: ['All', ..._statuses]
-                    .map((status) => Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: FilterChip(
-                            label: Text(status),
-                            selected: _selectedStatus == status,
-                            onSelected: (_) => setState(() => _selectedStatus = status),
-                            backgroundColor: Colors.grey[200],
-                            selectedColor: Colors.grey[900],
-                            labelStyle: TextStyle(
-                              fontSize: 12,
-                              color: _selectedStatus == status ? Colors.white : Colors.black,
-                            ),
-                          ),
-                        ))
+            Text('FILTER BY STATUS',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey[500], letterSpacing: 0.5)),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: DropdownButton<String>(
+                value: _selectedStatus,
+                isExpanded: true,
+                items: ['All', ..._statuses]
+                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
                     .toList(),
+                onChanged: (value) => setState(() => _selectedStatus = value ?? 'All'),
+                underline: const SizedBox.shrink(),
               ),
             ),
             const SizedBox(height: 20),
