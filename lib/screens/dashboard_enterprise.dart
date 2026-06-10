@@ -5,8 +5,9 @@ import 'team_screen.dart';
 import 'goals_screen.dart';
 import 'reviews_advanced_classic.dart';
 
-// ENTERPRISE PROFESSIONAL DASHBOARD
-// Bold, big, actionable KPIs + quarter date-range filter + compact recent activity.
+// CALM CLINICAL DASHBOARD
+// Light/teal, big 2x2 KPI cards, a "Today's Focus" triage list, and a thin
+// recent-activity strip. Everything reacts to the quarter range filter.
 enum DashRange { current, last }
 
 class DashboardEnterprise extends StatefulWidget {
@@ -17,10 +18,14 @@ class DashboardEnterprise extends StatefulWidget {
 }
 
 class _DashboardEnterpriseState extends State<DashboardEnterprise> {
-  // Selected reporting window. Everything on this screen reacts to it.
   DashRange _range = DashRange.current;
 
-  // Fixed "today" so the demo quarters stay stable.
+  static const Color _teal = Color(0xFF0E7C7B);
+  static const Color _green = Color(0xFF1D9E75);
+  static const Color _amber = Color(0xFFBA7517);
+  static const Color _ink = Color(0xFF16302B);
+
+  // Fixed "today" so demo quarters stay stable.
   static final DateTime _today = DateTime(2026, 6, 10);
 
   static const List<String> _mon = [
@@ -28,8 +33,6 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
 
-  // All feedback across both quarters. Built as a getter so hot-reload picks
-  // up edits without needing a full restart.
   List<FeedbackItem> get _allFeedbacks => [
         // ---- Current quarter (Q2 2026: Apr–Jun) ----
         FeedbackItem(id: '1', employeeName: 'Priya Sharma', feedbackType: 'Positive',
@@ -59,13 +62,11 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
             createdAt: DateTime(2026, 2, 3, 8, 15)),
       ];
 
-  // Quarter boundaries derived from _today.
   DateTimeRange get _activeRange {
-    final qStartMonth = ((_today.month - 1) ~/ 3) * 3 + 1; // Q2 -> Apr (4)
+    final qStartMonth = ((_today.month - 1) ~/ 3) * 3 + 1;
     final currentStart = DateTime(_today.year, qStartMonth, 1);
     if (_range == DashRange.current) {
-      final end = DateTime(_today.year, qStartMonth + 3, 1)
-          .subtract(const Duration(days: 1));
+      final end = DateTime(_today.year, qStartMonth + 3, 1).subtract(const Duration(days: 1));
       return DateTimeRange(start: currentStart, end: end);
     } else {
       final lastStart = DateTime(_today.year, qStartMonth - 3, 1);
@@ -92,8 +93,9 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
       ..sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
   }
 
-  // Team headcount differs by quarter to prove the range drives everything.
   int get _teamMembers => _range == DashRange.current ? 10 : 8;
+  int get _overdueGoals => _range == DashRange.current ? 1 : 0;
+  int get _pendingMeetings => _range == DashRange.current ? 2 : 1;
 
   @override
   Widget build(BuildContext context) {
@@ -101,11 +103,15 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
     final positive = fb.where((f) => f.feedbackType == 'Positive').length;
     final constructive = fb.where((f) => f.feedbackType == 'Constructive').length;
     final avg = fb.isEmpty ? 0.0 : (positive * 5 + constructive * 3) / fb.length;
+    final constructiveList = fb.where((f) => f.feedbackType == 'Constructive').toList();
+    final focusName = constructiveList.isNotEmpty
+        ? constructiveList.first.employeeName
+        : (fb.isNotEmpty ? fb.first.employeeName : 'your team');
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F7F8),
+      backgroundColor: const Color(0xFFF6FAF9),
       appBar: AppBar(
-        backgroundColor: Colors.teal,
+        backgroundColor: _teal,
         elevation: 0,
         automaticallyImplyLeading: false,
         title: const Column(
@@ -113,14 +119,14 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('MediFlow',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.black)),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
             Text('Central Medical Group · James Peterson',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400, color: Colors.black54)),
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400, color: Colors.white70)),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.black),
+            icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () async {
               try {
                 await Supabase.instance.client.auth.signOut();
@@ -136,103 +142,92 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header + range label
             Text('Performance Overview',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 26, color: Colors.grey[900])),
-            const SizedBox(height: 4),
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24, color: _ink)),
+            const SizedBox(height: 3),
             Text(_rangeLabel,
-                style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+                style: const TextStyle(fontSize: 13, color: Color(0xFF8AA39B), fontWeight: FontWeight.w500)),
             const SizedBox(height: 16),
 
-            // Quarter selector — drives every number below.
-            _buildRangeToggle(),
+            // Pill range toggle
+            Row(children: [
+              _pill('This Quarter', DashRange.current),
+              const SizedBox(width: 10),
+              _pill('Last Quarter', DashRange.last),
+            ]),
             const SizedBox(height: 20),
 
-            // BIG ACTIONABLE KPI GRID (2x2)
+            // 2x2 calm KPI cards
             Row(children: [
-              Expanded(child: _bigKPI('TEAM MEMBERS', _teamMembers.toString(), 'Active',
-                  Icons.groups_rounded, Colors.blue, () {
-                Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const TeamScreen()));
-              })),
-              const SizedBox(width: 14),
-              Expanded(child: _bigKPI('POSITIVE', positive.toString(), 'this quarter',
-                  Icons.thumb_up_rounded, Colors.green, () => _showFeedbackPopup('Positive'))),
+              Expanded(child: _kpi('Team members', _teamMembers.toString(), Icons.groups_rounded, _teal,
+                  () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TeamScreen())))),
+              const SizedBox(width: 12),
+              Expanded(child: _kpi('Positive', positive.toString(), Icons.thumb_up_rounded, _green,
+                  () => _showFeedbackPopup('Positive'))),
             ]),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             Row(children: [
-              Expanded(child: _bigKPI('CONSTRUCTIVE', constructive.toString(), 'this quarter',
-                  Icons.bolt_rounded, Colors.orange, () => _showFeedbackPopup('Constructive'))),
-              const SizedBox(width: 14),
-              Expanded(child: _bigKPI('AVG RATING', avg.toStringAsFixed(1), 'out of 5.0',
-                  Icons.star_rounded, Colors.amber.shade700, () {
-                Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const ReviewsAdvancedClassic()));
-              })),
+              Expanded(child: _kpi('Constructive', constructive.toString(), Icons.bolt_rounded, _amber,
+                  () => _showFeedbackPopup('Constructive'))),
+              const SizedBox(width: 12),
+              Expanded(child: _kpi('Avg rating', avg.toStringAsFixed(1), Icons.star_rounded, _amber,
+                  () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ReviewsAdvancedClassic())))),
             ]),
-            const SizedBox(height: 26),
+            const SizedBox(height: 22),
 
-            // COMPACT Recent Activity
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Recent Activity',
-                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Colors.grey[800])),
-                GestureDetector(
-                  onTap: () => _showFeedbackPopup(null),
-                  child: Text('View all →',
-                      style: TextStyle(fontSize: 12, color: Colors.teal[700], fontWeight: FontWeight.w600)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
+            // Today's Focus triage card
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[200]!),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE0EAE7)),
               ),
-              child: fb.isEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Center(
-                        child: Text('No activity in this quarter',
-                            style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-                      ),
-                    )
-                  : Column(
-                      children: fb.take(4).map((f) => _compactActivityRow(f, f != fb.take(4).last)).toList(),
-                    ),
-            ),
-            const SizedBox(height: 22),
-
-            // Quick Actions
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A1F3A),
-                borderRadius: BorderRadius.circular(12),
-              ),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Quick Actions',
-                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white)),
-                  const SizedBox(height: 16),
-                  Row(children: [
-                    Expanded(child: _quickAction('👥 Team', () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TeamScreen()));
-                    })),
-                    const SizedBox(width: 12),
-                    Expanded(child: _quickAction('🎯 Goals', () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GoalsScreen()));
-                    })),
-                    const SizedBox(width: 12),
-                    Expanded(child: _quickAction('📋 Review', () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ReviewsAdvancedClassic()));
-                    })),
-                  ]),
+                  Text("Today's focus",
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: _ink)),
+                  const SizedBox(height: 10),
+                  _focusItem('Review $focusName feedback', () => _showFeedbackPopup('Constructive')),
+                  _focusItem('$_overdueGoals goal${_overdueGoals == 1 ? '' : 's'} overdue',
+                      () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GoalsScreen()))),
+                  _focusItem('$_pendingMeetings meeting${_pendingMeetings == 1 ? '' : 's'} pending',
+                      () => ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Meetings — coming soon')))),
                 ],
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            // Thin recent-activity strip
+            GestureDetector(
+              onTap: () => _showFeedbackPopup(null),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F6F4),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.history_rounded, size: 16, color: Color(0xFF8AA39B)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        fb.isEmpty
+                            ? 'No recent activity'
+                            : 'Recent · ${fb.take(3).map((f) => f.employeeName.split(' ').first).join(', ')}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF5A6E68)),
+                      ),
+                    ),
+                    const Text('View all',
+                        style: TextStyle(fontSize: 12, color: _teal, fontWeight: FontWeight.w600)),
+                    const Icon(Icons.chevron_right_rounded, size: 18, color: _teal),
+                  ],
+                ),
               ),
             ),
           ],
@@ -241,22 +236,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
     );
   }
 
-  // ---- Range toggle ----
-  Widget _buildRangeToggle() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(children: [
-        _rangeChip('This Quarter', DashRange.current),
-        _rangeChip('Last Quarter', DashRange.last),
-      ]),
-    );
-  }
-
-  Widget _rangeChip(String label, DashRange value) {
+  Widget _pill(String label, DashRange value) {
     final selected = _range == value;
     return Expanded(
       child: GestureDetector(
@@ -265,63 +245,40 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(vertical: 11),
           decoration: BoxDecoration(
-            color: selected ? Colors.teal : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: selected
-                ? [BoxShadow(color: Colors.teal.withOpacity(0.25), blurRadius: 6, offset: const Offset(0, 2))]
-                : null,
+            color: selected ? _teal : Colors.transparent,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: selected ? _teal : const Color(0xFFB8D4D0)),
           ),
           child: Center(
             child: Text(label,
                 style: TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: selected ? Colors.white : Colors.grey[700])),
+                    fontWeight: FontWeight.w600,
+                    color: selected ? Colors.white : _teal)),
           ),
         ),
       ),
     );
   }
 
-  // ---- Big actionable KPI tile ----
-  Widget _bigKPI(String label, String value, String sub, IconData icon, Color color, VoidCallback onTap) {
+  Widget _kpi(String label, String value, IconData icon, Color color, VoidCallback onTap) {
     return Material(
-      color: Colors.white,
+      color: const Color(0xFFF1F7F5),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey[200]!),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 3))],
-          ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(icon, color: color, size: 22),
-                  ),
-                  Icon(Icons.arrow_outward_rounded, size: 16, color: Colors.grey[400]),
-                ],
-              ),
-              const SizedBox(height: 14),
+              Icon(icon, color: color, size: 22),
+              const SizedBox(height: 12),
               Text(value,
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 42, height: 1.0, color: Colors.grey[900])),
-              const SizedBox(height: 6),
-              Text(label,
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: color, letterSpacing: 0.3)),
-              Text(sub, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 34, height: 1.0, color: _ink)),
+              const SizedBox(height: 4),
+              Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF8AA39B))),
             ],
           ),
         ),
@@ -329,84 +286,23 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
     );
   }
 
-  // ---- Compact activity row ----
-  Widget _compactActivityRow(FeedbackItem f, bool divider) {
-    final isPositive = f.feedbackType == 'Positive';
-    final d = f.createdAt!;
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-          child: Row(
-            children: [
-              Container(
-                width: 9, height: 9,
-                decoration: BoxDecoration(
-                    color: isPositive ? Colors.green : Colors.orange, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(f.employeeName,
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                    Text(f.comment,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: isPositive ? Colors.green[50] : Colors.orange[50],
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(f.feedbackType,
-                        style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700,
-                            color: isPositive ? Colors.green[700] : Colors.orange[700])),
-                  ),
-                  const SizedBox(height: 3),
-                  Text('${_mon[d.month]} ${d.day}',
-                      style: TextStyle(fontSize: 10, color: Colors.grey[400])),
-                ],
-              ),
-            ],
-          ),
-        ),
-        if (divider) Divider(height: 1, color: Colors.grey[100]),
-      ],
-    );
-  }
-
-  Widget _quickAction(String label, VoidCallback onTap) {
-    return GestureDetector(
+  Widget _focusItem(String label, VoidCallback onTap) {
+    return InkWell(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.white.withOpacity(0.2)),
-        ),
-        child: Center(
-          child: Text(label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.white)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 9),
+        child: Row(
+          children: [
+            const Icon(Icons.radio_button_unchecked, size: 18, color: _teal),
+            const SizedBox(width: 10),
+            Expanded(child: Text(label, style: const TextStyle(fontSize: 13, color: Color(0xFF3D544E)))),
+            const Icon(Icons.chevron_right_rounded, size: 18, color: Color(0xFFB8C9C4)),
+          ],
         ),
       ),
     );
   }
 
-  // ---- Feedback popup (optionally filtered by type) ----
   void _showFeedbackPopup(String? typeFilter) {
     final items = typeFilter == null
         ? _filtered
