@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'feedback_screen.dart';
+import 'employee_feedback_log_screen.dart';
 
 class TeamScreen extends StatefulWidget {
   const TeamScreen({Key? key}) : super(key: key);
@@ -126,7 +128,9 @@ class _TeamScreenState extends State<TeamScreen> {
           emp['specialty'].toString().toLowerCase().contains(searchTerm);
       final matchesDept = _filterDepartment == 'All' || emp['department'] == _filterDepartment;
       return matchesSearch && matchesDept;
-    }).toList();
+    }).toList()
+      // Top-rated employees first.
+      ..sort((a, b) => (b['performanceScore'] as num).compareTo(a['performanceScore'] as num));
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -252,12 +256,24 @@ class _TeamScreenState extends State<TeamScreen> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => EmployeeFeedbackLogScreen(employeeName: emp['name']),
+          ),
+        ),
+        child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.max,
           children: [
+            // Average-rating badge (top-right) — surfaces top performers
+            Align(
+              alignment: Alignment.topRight,
+              child: _ratingBadge((emp['performanceScore'] as num).toDouble()),
+            ),
             // Avatar
             Center(
               child: CircleAvatar(
@@ -294,8 +310,148 @@ class _TeamScreenState extends State<TeamScreen> {
                 _tagChip(emp['specialty']),
               ],
             ),
+            const Spacer(),
+            // Quick actions
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 32,
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => FeedbackScreen(initialEmployee: emp['name']),
+                        ),
+                      ),
+                      icon: const Icon(Icons.add_comment_outlined, size: 14),
+                      label: const Text('Feedback', style: TextStyle(fontSize: 11)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: teal,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                SizedBox(
+                  height: 32,
+                  width: 36,
+                  child: OutlinedButton(
+                    onPressed: () => _showProfile(emp),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: teal,
+                      side: BorderSide(color: teal.withOpacity(0.4)),
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Icon(Icons.person_outline, size: 16),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
+      ),
+      ),
+    );
+  }
+
+  void _showProfile(Map<String, dynamic> emp) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(emp['name'], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            Text(emp['title'], style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+            const SizedBox(height: 16),
+            _profileRow(Icons.workspace_premium_outlined, 'Qualifications', emp['qualifications']),
+            _profileRow(Icons.local_hospital_outlined, 'Department', emp['department']),
+            _profileRow(Icons.medical_services_outlined, 'Specialty', emp['specialty']),
+            _profileRow(Icons.timelapse, 'Experience', '${emp['yearsExperience']} years'),
+            _profileRow(Icons.star_outline, 'Performance', '${emp['performanceScore']} / 5.0'),
+            _profileRow(Icons.circle, 'Status', emp['status']),
+            _profileRow(Icons.mail_outline, 'Email', emp['email']),
+            _profileRow(Icons.phone_outlined, 'Phone', emp['phone']),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => FeedbackScreen(initialEmployee: emp['name']),
+                  ));
+                },
+                icon: const Icon(Icons.add_comment_outlined, size: 18),
+                label: const Text('Give Feedback'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: teal,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _profileRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: teal),
+          const SizedBox(width: 12),
+          Text(label, style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+          const Spacer(),
+          Flexible(
+            child: Text(value,
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _ratingBadge(double score) {
+    final Color c = score >= 4.5
+        ? Colors.green[700]!
+        : (score >= 4.0 ? Colors.amber[800]! : Colors.grey[600]!);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: c.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.star_rounded, size: 13, color: c),
+          const SizedBox(width: 3),
+          Text(score.toStringAsFixed(1),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: c)),
+        ],
       ),
     );
   }

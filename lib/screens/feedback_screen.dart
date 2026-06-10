@@ -6,7 +6,10 @@ import '../models/healthcare_organization.dart';
 import 'employee_feedback_dashboard.dart';
 
 class FeedbackScreen extends StatefulWidget {
-  const FeedbackScreen({Key? key}) : super(key: key);
+  // When set (e.g. opened from a Team card's "Feedback" quick action), the
+  // New Feedback dialog auto-opens pre-filled for this employee.
+  final String? initialEmployee;
+  const FeedbackScreen({Key? key, this.initialEmployee}) : super(key: key);
 
   @override
   State<FeedbackScreen> createState() => _FeedbackScreenState();
@@ -36,6 +39,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   void initState() {
     super.initState();
     _feedbacksFuture = _supabaseService.getFeedbacks();
+    if (widget.initialEmployee != null && widget.initialEmployee!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _showFeedbackForm(employee: widget.initialEmployee));
+    }
     _localFeedbacks = [
       FeedbackItem(
         id: '1',
@@ -209,10 +216,19 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     return corrected;
   }
 
-  void _showFeedbackForm({String? employee}) {
-    // Pre-fill the employee when launched from a specific staff card's "+".
-    _selectedEmployee = employee;
-    _nameController.text = employee ?? '';
+  void _showFeedbackForm({String? employee, FeedbackItem? editItem}) {
+    if (editItem != null) {
+      // Revise an existing entry — pre-fill every field.
+      _selectedEmployee = editItem.employeeName;
+      _nameController.text = editItem.employeeName;
+      _commentController.text = editItem.comment;
+      _feedbackType = editItem.feedbackType;
+      _rating = editItem.feedbackType == 'Positive' ? 5 : 3;
+    } else {
+      // Pre-fill the employee when launched from a specific staff card's "+".
+      _selectedEmployee = employee;
+      _nameController.text = employee ?? '';
+    }
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -220,11 +236,11 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.feedback_outlined, size: 24, color: Colors.grey),
-                SizedBox(width: 8),
-                Text('New Feedback', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
+                const Icon(Icons.feedback_outlined, size: 24, color: Colors.grey),
+                const SizedBox(width: 8),
+                Text(editItem != null ? 'Edit Feedback' : 'New Feedback', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
               ],
             ),
             GestureDetector(
@@ -233,7 +249,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             ),
           ],
         ),
-        content: ClipRRect(
+        content: StatefulBuilder(
+          builder: (context, setSheet) => ClipRRect(
           clipBehavior: Clip.hardEdge,
           child: SizedBox(
             width: 400,
@@ -245,21 +262,19 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               // Employee
               const Text('Employee', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
               const SizedBox(height: 8),
-              StatefulBuilder(
-                builder: (context, setLocalState) => DropdownButtonFormField<String>(
-                  isExpanded: true,
-                  value: _selectedEmployee,
-                  decoration: InputDecoration(
-                    hintText: 'Select employee...',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  ),
-                  items: _buildEmployeeList(),
-                  onChanged: (value) => setLocalState(() {
-                    _selectedEmployee = value;
-                    _nameController.text = value ?? '';
-                  }),
+              DropdownButtonFormField<String>(
+                isExpanded: true,
+                value: _selectedEmployee,
+                decoration: InputDecoration(
+                  hintText: 'Select employee...',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
+                items: _buildEmployeeList(),
+                onChanged: (value) => setSheet(() {
+                  _selectedEmployee = value;
+                  _nameController.text = value ?? '';
+                }),
               ),
               const SizedBox(height: 16),
 
@@ -270,7 +285,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => setState(() {
+                      onTap: () => setSheet(() {
                         _feedbackType = 'Positive';
                         _rating = 5; // Auto-set to 5 stars for Positive
                       }),
@@ -295,7 +310,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => setState(() {
+                      onTap: () => setSheet(() {
                         _feedbackType = 'Constructive';
                         _rating = 3; // Auto-set to 3 stars for Constructive
                       }),
@@ -321,7 +336,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Category & Your Name Row
+              // Category (feedback is implicitly from the logged-in supervisor)
               Row(
                 children: [
                   Expanded(
@@ -357,25 +372,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                             DropdownMenuItem(value: 'Quality of Work', child: Text('Quality of Work')),
                             DropdownMenuItem(value: 'Attendance', child: Text('Attendance')),
                           ],
-                          onChanged: (value) => setState(() => _category = value ?? 'Clinical Excellence'),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Your Name', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: _yourNameController,
-                          decoration: InputDecoration(
-                            hintText: 'Supervisor name',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                          ),
+                          onChanged: (value) => setSheet(() => _category = value ?? 'Clinical Excellence'),
                         ),
                       ],
                     ),
@@ -391,7 +388,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 spacing: 8,
                 children: List.generate(5, (i) =>
                   GestureDetector(
-                    onTap: () => setState(() => _rating = i + 1),
+                    onTap: () => setSheet(() => _rating = i + 1),
                     child: Icon(
                       i < _rating ? Icons.star : Icons.star_outline,
                       color: i < _rating ? Colors.amber : Colors.grey[300],
@@ -456,7 +453,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     ),
                     Switch(
                       value: _requestMeeting,
-                      onChanged: (value) => setState(() => _requestMeeting = value),
+                      onChanged: (value) => setSheet(() => _requestMeeting = value),
                       activeColor: Colors.teal,
                     ),
                   ],
@@ -466,6 +463,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               ),
             ),
           ),
+        ),
         ),
         actions: [
           TextButton(
@@ -504,15 +502,26 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 return;
               }
 
-              final newFeedback = FeedbackItem(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
+              final updated = FeedbackItem(
+                id: editItem?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
                 employeeName: employeeName,
                 feedbackType: _feedbackType,
                 comment: comment,
-                createdAt: DateTime.now(),
+                createdAt: editItem?.createdAt ?? DateTime.now(),
               );
 
-              setState(() => _localFeedbacks.insert(0, newFeedback));
+              setState(() {
+                if (editItem != null) {
+                  final i = _localFeedbacks.indexWhere((f) => f.id == editItem.id);
+                  if (i >= 0) {
+                    _localFeedbacks[i] = updated;
+                  } else {
+                    _localFeedbacks.insert(0, updated);
+                  }
+                } else {
+                  _localFeedbacks.insert(0, updated);
+                }
+              });
               _nameController.clear();
               _commentController.clear();
               _yourNameController.clear();
@@ -535,11 +544,133 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     );
   }
 
+  void _confirmDeleteFeedback(FeedbackItem f) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete feedback?'),
+        content: Text('This feedback for ${f.employeeName} will be removed.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () {
+              setState(() => _localFeedbacks.removeWhere((x) => x.id == f.id));
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Feedback deleted')),
+              );
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // A single chronological entry in the feedback log.
+  Widget _buildLogRow(FeedbackItem f, List<FeedbackItem> allFeedbacks) {
+    final isPositive = f.feedbackType == 'Positive';
+    final accent = isPositive ? Colors.green : Colors.orange;
+    final textColor = isPositive ? Colors.green[700]! : Colors.orange[800]!;
+    final d = f.createdAt ?? DateTime.now();
+    final when =
+        '${d.day}/${d.month}/${d.year} · ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => EmployeeFeedbackDashboard(
+              employeeName: f.employeeName, allFeedbacks: allFeedbacks),
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 4,
+              height: 42,
+              decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(2)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(f.employeeName,
+                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: accent.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(f.feedbackType,
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: textColor)),
+                      ),
+                      // Manager actions: revise / delete
+                      SizedBox(
+                        height: 24,
+                        width: 28,
+                        child: PopupMenuButton<String>(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Icons.more_vert, size: 18, color: Colors.grey),
+                          onSelected: (v) {
+                            if (v == 'edit') {
+                              _showFeedbackForm(editItem: f);
+                            } else if (v == 'delete') {
+                              _confirmDeleteFeedback(f);
+                            }
+                          },
+                          itemBuilder: (_) => const [
+                            PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 18), SizedBox(width: 10), Text('Edit / revise')])),
+                            PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete_outline, size: 18, color: Colors.red), SizedBox(width: 10), Text('Delete', style: TextStyle(color: Colors.red))])),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(f.comment,
+                      style: TextStyle(fontSize: 12, color: Colors.grey[700], height: 1.4),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 6),
+                  Text(when, style: TextStyle(fontSize: 10, color: Colors.grey[500])),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   List<DropdownMenuItem<String>> _buildEmployeeList() {
     final items = <DropdownMenuItem<String>>[];
+    final seen = <String>{};
+    // Include a pre-selected employee even if they aren't an org persona
+    // (the Team screen has its own roster) so the dropdown value always matches.
+    if (_selectedEmployee != null && _selectedEmployee!.isNotEmpty) {
+      items.add(DropdownMenuItem(value: _selectedEmployee, child: Text(_selectedEmployee!)));
+      seen.add(_selectedEmployee!);
+    }
     for (final org in HealthcareOrganization.all) {
       for (final persona in org.personas) {
-        items.add(DropdownMenuItem(value: persona.name, child: Text('${persona.name} (${persona.role})')));
+        if (seen.add(persona.name)) {
+          items.add(DropdownMenuItem(value: persona.name, child: Text('${persona.name} (${persona.role})')));
+        }
       }
     }
     return items;
@@ -734,8 +865,6 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         future: _feedbacksFuture,
         builder: (context, snapshot) {
           final allFeedbacks = [..._localFeedbacks, ...(snapshot.data ?? <FeedbackItem>[])];
-          final employees = _aggregateFeedbackByEmployee(allFeedbacks);
-          final filtered = employees.where((e) => e.employeeName.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
 
           return Column(
             children: [
@@ -801,95 +930,31 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   ),
                 ),
               ),
-              // Employee list
+              // Feedback log (chronological, newest first)
               Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    final emp = filtered[index];
-
-                    return GestureDetector(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EmployeeFeedbackDashboard(employeeName: emp.employeeName, allFeedbacks: allFeedbacks))),
-                      child: Container(
-                      margin: const EdgeInsets.only(bottom: 14),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Colors.white, Colors.grey[50]!]),
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, 4))],
-                        border: Border.all(color: Colors.grey[200]!, width: 1),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        width: 44,
-                                        height: 44,
-                                        decoration: BoxDecoration(
-                                          color: _getRoleColor(emp.employeeName).withOpacity(0.15),
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        child: Icon(_getRoleIcon(emp.employeeName), color: _getRoleColor(emp.employeeName), size: 22),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(emp.employeeName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Colors.black87)),
-                                            const SizedBox(height: 2),
-                                            Row(
-                                              children: [
-                                                Text(_getEmployeeRole(emp.employeeName), style: TextStyle(fontSize: 10, color: Colors.blue[700], fontWeight: FontWeight.w600)),
-                                                const SizedBox(width: 8),
-                                                Text('• ${_getEmployeeDept(emp.employeeName)}', style: TextStyle(fontSize: 10, color: Colors.grey[500], fontWeight: FontWeight.w500)),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () => _showFeedbackForm(employee: emp.employeeName),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(color: const Color(0xFF0E7C7B), borderRadius: BorderRadius.circular(8)),
-                                    child: const Icon(Icons.add, color: Colors.white, size: 18),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Container(
-                              padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 10),
-                              decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  _buildStatItem('✓ Positive', emp.positiveCount.toString(), Colors.green),
-                                  _buildStatItem('⚡ Constructive', emp.constructiveCount.toString(), Colors.orange),
-                                  _buildStatItem('Q4', emp.currentQuarterTotal.toString(), Colors.blue),
-                                  _buildStatItem('Q3', emp.previousQuarterTotal.toString(), Colors.grey[700]!),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                child: Builder(builder: (context) {
+                  final q = _searchQuery.toLowerCase();
+                  final logItems = _filterFeedbacksByDate(allFeedbacks, _dateFilter)
+                      .where((f) =>
+                          f.employeeName.toLowerCase().contains(q) ||
+                          f.comment.toLowerCase().contains(q))
+                      .toList()
+                    ..sort((a, b) => (b.createdAt ?? DateTime.now())
+                        .compareTo(a.createdAt ?? DateTime.now()));
+                  if (logItems.isEmpty) {
+                    return Center(
+                      child: Text('No feedback in this period',
+                          style: TextStyle(color: Colors.grey[500])),
                     );
-                  },
-                ),
+                  }
+                  return ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    itemCount: logItems.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) =>
+                        _buildLogRow(logItems[index], allFeedbacks),
+                  );
+                }),
               ),
             ],
           );
@@ -1013,24 +1078,67 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
     // Spelling & Grammar Suggestions
     final commonMistakes = {
+      'tlak': 'talk',
       'teh': 'the',
+      'adn': 'and',
+      'thsi': 'this',
+      'taht': 'that',
       'recieve': 'receive',
+      'recieved': 'received',
       'occured': 'occurred',
+      'occassion': 'occasion',
+      'ocasion': 'occasion',
       'exellent': 'excellent',
+      'excelent': 'excellent',
       'seperate': 'separate',
       'thier': 'their',
       'wich': 'which',
       'becuase': 'because',
       'untill': 'until',
-      'ocasion': 'occasion',
+      'alot': 'a lot',
+      'definately': 'definitely',
+      'neccessary': 'necessary',
+      'necesary': 'necessary',
+      'accomodate': 'accommodate',
+      'responsibilty': 'responsibility',
+      'communcation': 'communication',
+      'comunication': 'communication',
+      'profesional': 'professional',
+      'profesionalism': 'professionalism',
+      'acheivement': 'achievement',
+      'improvment': 'improvement',
+      'consistant': 'consistent',
+      'managment': 'management',
+      'enviroment': 'environment',
+      'knowlege': 'knowledge',
+      'collegue': 'colleague',
+      'collaegue': 'colleague',
+      'recomend': 'recommend',
+      'reccomend': 'recommend',
+      'commited': 'committed',
+      'sucessful': 'successful',
+      'succesful': 'successful',
+      'experiance': 'experience',
+      'paitent': 'patient',
+      'pateint': 'patient',
+      'beleive': 'believe',
+      'wether': 'whether',
+      'truely': 'truly',
+      'arguement': 'argument',
+      'reponsible': 'responsible',
+      'punctualy': 'punctually',
+      'detial': 'detail',
+      'detials': 'details',
+      'feedbck': 'feedback',
+      'mistke': 'mistake',
     };
 
     commonMistakes.forEach((mistake, correct) {
-      if (improved.toLowerCase().contains(mistake)) {
-        improved = improved.replaceAllMapped(
-          RegExp(mistake, caseSensitive: false),
-          (match) => correct,
-        );
+      // Whole-word, case-insensitive match so short tokens don't mangle
+      // unrelated words (e.g. "the" inside "theory").
+      final pattern = RegExp(r'\b' + RegExp.escape(mistake) + r'\b', caseSensitive: false);
+      if (pattern.hasMatch(improved)) {
+        improved = improved.replaceAll(pattern, correct);
         corrections.add('Fixed: "$mistake" → "$correct"');
       }
     });
