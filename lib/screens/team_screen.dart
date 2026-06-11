@@ -14,6 +14,7 @@ class TeamScreen extends StatefulWidget {
   static List<Map<String, dynamic>> reportsOf(String name) => _TeamScreenState.reportsOf(name);
   static double teamAvgRating(String name) => _TeamScreenState.teamAvgRating(name);
   static int teamFeedbackCount(String name) => _TeamScreenState.teamFeedbackCount(name);
+  static double directReportsAvg() => _TeamScreenState.directReportsAvg();
 
   @override
   State<TeamScreen> createState() => _TeamScreenState();
@@ -102,22 +103,37 @@ class _TeamScreenState extends State<TeamScreen> {
     },
   ];
 
+  // Managers, sorted by their team's average rating (top first).
+  // Single sort for the whole app so Team tab + dashboard rollup match.
   static List<Map<String, dynamic>> get managers =>
-      roster.where((e) => e['manager'] == null).toList();
+      roster.where((e) => e['manager'] == null).toList()
+        ..sort((a, b) => teamAvgRating(b['name'] as String)
+            .compareTo(teamAvgRating(a['name'] as String)));
 
   static List<Map<String, dynamic>> reportsOf(String managerName) =>
       roster.where((e) => e['manager'] == managerName).toList();
 
+  // Team avg = average across the manager's REPORTS only (not the manager
+  // themselves — the manager has their own personal rating).
   static double teamAvgRating(String managerName) {
-    final names = [managerName, ...reportsOf(managerName).map((e) => e['name'] as String)];
-    final scores = names.map(EmployeeFeedbackLogScreen.averageRating).toList();
-    if (scores.isEmpty) return 0;
+    final reports = reportsOf(managerName).map((e) => e['name'] as String);
+    if (reports.isEmpty) return 0;
+    final scores = reports.map(EmployeeFeedbackLogScreen.averageRating).toList();
     return double.parse((scores.reduce((a, b) => a + b) / scores.length).toStringAsFixed(1));
   }
 
+  // Feedback count across the manager's reports only.
   static int teamFeedbackCount(String managerName) {
-    final names = [managerName, ...reportsOf(managerName).map((e) => e['name'] as String)];
-    return names.fold<int>(0, (a, n) => a + EmployeeFeedbackLogScreen.logFor(n).length);
+    final reports = reportsOf(managerName).map((e) => e['name'] as String);
+    return reports.fold<int>(0, (a, n) => a + EmployeeFeedbackLogScreen.logFor(n).length);
+  }
+
+  // Avg across just the top-level managers (your direct line if you're James).
+  static double directReportsAvg() {
+    final mgrs = managers.map((m) => m['name'] as String).toList();
+    if (mgrs.isEmpty) return 0;
+    final scores = mgrs.map(EmployeeFeedbackLogScreen.averageRating).toList();
+    return double.parse((scores.reduce((a, b) => a + b) / scores.length).toStringAsFixed(1));
   }
 
   @override
@@ -126,17 +142,24 @@ class _TeamScreenState extends State<TeamScreen> {
     final mgrs = managers;
     final totalReports = mgrs.fold<int>(0, (a, m) => a + reportsOf(m['name']).length);
 
+    final canPop = Navigator.of(context).canPop();
     return Scaffold(
       backgroundColor: scheme.surface,
+      appBar: AppBar(
+        backgroundColor: scheme.surface,
+        scrolledUnderElevation: 0,
+        foregroundColor: scheme.onSurface,
+        elevation: 0,
+        // Tab use → no leading; pushed (from rollup) → back arrow appears.
+        automaticallyImplyLeading: canPop,
+        title: const Text('Team',
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22)),
+      ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
-            // ── Header ──
-            Text('Team',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: scheme.onSurface)),
-            const SizedBox(height: 4),
-            Text('Tap a manager to drill into their reports',
+            Text("Tap a direct report to see their feedback or their team",
                 style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
             const SizedBox(height: 20),
 
@@ -149,17 +172,17 @@ class _TeamScreenState extends State<TeamScreen> {
               ),
               child: Row(
                 children: [
-                  _topStat(scheme, '${mgrs.length}', 'Managers', scheme.primary),
+                  _topStat(scheme, '${mgrs.length}', 'Direct', scheme.primary),
                   _vDiv(scheme),
-                  _topStat(scheme, '$totalReports', 'Reports', scheme.tertiary),
+                  _topStat(scheme, '$totalReports', 'Indirect', scheme.tertiary),
                   _vDiv(scheme),
-                  _topStat(scheme, '${mgrs.length + totalReports}', 'Total', scheme.secondary),
+                  _topStat(scheme, '${mgrs.length + totalReports}', 'Total team', scheme.secondary),
                 ],
               ),
             ),
             const SizedBox(height: 22),
 
-            Text('MANAGERS',
+            Text('YOUR DIRECT REPORTS',
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800,
                     color: scheme.onSurfaceVariant, letterSpacing: 0.8)),
             const SizedBox(height: 10),

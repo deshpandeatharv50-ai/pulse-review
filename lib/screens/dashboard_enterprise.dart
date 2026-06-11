@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/feedback.dart';
 import 'team_screen.dart';
+import 'employee_feedback_log_screen.dart';
 import 'goals_screen.dart';
 import 'reviews_advanced_classic.dart';
 
@@ -246,11 +247,11 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                       );
                     }),
                     const SizedBox(height: 6),
-                    Text('vs last quarter',
+                    Text('Org-wide · across $_teamMembers people · vs last quarter',
                         style: TextStyle(
-                            color: Colors.white.withOpacity(0.65),
+                            color: Colors.white.withOpacity(0.7),
                             fontSize: 11,
-                            fontWeight: FontWeight.w500)),
+                            fontWeight: FontWeight.w600)),
                     const SizedBox(height: 14),
                     // Zone tag below — heatmap color cue stays
                     Row(
@@ -517,16 +518,16 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                             fontWeight: FontWeight.w600)),
                   ),
                   const Spacer(),
-                  _composChip(scheme, '$managers', 'mgrs', scheme.primary),
+                  _composChip(scheme, '$managers', 'direct', scheme.primary),
                   const SizedBox(width: 6),
-                  _composChip(scheme, '$reports', 'reports', scheme.tertiary),
+                  _composChip(scheme, '$reports', 'indirect', scheme.tertiary),
                 ],
               ),
               const SizedBox(height: 18),
               // Feedback header + breakdown bar
               Row(
                 children: [
-                  Text('FEEDBACK THIS QUARTER',
+                  Text('FEEDBACK · ORG-WIDE · THIS QUARTER',
                       style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
@@ -785,6 +786,9 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                         fontWeight: FontWeight.w800,
                         color: tColor)),
               ),
+              const SizedBox(width: 6),
+              Icon(Icons.chevron_right_rounded,
+                  size: 18, color: scheme.onSurfaceVariant),
             ],
           ),
         ),
@@ -806,7 +810,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
               children: [
                 Icon(Icons.account_tree_rounded, size: 16, color: scheme.primary),
                 const SizedBox(width: 6),
-                Text('TEAM ROLLUP',
+                Text('CUMULATIVE AVERAGES',
                     style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
@@ -823,28 +827,51 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
           ),
           const SizedBox(height: 6),
           row(
-            label: 'Organization',
-            sub: '${TeamScreen.managers.length} teams · $_teamMembers people',
+            label: 'Whole organization',
+            sub: 'avg across all $_teamMembers people',
             current: orgAvg,
             prior: _range == DashRange.current ? 3.6 : 3.4,
             depth: 0,
             onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TeamScreen())),
           ),
           Divider(height: 1, color: scheme.outlineVariant),
-          ...managers.map((m) {
+          // ── My direct reports (just the manager line — Chen, Anderson, Martinez) ──
+          row(
+            label: 'My direct reports',
+            sub: 'avg across ${managers.length} direct (their personal ratings)',
+            current: TeamScreen.directReportsAvg(),
+            prior: _range == DashRange.current ? 3.7 : 3.5,
+            depth: 0,
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TeamScreen())),
+          ),
+          Divider(height: 1, color: scheme.outlineVariant),
+          // ── Per-manager: TWO rows (personal + their team) kept separate ──
+          ...managers.expand((m) {
             final name = m['name'] as String;
-            final cur = TeamScreen.teamAvgRating(name);
+            final personal = EmployeeFeedbackLogScreen.averageRating(name);
+            final teamAvg = TeamScreen.teamAvgRating(name);
             final reports = TeamScreen.reportsOf(name).length;
-            return row(
-              label: name,
-              sub: '${m['department']} · $reports reports',
-              current: cur,
-              prior: priorFor(name),
-              depth: 1,
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => ManagerReportsScreen(manager: m)),
+            return [
+              row(
+                label: name,
+                sub: '${m['department']} · personal rating',
+                current: personal,
+                prior: priorFor(name),
+                depth: 1,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => EmployeeFeedbackLogScreen(employeeName: name))),
               ),
-            );
+              row(
+                label: '${name.split(' ').last}\'s team',
+                sub: 'avg across $reports report${reports == 1 ? '' : 's'}',
+                current: teamAvg,
+                prior: priorFor(name) - 0.1,
+                depth: 2,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => ManagerReportsScreen(manager: m)),
+                ),
+              ),
+            ];
           }),
         ],
       ),
