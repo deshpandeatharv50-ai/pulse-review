@@ -181,40 +181,47 @@ class _GoalsScreenState extends State<GoalsScreen> {
     }
     final yearOptions = ['All Time', ...(years.toList()..sort())];
 
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
+      backgroundColor: scheme.surface,
       appBar: AppBar(
-        title: const Text('SMART Goals'),
+        backgroundColor: scheme.surface,
+        scrolledUnderElevation: 0,
+        foregroundColor: scheme.onSurface,
+        elevation: 0,
+        title: const Text('SMART Goals',
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
+          IconButton.filledTonal(
+            icon: const Icon(Icons.logout_rounded, size: 18),
             tooltip: 'Logout',
             onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil('/', (r) => false),
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('SMART Goals', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-            Text('Track employee goals and progress',
-                style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-            const SizedBox(height: 24),
+            Text('Track team goals and progress',
+                style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
+            const SizedBox(height: 20),
 
             // ─── AGGREGATE DASHBOARD (tap a card to filter) ───
             Text('OVERVIEW',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey[500], letterSpacing: 0.5)),
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: scheme.onSurfaceVariant, letterSpacing: 0.8)),
             const SizedBox(height: 10),
             Row(
               children: [
-                Expanded(child: _buildKPICard('TOTAL', total.toString(), Icons.adjust, Colors.blue, 'All')),
+                Expanded(child: _buildKPICard('TOTAL', total.toString(), Icons.adjust_rounded, scheme.primaryContainer, scheme.onPrimaryContainer, 'All')),
                 const SizedBox(width: 10),
-                Expanded(child: _buildKPICard('IN PROGRESS', inProgress.toString(), Icons.flag, Colors.orange, 'In Progress')),
+                Expanded(child: _buildKPICard('IN PROGRESS', inProgress.toString(), Icons.flag_rounded, scheme.tertiaryContainer, scheme.onTertiaryContainer, 'In Progress')),
                 const SizedBox(width: 10),
-                Expanded(child: _buildKPICard('DONE', completed.toString(), Icons.check_circle, Colors.green, 'Completed')),
+                Expanded(child: _buildKPICard('DONE', completed.toString(), Icons.check_circle_rounded, scheme.secondaryContainer, scheme.onSecondaryContainer, 'Completed')),
                 const SizedBox(width: 10),
-                Expanded(child: _buildKPICard('OVERDUE', overdue.toString(), Icons.schedule, Colors.red, 'Overdue')),
+                Expanded(child: _buildKPICard('OVERDUE', overdue.toString(), Icons.schedule_rounded, scheme.errorContainer, scheme.onErrorContainer, 'Overdue')),
               ],
             ),
             const SizedBox(height: 24),
@@ -251,8 +258,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(10),
+                color: scheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(14),
               ),
               child: DropdownButton<String>(
                 value: _selectedEmployee,
@@ -271,8 +278,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(10),
+                color: scheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(14),
               ),
               child: DropdownButton<String>(
                 value: _selectedStatus,
@@ -305,35 +312,49 @@ class _GoalsScreenState extends State<GoalsScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showGoalDialog(),
-        backgroundColor: teal,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('Add Goal', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+        backgroundColor: scheme.primaryContainer,
+        foregroundColor: scheme.onPrimaryContainer,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Add goal', style: TextStyle(fontWeight: FontWeight.w800)),
       ),
     );
   }
 
   // ---------- KPI card ----------
-  Widget _buildKPICard(String label, String value, IconData icon, Color color, String statusKey) {
+  Widget _buildKPICard(String label, String value, IconData icon, Color bg, Color fg, String statusKey) {
     final selected = _selectedStatus == statusKey;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedStatus = statusKey),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          border: Border.all(color: selected ? color : Colors.grey[300]!, width: selected ? 2 : 1),
-          borderRadius: BorderRadius.circular(8),
-          color: selected ? color.withOpacity(0.08) : Colors.white,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(height: 6),
-            Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 2),
-            Text(label, style: TextStyle(fontSize: 9, color: Colors.grey[600], fontWeight: FontWeight.w600)),
-          ],
+    return Material(
+      color: bg,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => setState(() => _selectedStatus = statusKey),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: selected
+                ? Border.all(color: fg, width: 2)
+                : Border.all(color: Colors.transparent, width: 2),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: fg.withOpacity(0.14),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: fg, size: 14),
+              ),
+              const SizedBox(height: 8),
+              Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: fg)),
+              const SizedBox(height: 2),
+              Text(label, style: TextStyle(fontSize: 9, color: fg.withOpacity(0.8), fontWeight: FontWeight.w700)),
+            ],
+          ),
         ),
       ),
     );
@@ -341,15 +362,15 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
   // ---------- Goal card ----------
   Widget _buildGoalCard(Map<String, dynamic> goal) {
+    final scheme = Theme.of(context).colorScheme;
     final status = goal['status'] as String;
     final sc = _statusColor(status);
     final progress = _progress(goal);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        color: scheme.surfaceContainerLow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

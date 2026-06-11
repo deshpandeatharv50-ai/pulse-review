@@ -61,119 +61,199 @@ class EmployeeFeedbackLogScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final log = _log;
     final positive = log.where((e) => e['type'] == 'Positive').length;
     final constructive = log.length - positive;
+    final avg = averageRating(employeeName);
+    final initials = employeeName.split(' ').map((p) => p.isEmpty ? '' : p[0]).join().toUpperCase();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6FAF9),
+      backgroundColor: scheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: scheme.surface,
+        scrolledUnderElevation: 0,
+        foregroundColor: scheme.onSurface,
         elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(employeeName,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-            const Text('Feedback log', style: TextStyle(fontSize: 11, color: Colors.grey)),
-          ],
-        ),
+        title: const Text('Feedback log',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
       ),
-      body: Column(
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
-          // Summary
+          // ── M3 hero card for the employee ──
           Container(
-            margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            padding: const EdgeInsets.symmetric(vertical: 14),
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[200]!),
+              borderRadius: BorderRadius.circular(24),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  scheme.primaryContainer,
+                  Color.lerp(scheme.primaryContainer, scheme.tertiaryContainer, 0.5)!,
+                ],
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _stat('Total', log.length.toString(), Colors.blue),
-                _stat('Positive', positive.toString(), Colors.green),
-                _stat('Constructive', constructive.toString(), Colors.orange),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 22,
+                      backgroundColor: scheme.primary,
+                      child: Text(initials,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(employeeName,
+                              style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w900,
+                                  color: scheme.onPrimaryContainer)),
+                          Text('Career feedback timeline',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: scheme.onPrimaryContainer.withOpacity(0.75))),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.45),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.star_rounded,
+                              size: 14, color: scheme.onPrimaryContainer),
+                          const SizedBox(width: 3),
+                          Text(avg.toStringAsFixed(1),
+                              style: TextStyle(
+                                  color: scheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    _heroStat('${log.length}', 'Total', scheme.onPrimaryContainer),
+                    _heroDiv(scheme),
+                    _heroStat('$positive', 'Positive', scheme.onPrimaryContainer),
+                    _heroDiv(scheme),
+                    _heroStat('$constructive', 'Constructive', scheme.onPrimaryContainer),
+                  ],
+                ),
               ],
             ),
           ),
-          Expanded(
-            child: log.isEmpty
-                ? Center(child: Text('No feedback yet', style: TextStyle(color: Colors.grey[500])))
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                    itemCount: log.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (_, i) => _row(log[i]),
-                  ),
-          ),
+          const SizedBox(height: 18),
+          Text('TIMELINE',
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: scheme.onSurfaceVariant,
+                  letterSpacing: 0.8)),
+          const SizedBox(height: 10),
+          if (log.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Center(
+                child: Text('No feedback yet',
+                    style: TextStyle(color: scheme.onSurfaceVariant)),
+              ),
+            )
+          else
+            ...log.map((e) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _row(e, scheme),
+                )),
         ],
       ),
     );
   }
 
-  Widget _stat(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: color)),
-        const SizedBox(height: 2),
-        Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-      ],
+  Widget _heroDiv(ColorScheme scheme) => Container(
+      width: 1,
+      height: 28,
+      color: scheme.onPrimaryContainer.withOpacity(0.2));
+
+  Widget _heroStat(String value, String label, Color fg) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(value,
+              style: TextStyle(
+                  fontSize: 20, fontWeight: FontWeight.w900, color: fg)),
+          Text(label,
+              style: TextStyle(fontSize: 11, color: fg.withOpacity(0.75))),
+        ],
+      ),
     );
   }
 
-  Widget _row(Map<String, dynamic> e) {
+  Widget _row(Map<String, dynamic> e, ColorScheme scheme) {
     final isPositive = e['type'] == 'Positive';
-    final accent = isPositive ? Colors.green : Colors.orange;
-    final textColor = isPositive ? Colors.green[700]! : Colors.orange[800]!;
+    final accentBg = isPositive ? scheme.secondaryContainer : scheme.errorContainer;
+    final accentFg = isPositive ? scheme.onSecondaryContainer : scheme.onErrorContainer;
     final d = e['date'] as DateTime;
     final when =
         '${_mon[d.month]} ${d.day}, ${d.year} · ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 4, height: 40,
-            decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(2)),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: accentBg,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: accent.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(e['type'],
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: textColor)),
-                    ),
-                    const Spacer(),
-                    Text(when, style: TextStyle(fontSize: 10, color: Colors.grey[500])),
+                    Icon(isPositive ? Icons.favorite_rounded : Icons.lightbulb_rounded,
+                        size: 12, color: accentFg),
+                    const SizedBox(width: 4),
+                    Text(e['type'],
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: accentFg)),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Text(e['comment'],
-                    style: TextStyle(fontSize: 13, color: Colors.grey[800], height: 1.4)),
-              ],
-            ),
+              ),
+              const Spacer(),
+              Text(when,
+                  style: TextStyle(
+                      fontSize: 10, color: scheme.onSurfaceVariant)),
+            ],
           ),
+          const SizedBox(height: 10),
+          Text(e['comment'],
+              style: TextStyle(
+                  fontSize: 13.5, color: scheme.onSurface, height: 1.4)),
         ],
       ),
     );

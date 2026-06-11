@@ -95,12 +95,29 @@ class _ReviewsListState extends State<ReviewsList> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
+      backgroundColor: scheme.surface,
       appBar: AppBar(
-        title: const Text('Reviews', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20)),
+        backgroundColor: scheme.surface,
+        scrolledUnderElevation: 0,
+        foregroundColor: scheme.onSurface,
+        automaticallyImplyLeading: false,
+        elevation: 0,
+        titleSpacing: 20,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Performance reviews',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.3)),
+            Text('AI-drafted review documents',
+                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant, fontWeight: FontWeight.w500)),
+          ],
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
+          IconButton.filledTonal(
+            icon: const Icon(Icons.logout_rounded, size: 18),
             tooltip: 'Logout',
             onPressed: () {
               showDialog(
@@ -113,11 +130,11 @@ class _ReviewsListState extends State<ReviewsList> {
                       onPressed: () => Navigator.pop(context),
                       child: const Text('Cancel'),
                     ),
-                    ElevatedButton(
+                    FilledButton(
                       onPressed: () {
                         Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
                       },
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      style: FilledButton.styleFrom(backgroundColor: scheme.error, foregroundColor: scheme.onError),
                       child: const Text('Logout'),
                     ),
                   ],
@@ -125,56 +142,38 @@ class _ReviewsListState extends State<ReviewsList> {
               );
             },
           ),
+          const SizedBox(width: 12),
         ],
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
       ),
       body: Column(
         children: [
-          // Header with Title and Action Buttons
-          Container(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-            color: Colors.white,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Action row
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+            child: Row(
               children: [
-                const Text(
-                  'Performance Reviews',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.5),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'AI-drafted review documents',
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: _showQuestionTemplates,
-                      icon: Icon(Icons.help_outline, color: Colors.grey[700]),
-                      label: Text(
-                        'Question Templates',
-                        style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w600),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.grey[400]!),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      ),
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    onPressed: _showQuestionTemplates,
+                    icon: const Icon(Icons.help_outline_rounded, size: 16),
+                    label: const Text('Templates', style: TextStyle(fontWeight: FontWeight.w700)),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    ElevatedButton.icon(
-                      onPressed: _showGenerateReview,
-                      icon: const Icon(Icons.auto_awesome, size: 18),
-                      label: const Text('Generate Review'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[900],
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                      ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: _showGenerateReview,
+                    icon: const Icon(Icons.auto_awesome_rounded, size: 16),
+                    label: const Text('Generate', style: TextStyle(fontWeight: FontWeight.w800)),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -197,111 +196,85 @@ class _ReviewsListState extends State<ReviewsList> {
   }
 
   Widget _buildReviewCard(Map<String, dynamic> review, int index) {
-    final cycleColor = _getCycleColor(review['cycle'] as String);
-    final statusColor = _getStatusColor(review['status'] as String);
+    final scheme = Theme.of(context).colorScheme;
+    final (cycleBg, cycleFg) = _getCyclePair(review['cycle'] as String, scheme);
+    final (statusBg, statusFg) = _getStatusPair(review['status'] as String, scheme);
+    final initials = (review['employeeName'] as String)
+        .split(' ')
+        .where((p) => p.isNotEmpty)
+        .map((p) => p[0])
+        .take(2)
+        .join()
+        .toUpperCase();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Employee Info
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: scheme.primaryContainer,
+              child: Text(initials,
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: scheme.onPrimaryContainer)),
+            ),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     review['employeeName'] as String,
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: scheme.onSurface),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 6),
                   Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    spacing: 6,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      // Cycle Badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: cycleColor,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          review['cycle'] as String,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-
-                      // Period
+                      _chip(review['cycle'] as String, cycleBg, cycleFg),
+                      _chip(review['status'] as String, statusBg, statusFg),
                       Text(
                         review['period'] as String,
-                        style: TextStyle(fontSize: 13, color: Colors.grey[700], fontWeight: FontWeight.w500),
-                      ),
-
-                      // Status Badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: statusColor,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          review['status'] as String,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
+                        style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant, fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
-                      // Star Rating
                       ...List.generate(5, (i) {
                         return Icon(
-                          Icons.star,
-                          size: 16,
+                          Icons.star_rounded,
+                          size: 14,
                           color: i < (review['rating'] as int)
-                              ? Colors.amber[600]
-                              : Colors.grey[300],
+                              ? Colors.amber[700]
+                              : scheme.outlineVariant,
                         );
                       }),
-                      const SizedBox(width: 12),
-                      // Date
+                      const SizedBox(width: 8),
                       Text(
                         review['date'] as String,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                        style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant, fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-
-            // Action Button
-            const SizedBox(width: 16),
+            const SizedBox(width: 10),
             review['status'] == 'shared'
-                ? OutlinedButton(
+                ? FilledButton.tonal(
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -309,28 +282,57 @@ class _ReviewsListState extends State<ReviewsList> {
                         ),
                       );
                     },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.grey[600],
-                      side: BorderSide(color: Colors.grey[400]!),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    child: const Text('View', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    child: const Text('View', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
                   )
-                : OutlinedButton(
+                : FilledButton(
                     onPressed: () => _showFinalizeDialog(review, index),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.blue[600],
-                      side: BorderSide(color: Colors.blue[600]!, width: 2),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
-                    child: const Text('Finalize', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    child: const Text('Finalize', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
                   ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _chip(String label, Color bg, Color fg) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
+      child: Text(label.toLowerCase(),
+          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: fg, letterSpacing: 0.2)),
+    );
+  }
+
+  (Color, Color) _getCyclePair(String cycle, ColorScheme scheme) {
+    switch (cycle.toLowerCase()) {
+      case 'annual':
+        return (scheme.primaryContainer, scheme.onPrimaryContainer);
+      case 'quarterly':
+        return (scheme.tertiaryContainer, scheme.onTertiaryContainer);
+      case 'monthly':
+        return (scheme.secondaryContainer, scheme.onSecondaryContainer);
+      default:
+        return (scheme.surfaceContainerHighest, scheme.onSurfaceVariant);
+    }
+  }
+
+  (Color, Color) _getStatusPair(String status, ColorScheme scheme) {
+    switch (status.toLowerCase()) {
+      case 'shared':
+        return (Colors.green.shade100, Colors.green.shade800);
+      case 'draft':
+        return (Colors.amber.shade100, Colors.amber.shade900);
+      default:
+        return (scheme.surfaceContainerHighest, scheme.onSurfaceVariant);
+    }
   }
 
   Color _getCycleColor(String cycle) {

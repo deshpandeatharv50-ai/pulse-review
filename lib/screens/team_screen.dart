@@ -12,8 +12,6 @@ class TeamScreen extends StatefulWidget {
 }
 
 class _TeamScreenState extends State<TeamScreen> {
-  static const teal = Color(0xFF0E7C7B);
-
   // Org roster — managers have manager: null, ICs reference their manager by name.
   // Single source of truth for the whole app's team data.
   static final List<Map<String, dynamic>> roster = [
@@ -102,7 +100,6 @@ class _TeamScreenState extends State<TeamScreen> {
   static List<Map<String, dynamic>> reportsOf(String managerName) =>
       roster.where((e) => e['manager'] == managerName).toList();
 
-  // Aggregate: avg rating across a manager + all their reports.
   static double teamAvgRating(String managerName) {
     final names = [managerName, ...reportsOf(managerName).map((e) => e['name'] as String)];
     final scores = names.map(EmployeeFeedbackLogScreen.averageRating).toList();
@@ -117,119 +114,147 @@ class _TeamScreenState extends State<TeamScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final mgrs = managers;
+    final totalReports = mgrs.fold<int>(0, (a, m) => a + reportsOf(m['name']).length);
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text('Team', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20)),
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-      ),
+      backgroundColor: scheme.surface,
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-              child: Text('MANAGERS',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey[500], letterSpacing: 0.5)),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-              child: Text('Tap a manager to drill into their reports',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-            ),
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                itemCount: mgrs.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (_, i) => _managerCard(mgrs[i]),
+            // ── Header ──
+            Text('Team',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: scheme.onSurface)),
+            const SizedBox(height: 4),
+            Text('Tap a manager to drill into their reports',
+                style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
+            const SizedBox(height: 20),
+
+            // ── Aggregate strip ──
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  _topStat(scheme, '${mgrs.length}', 'Managers', scheme.primary),
+                  _vDiv(scheme),
+                  _topStat(scheme, '$totalReports', 'Reports', scheme.tertiary),
+                  _vDiv(scheme),
+                  _topStat(scheme, '${mgrs.length + totalReports}', 'Total', scheme.secondary),
+                ],
               ),
             ),
+            const SizedBox(height: 22),
+
+            Text('MANAGERS',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800,
+                    color: scheme.onSurfaceVariant, letterSpacing: 0.8)),
+            const SizedBox(height: 10),
+
+            ...mgrs.map((m) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _managerCard(m, scheme),
+                )),
           ],
         ),
       ),
     );
   }
 
-  Widget _managerCard(Map<String, dynamic> mgr) {
+  Widget _vDiv(ColorScheme scheme) =>
+      Container(width: 1, height: 36, color: scheme.outlineVariant);
+
+  Widget _topStat(ColorScheme scheme, String value, String label, Color accent) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(value,
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: accent)),
+          const SizedBox(height: 2),
+          Text(label, style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
+        ],
+      ),
+    );
+  }
+
+  Widget _managerCard(Map<String, dynamic> mgr, ColorScheme scheme) {
     final name = mgr['name'] as String;
     final reports = reportsOf(name);
     final teamRating = teamAvgRating(name);
     final feedbackCount = teamFeedbackCount(name);
     final initials = name.split(' ').map((p) => p.isEmpty ? '' : p[0]).join().toUpperCase();
-    final avatarColor = Colors.primaries[name.hashCode.abs() % Colors.primaries.length];
 
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
-      elevation: 0,
+      color: scheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(20),
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(20),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => ManagerReportsScreen(manager: mgr)),
         ),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[200]!),
-            borderRadius: BorderRadius.circular(14),
-          ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  CircleAvatar(radius: 22, backgroundColor: avatarColor,
-                      child: Text(initials,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white))),
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: scheme.primaryContainer,
+                    child: Text(initials,
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800,
+                            color: scheme.onPrimaryContainer)),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-                        Text(mgr['title'], style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                        Text(name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: scheme.onSurface)),
+                        Text(mgr['title'], style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
                       ],
                     ),
                   ),
-                  _ratingBadge(teamRating, label: 'Team'),
+                  _ratingBadge(teamRating, scheme, label: 'Team'),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                 decoration: BoxDecoration(
-                  color: teal.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(10),
+                  color: scheme.primaryContainer.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _aggStat('${reports.length}', 'Reports'),
-                    _divider(),
-                    _aggStat(mgr['department'], 'Department'),
-                    _divider(),
-                    _aggStat('$feedbackCount', 'Feedback'),
+                    _aggStat(scheme, '${reports.length}', 'Reports'),
+                    _innerDiv(scheme),
+                    _aggStat(scheme, mgr['department'], 'Dept'),
+                    _innerDiv(scheme),
+                    _aggStat(scheme, '$feedbackCount', 'Feedback'),
                   ],
                 ),
               ),
               const SizedBox(height: 10),
               Row(
                 children: [
-                  Icon(Icons.people_alt_outlined, size: 14, color: Colors.grey[500]),
+                  Icon(Icons.people_alt_rounded, size: 14, color: scheme.onSurfaceVariant),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       reports.map((r) => (r['name'] as String).split(' ').last).join(' · '),
-                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
                       maxLines: 1, overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Icon(Icons.chevron_right, size: 18, color: Colors.grey[400]),
+                  Icon(Icons.chevron_right_rounded, size: 18, color: scheme.primary),
                 ],
               ),
             ],
@@ -239,38 +264,45 @@ class _TeamScreenState extends State<TeamScreen> {
     );
   }
 
-  Widget _divider() => Container(width: 1, height: 28, color: Colors.grey[300]);
+  Widget _innerDiv(ColorScheme scheme) =>
+      Container(width: 1, height: 28, color: scheme.outlineVariant);
 
-  Widget _aggStat(String value, String label) {
+  Widget _aggStat(ColorScheme scheme, String value, String label) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
-        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+        Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: scheme.onSurface)),
+        Text(label, style: TextStyle(fontSize: 10, color: scheme.onSurfaceVariant)),
       ],
     );
   }
+}
 
-  Widget _ratingBadge(double score, {String? label}) {
-    final Color c = score >= 4.5 ? Colors.green[700]! : (score >= 4.0 ? Colors.amber[800]! : Colors.grey[600]!);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: c.withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.star_rounded, size: 13, color: c),
-          const SizedBox(width: 3),
-          Text(score.toStringAsFixed(1),
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: c)),
-          if (label != null) ...[
-            const SizedBox(width: 4),
-            Text(label, style: TextStyle(fontSize: 9, color: c.withOpacity(0.8), fontWeight: FontWeight.w600)),
-          ],
+// ─── Shared rating badge (used by Team + ManagerReports + drilldown) ───
+Widget _ratingBadge(double score, ColorScheme scheme, {String? label}) {
+  final Color c = score >= 4.5
+      ? Colors.green.shade700
+      : (score >= 4.0 ? Colors.amber.shade800 : scheme.onSurfaceVariant);
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    decoration: BoxDecoration(
+      color: c.withOpacity(0.12),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.star_rounded, size: 14, color: c),
+        const SizedBox(width: 3),
+        Text(score.toStringAsFixed(1),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: c)),
+        if (label != null) ...[
+          const SizedBox(width: 5),
+          Text(label, style: TextStyle(fontSize: 9, color: c.withOpacity(0.8), fontWeight: FontWeight.w700)),
         ],
-      ),
-    );
-  }
+      ],
+    ),
+  );
 }
 
 // ─── Drilldown: a single manager's direct reports ───
@@ -278,10 +310,9 @@ class ManagerReportsScreen extends StatelessWidget {
   final Map<String, dynamic> manager;
   const ManagerReportsScreen({Key? key, required this.manager}) : super(key: key);
 
-  static const teal = Color(0xFF0E7C7B);
-
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final mgrName = manager['name'] as String;
     final reports = _TeamScreenState.reportsOf(mgrName)
       ..sort((a, b) => EmployeeFeedbackLogScreen.averageRating(b['name'])
@@ -290,10 +321,11 @@ class ManagerReportsScreen extends StatelessWidget {
     final feedbackCount = _TeamScreenState.teamFeedbackCount(mgrName);
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: scheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: scheme.surface,
+        scrolledUnderElevation: 0,
+        foregroundColor: scheme.onSurface,
         elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,7 +333,7 @@ class ManagerReportsScreen extends StatelessWidget {
           children: [
             Text(mgrName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
             Text("${manager['department']} · ${reports.length} reports",
-                style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
           ],
         ),
       ),
@@ -310,31 +342,38 @@ class ManagerReportsScreen extends StatelessWidget {
           children: [
             // Breadcrumb
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
               child: Row(
                 children: [
-                  Text('Team', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-                  Icon(Icons.chevron_right, size: 14, color: Colors.grey[400]),
-                  Text(mgrName.split(' ').last + "'s team",
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                  Text('Team', style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+                  Icon(Icons.chevron_right_rounded, size: 14, color: scheme.onSurfaceVariant),
+                  Text("${mgrName.split(' ').last}'s team",
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: scheme.onSurface)),
                 ],
               ),
             ),
-            // Aggregate summary
+            // Aggregate hero
             Container(
-              margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              padding: const EdgeInsets.symmetric(vertical: 14),
+              margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[200]!),
+                borderRadius: BorderRadius.circular(24),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    scheme.primaryContainer,
+                    Color.lerp(scheme.primaryContainer, scheme.tertiaryContainer, 0.5)!,
+                  ],
+                ),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _summary(teamRating.toStringAsFixed(1), 'Team avg', Colors.green),
-                  _summary('${reports.length}', 'Reports', Colors.blue),
-                  _summary('$feedbackCount', 'Feedback', Colors.orange),
+                  _heroStat(teamRating.toStringAsFixed(1), 'Team avg', scheme.onPrimaryContainer),
+                  _heroDiv(scheme),
+                  _heroStat('${reports.length}', 'Reports', scheme.onPrimaryContainer),
+                  _heroDiv(scheme),
+                  _heroStat('$feedbackCount', 'Feedback', scheme.onPrimaryContainer),
                 ],
               ),
             ),
@@ -348,7 +387,7 @@ class ManagerReportsScreen extends StatelessWidget {
                   mainAxisSpacing: 12,
                 ),
                 itemCount: reports.length,
-                itemBuilder: (_, i) => _staffCard(context, reports[i]),
+                itemBuilder: (_, i) => _staffCard(context, reports[i], scheme),
               ),
             ),
           ],
@@ -357,26 +396,30 @@ class ManagerReportsScreen extends StatelessWidget {
     );
   }
 
-  Widget _summary(String value, String label, Color color) {
-    return Column(
-      children: [
-        Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: color)),
-        Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-      ],
+  Widget _heroDiv(ColorScheme scheme) =>
+      Container(width: 1, height: 32, color: scheme.onPrimaryContainer.withOpacity(0.2));
+
+  Widget _heroStat(String value, String label, Color fg) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: fg)),
+          Text(label, style: TextStyle(fontSize: 11, color: fg.withOpacity(0.75))),
+        ],
+      ),
     );
   }
 
-  Widget _staffCard(BuildContext context, Map<String, dynamic> emp) {
+  Widget _staffCard(BuildContext context, Map<String, dynamic> emp, ColorScheme scheme) {
     final name = emp['name'] as String;
     final initials = name.split(' ').map((p) => p.isEmpty ? '' : p[0]).join().toUpperCase();
     final rating = EmployeeFeedbackLogScreen.averageRating(name);
-    final avatarColor = Colors.primaries[name.hashCode.abs() % Colors.primaries.length];
 
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Material(
+      color: scheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(20),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => EmployeeFeedbackLogScreen(employeeName: name)),
         ),
@@ -385,52 +428,39 @@ class ManagerReportsScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Align(alignment: Alignment.topRight, child: _ratingBadge(rating)),
+              Align(alignment: Alignment.topRight, child: _ratingBadge(rating, scheme)),
               Center(
-                child: CircleAvatar(radius: 26, backgroundColor: avatarColor,
-                    child: Text(initials, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white))),
+                child: CircleAvatar(
+                    radius: 26,
+                    backgroundColor: scheme.secondaryContainer,
+                    child: Text(initials,
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w800,
+                            color: scheme.onSecondaryContainer))),
               ),
               const SizedBox(height: 8),
-              Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+              Text(name, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: scheme.onSurface),
                   maxLines: 1, overflow: TextOverflow.ellipsis),
-              Text(emp['title'], style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+              Text(emp['title'], style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
                   maxLines: 2, overflow: TextOverflow.ellipsis),
               const Spacer(),
               SizedBox(
-                width: double.infinity, height: 30,
-                child: ElevatedButton.icon(
+                width: double.infinity, height: 34,
+                child: FilledButton.icon(
                   onPressed: () => Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => FeedbackScreen(initialEmployee: name),
                   )),
-                  icon: const Icon(Icons.add_comment_outlined, size: 13),
+                  icon: const Icon(Icons.add_comment_rounded, size: 13),
                   label: const Text('Feedback', style: TextStyle(fontSize: 11)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: teal, foregroundColor: Colors.white,
+                  style: FilledButton.styleFrom(
                     padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _ratingBadge(double score) {
-    final Color c = score >= 4.5 ? Colors.green[700]! : (score >= 4.0 ? Colors.amber[800]! : Colors.grey[600]!);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(color: c.withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.star_rounded, size: 13, color: c),
-          const SizedBox(width: 3),
-          Text(score.toStringAsFixed(1),
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: c)),
-        ],
       ),
     );
   }

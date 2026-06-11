@@ -870,12 +870,16 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
+      backgroundColor: scheme.surface,
       appBar: AppBar(
-        title: const Text('Feedback', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20)),
+        title: const Text('Feedback', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22)),
         automaticallyImplyLeading: false,
-        elevation: 2,
-        backgroundColor: Colors.blue[600],
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: scheme.surface,
+        foregroundColor: scheme.onSurface,
       ),
       body: FutureBuilder<List<FeedbackItem>>(
         future: _feedbacksFuture,
@@ -911,18 +915,16 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
                 return Container(
                   margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[300]!, width: 1),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8)],
+                    color: scheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(22),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _buildMetric('Overall Avg', '${avgRating.toStringAsFixed(2)}/5.0', heatColor, filterKey: 'Positive'),
-                      _buildMetric('Total Feedback', filteredFeedbacks.length.toString(), Colors.blue, filterKey: 'All'),
+                      _buildMetric('Total Feedback', filteredFeedbacks.length.toString(), scheme.primary, filterKey: 'All'),
                       _buildMetric('Team Health', _getHealthStatus(filteredFeedbacks), _getHealthColor(filteredFeedbacks), filterKey: 'Constructive'),
                     ],
                   ),
@@ -936,12 +938,12 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   onChanged: (v) => setState(() => _searchQuery = v),
                   style: const TextStyle(fontSize: 14),
                   decoration: InputDecoration(
-                    hintText: 'Search employee...',
-                    hintStyle: TextStyle(color: Colors.grey[500]),
-                    prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                    hintText: 'Search employee or comment...',
+                    hintStyle: TextStyle(color: scheme.onSurfaceVariant),
+                    prefixIcon: Icon(Icons.search_rounded, color: scheme.onSurfaceVariant),
                     filled: true,
-                    fillColor: Colors.grey[100],
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    fillColor: scheme.surfaceContainerHighest,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   ),
                 ),
@@ -1014,11 +1016,12 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showFeedbackForm(),
-        backgroundColor: const Color(0xFF0E7C7B),
-        elevation: 6,
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: scheme.primaryContainer,
+        foregroundColor: scheme.onPrimaryContainer,
+        icon: const Icon(Icons.add_comment_rounded),
+        label: const Text('New feedback', style: TextStyle(fontWeight: FontWeight.w800)),
       ),
     );
   }

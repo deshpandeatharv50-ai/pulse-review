@@ -8,42 +8,84 @@ class OrganizationPickerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
+      backgroundColor: scheme.surface,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 12),
+              // ── M3 hero gradient brand card ──
               Container(
-                width: 64,
-                height: 64,
+                padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0E7C7B),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(28),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      scheme.primary,
+                      Color.lerp(scheme.primary, scheme.tertiary, 0.55)!,
+                    ],
+                  ),
                 ),
-                child: const Icon(Icons.local_hospital_rounded,
-                    color: Colors.white, size: 36),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(Icons.insights_rounded,
+                              color: Colors.white, size: 28),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text('DEMO',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.4)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'ELEV8',
+                      style: TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 2),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Team performance, made simple',
+                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
-              const Text(
-                'ELEV8',
+              const SizedBox(height: 28),
+              Text(
+                'Select organization',
                 style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF0E7C7B),
-                    letterSpacing: 2),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Team performance, made simple',
-                style: TextStyle(color: Colors.grey[600], fontSize: 13),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Select Organization',
-                style: Theme.of(context).textTheme.titleSmall,
+                    fontSize: 12,
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.6),
               ),
               const SizedBox(height: 12),
               Expanded(
@@ -52,12 +94,11 @@ class OrganizationPickerScreen extends StatelessWidget {
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, i) {
                     final org = HealthcareOrganization.all[i];
-                    return Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+                    return Material(
+                      color: scheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(20),
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(20),
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => AppNavigation(
@@ -71,35 +112,36 @@ class OrganizationPickerScreen extends StatelessWidget {
                           child: Row(
                             children: [
                               Container(
-                                width: 56,
-                                height: 56,
+                                width: 52,
+                                height: 52,
                                 decoration: BoxDecoration(
-                                  color: org.accentColor.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(12),
+                                  color: org.accentColor.withOpacity(0.14),
+                                  borderRadius: BorderRadius.circular(14),
                                 ),
                                 child: Icon(org.icon,
-                                    color: org.accentColor, size: 30),
+                                    color: org.accentColor, size: 26),
                               ),
-                              const SizedBox(width: 16),
+                              const SizedBox(width: 14),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment:
                                       CrossAxisAlignment.start,
                                   children: [
                                     Text(org.name,
-                                        style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700)),
+                                        style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w800,
+                                            color: scheme.onSurface)),
                                     const SizedBox(height: 2),
                                     Text(org.type,
                                         style: TextStyle(
                                             fontSize: 12,
-                                            color: Colors.grey[600])),
+                                            color: scheme.onSurfaceVariant)),
                                   ],
                                 ),
                               ),
-                              Icon(Icons.chevron_right_rounded,
-                                  color: org.accentColor),
+                              Icon(Icons.arrow_forward_rounded,
+                                  color: scheme.primary, size: 20),
                             ],
                           ),
                         ),
