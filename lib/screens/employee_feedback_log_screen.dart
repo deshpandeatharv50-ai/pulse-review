@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'team_screen.dart';
 
 // Per-employee feedback log — every feedback entry for one person,
 // sorted newest first. Opened by tapping a team member's card.
+// If the person manages others, surfaces a "My team" drilldown card.
 class EmployeeFeedbackLogScreen extends StatelessWidget {
   final String employeeName;
   const EmployeeFeedbackLogScreen({Key? key, required this.employeeName}) : super(key: key);

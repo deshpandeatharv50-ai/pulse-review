@@ -209,83 +209,54 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                       ],
                     ),
                     const SizedBox(height: 14),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        // Score in a zone-colored bordered pill — the heatmap
-                        // band is now read directly off the headline number.
-                        Container(
-                          padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
-                          decoration: BoxDecoration(
-                            color: heroZoneColor.withOpacity(0.25),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: heroZoneColor, width: 3),
-                            boxShadow: [
-                              BoxShadow(
-                                color: heroZoneColor.withOpacity(0.45),
-                                blurRadius: 12,
-                                spreadRadius: 1,
-                              ),
-                            ],
+                    // Stock-ticker line: big score, /5.0, then signed delta +
+                    // (%) all inline — like S&P 500 ^GSPC.
+                    Builder(builder: (_) {
+                      final sign = trendUp ? '+' : '−';
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(pulseScore.toStringAsFixed(1),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 56,
+                                  fontWeight: FontWeight.w900,
+                                  height: 1.0)),
+                          const SizedBox(width: 6),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Text('/ 5.0',
+                                style: TextStyle(
+                                    color: Colors.white.withOpacity(0.7),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700)),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(pulseScore.toStringAsFixed(1),
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 48,
-                                      fontWeight: FontWeight.w900,
-                                      height: 1.0)),
-                              const SizedBox(width: 4),
-                              const Padding(
-                                padding: EdgeInsets.only(bottom: 8),
-                                child: Text('/ 5.0',
-                                    style: TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Spacer(),
-                        // Trend chip: white background for max readability
-                        // on the dark hero; green text for up, amber for down.
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                  trendUp
-                                      ? Icons.trending_up_rounded
-                                      : Icons.trending_down_rounded,
+                          const SizedBox(width: 14),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 9),
+                            child: Text(
+                              '$sign${delta.abs().toStringAsFixed(2)}',
+                              style: TextStyle(
                                   color: trendColor,
-                                  size: 16),
-                              const SizedBox(width: 4),
-                              Text(
-                                  '${trendUp ? '+' : ''}${delta.toStringAsFixed(1)} vs last Q',
-                                  style: TextStyle(
-                                      color: trendColor,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w800)),
-                            ],
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    // Zone tag right under the score
+                        ],
+                      );
+                    }),
+                    const SizedBox(height: 6),
+                    Text('vs last quarter',
+                        style: TextStyle(
+                            color: Colors.white.withOpacity(0.65),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 14),
+                    // Zone tag below — heatmap color cue stays
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
                             color: heroZoneColor,
                             borderRadius: BorderRadius.circular(20),
@@ -302,8 +273,9 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                           child: Text(
                             trendUp
                                 ? 'Trending up — keep the momentum'
-                                : 'Pulse softening — check constructive items below',
-                            style: const TextStyle(color: Colors.white, fontSize: 12.5),
+                                : 'Pulse softening — check constructive items',
+                            style: TextStyle(
+                                color: Colors.white.withOpacity(0.9), fontSize: 12.5),
                           ),
                         ),
                       ],
@@ -331,6 +303,10 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
 
               // ─── Single team snapshot card: composition + feedback split ───
               _teamSnapshotCard(scheme, positive, constructive, avg),
+              const SizedBox(height: 22),
+
+              // ─── Cumulative team rollup: org → managers ───
+              _teamRollup(scheme, avg),
               const SizedBox(height: 22),
 
               // ─── Wins this quarter (horizontal celebration row) ───
@@ -728,6 +704,149 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                     fontWeight: FontWeight.w600)),
           ],
         ),
+      ),
+    );
+  }
+
+  // ─── Cumulative averages: org → each manager's team ───
+  // Shows the rollup so a manager can see how their org averages, then
+  // drill in to see which sub-team is lifting or dragging the number.
+  Widget _teamRollup(ColorScheme scheme, double orgAvg) {
+    final managers = TeamScreen.managers;
+    // Deterministic synthetic prior-quarter avg per manager so the % column
+    // has something to render. Replace with real history later.
+    double priorFor(String name) {
+      final seed = name.hashCode.abs() % 100;
+      return 3.2 + (seed / 100) * 1.0; // 3.2–4.2
+    }
+
+    Widget row({
+      required String label,
+      required String sub,
+      required double current,
+      required double prior,
+      required int depth,
+      VoidCallback? onTap,
+    }) {
+      final zone = _zoneIndex(current);
+      final zoneColor = _heatColors[zone];
+      final delta = current - prior;
+      final up = delta >= 0;
+      final tColor =
+          up ? const Color(0xFF5BB880) : const Color(0xFFE6B43A);
+
+      return InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(12 + depth * 14.0, 12, 12, 12),
+          child: Row(
+            children: [
+              // Tree connector dot
+              Container(
+                width: 8, height: 8,
+                decoration: BoxDecoration(
+                  color: zoneColor, shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: scheme.onSurface)),
+                    Text(sub,
+                        style: TextStyle(
+                            fontSize: 11, color: scheme.onSurfaceVariant)),
+                  ],
+                ),
+              ),
+              // Score in zone color
+              Text(current.toStringAsFixed(1),
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                      color: zoneColor)),
+              const SizedBox(width: 10),
+              // Decimal delta — easier to read on a 5-point scale than %
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: tColor.withOpacity(0.14),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Text('${up ? '+' : '−'}${delta.abs().toStringAsFixed(2)}',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: tColor)),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      padding: const EdgeInsets.fromLTRB(14, 16, 14, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Row(
+              children: [
+                Icon(Icons.account_tree_rounded, size: 16, color: scheme.primary),
+                const SizedBox(width: 6),
+                Text('TEAM ROLLUP',
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.0,
+                        color: scheme.onSurfaceVariant)),
+                const Spacer(),
+                Text('avg · Δ vs last Q',
+                    style: TextStyle(
+                        fontSize: 10,
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+          row(
+            label: 'Organization',
+            sub: '${TeamScreen.managers.length} teams · $_teamMembers people',
+            current: orgAvg,
+            prior: _range == DashRange.current ? 3.6 : 3.4,
+            depth: 0,
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TeamScreen())),
+          ),
+          Divider(height: 1, color: scheme.outlineVariant),
+          ...managers.map((m) {
+            final name = m['name'] as String;
+            final cur = TeamScreen.teamAvgRating(name);
+            final reports = TeamScreen.reportsOf(name).length;
+            return row(
+              label: name,
+              sub: '${m['department']} · $reports reports',
+              current: cur,
+              prior: priorFor(name),
+              depth: 1,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => ManagerReportsScreen(manager: m)),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }

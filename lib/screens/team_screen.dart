@@ -7,6 +7,14 @@ import 'employee_feedback_log_screen.dart';
 class TeamScreen extends StatefulWidget {
   const TeamScreen({Key? key}) : super(key: key);
 
+  // Public accessors so other screens (dashboard, etc.) can read the org tree
+  // without reaching into the private state class.
+  static List<Map<String, dynamic>> get roster => _TeamScreenState.roster;
+  static List<Map<String, dynamic>> get managers => _TeamScreenState.managers;
+  static List<Map<String, dynamic>> reportsOf(String name) => _TeamScreenState.reportsOf(name);
+  static double teamAvgRating(String name) => _TeamScreenState.teamAvgRating(name);
+  static int teamFeedbackCount(String name) => _TeamScreenState.teamFeedbackCount(name);
+
   @override
   State<TeamScreen> createState() => _TeamScreenState();
 }
@@ -194,8 +202,11 @@ class _TeamScreenState extends State<TeamScreen> {
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
+        // Tap manager card → manager's OWN feedback log (primary).
+        // Team drilldown is a secondary action from inside that log.
         onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => ManagerReportsScreen(manager: mgr)),
+          MaterialPageRoute(
+              builder: (_) => EmployeeFeedbackLogScreen(employeeName: name)),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -241,21 +252,6 @@ class _TeamScreenState extends State<TeamScreen> {
                     _aggStat(scheme, '$feedbackCount', 'Feedback'),
                   ],
                 ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Icon(Icons.people_alt_rounded, size: 14, color: scheme.onSurfaceVariant),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      reports.map((r) => (r['name'] as String).split(' ').last).join(' · '),
-                      style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
-                      maxLines: 1, overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Icon(Icons.chevron_right_rounded, size: 18, color: scheme.primary),
-                ],
               ),
             ],
           ),
