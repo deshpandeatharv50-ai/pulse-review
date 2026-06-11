@@ -20,6 +20,8 @@ class DashboardEnterprise extends StatefulWidget {
 
 class _DashboardEnterpriseState extends State<DashboardEnterprise> {
   DashRange _range = DashRange.current;
+  bool _heroShowsTeam = true; // true = Team pulse (3 direct), false = Org pulse (all 10)
+  final Set<String> _expandedManagers = {};
 
   static const Color _teal = Color(0xFF0E7C7B);
   static const Color _green = Color(0xFF1D9E75);
@@ -111,9 +113,14 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
 
     final scheme = Theme.of(context).colorScheme;
     final positives = fb.where((f) => f.feedbackType == 'Positive').toList();
-    final pulseScore = avg; // 0..5
+    // Two distinct pulse scores: Team (direct reports) vs Org (everyone)
+    final orgPulse = avg; // org-wide feedback avg
+    final teamPulse = TeamScreen.directReportsAvg() ?? 0.0; // direct reports personal avg
+    final pulseScore = _heroShowsTeam ? teamPulse : orgPulse;
     // Synthetic last-quarter score so the trend chip has something to say.
-    final lastQuarterScore = _range == DashRange.current ? 3.6 : 3.4;
+    final lastQuarterScore = _range == DashRange.current
+        ? (_heroShowsTeam ? 3.7 : 3.6)
+        : (_heroShowsTeam ? 3.5 : 3.4);
     final delta = pulseScore - lastQuarterScore;
     final heroZone = _zoneIndex(pulseScore);
     final heroZoneColor = _heatColors[heroZone];
@@ -150,12 +157,12 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('Good afternoon, James',
+                        Text('Good afternoon, James Peterson',
                             style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                                 color: scheme.onSurface)),
-                        Text('Central Medical Group · ELEV8 demo',
+                        Text('CMO Admin · Central Medical Group',
                             style: TextStyle(
                                 fontSize: 11, color: scheme.onSurfaceVariant)),
                       ],
@@ -189,32 +196,25 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // ── Team / Org pulse toggle ──
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.18),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text('TEAM PULSE',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.2)),
-                        ),
+                        _pulseToggle('Team pulse', '3 direct', _heroShowsTeam,
+                            () => setState(() => _heroShowsTeam = true)),
+                        const SizedBox(width: 6),
+                        _pulseToggle('Org pulse', '$_teamMembers people', !_heroShowsTeam,
+                            () => setState(() => _heroShowsTeam = false)),
                         const Spacer(),
                         Text(_rangeLabel,
                             style: const TextStyle(color: Colors.white70, fontSize: 12)),
                       ],
                     ),
-                    const SizedBox(height: 14),
-                    // Stock-ticker line: big score, /5.0, then signed delta +
-                    // (%) all inline — like S&P 500 ^GSPC.
+                    const SizedBox(height: 18),
+                    // ── Right-aligned ticker line ──
                     Builder(builder: (_) {
                       final sign = trendUp ? '+' : '−';
                       return Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(pulseScore.toStringAsFixed(1),
@@ -246,13 +246,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                         ],
                       );
                     }),
-                    const SizedBox(height: 6),
-                    Text('Org-wide · across $_teamMembers people · vs last quarter',
-                        style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
                     // Zone tag below — heatmap color cue stays
                     Row(
                       children: [
@@ -451,6 +445,42 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
 
   // Single team snapshot card: people composition + feedback breakdown.
   // Replaces the 4 redundant KPI tiles with one richer surface.
+  // Toggle pill for the hero — switches between Team pulse and Org pulse.
+  Widget _pulseToggle(String label, String sub, bool active, VoidCallback onTap) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+              color: active ? Colors.white : Colors.white.withOpacity(0.4)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label,
+                style: TextStyle(
+                    color: active ? const Color(0xFF0E7C7B) : Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800)),
+            const SizedBox(width: 4),
+            Text('· $sub',
+                style: TextStyle(
+                    color: active
+                        ? const Color(0xFF0E7C7B).withOpacity(0.7)
+                        : Colors.white.withOpacity(0.7),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _teamSnapshotCard(ColorScheme scheme, int positive, int constructive, double avg) {
     final total = positive + constructive;
     final posPct = total == 0 ? 0.0 : positive / total;
@@ -724,14 +754,19 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
     Widget row({
       required String label,
       required String sub,
-      required double current,
+      required double? current,
       required double prior,
       required int depth,
       VoidCallback? onTap,
+      bool expandable = false,
+      bool expanded = false,
+      VoidCallback? onExpand,
     }) {
-      final zone = _zoneIndex(current);
-      final zoneColor = _heatColors[zone];
-      final delta = current - prior;
+      // No data → render row with em-dash and muted styling
+      final hasData = current != null;
+      final zone = hasData ? _zoneIndex(current) : 2;
+      final zoneColor = hasData ? _heatColors[zone] : scheme.onSurfaceVariant;
+      final delta = hasData ? current - prior : 0.0;
       final up = delta >= 0;
       final tColor =
           up ? const Color(0xFF5BB880) : const Color(0xFFE6B43A);
@@ -747,7 +782,8 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
               Container(
                 width: 8, height: 8,
                 decoration: BoxDecoration(
-                  color: zoneColor, shape: BoxShape.circle,
+                  color: hasData ? zoneColor : scheme.outlineVariant,
+                  shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 12),
@@ -760,35 +796,51 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
                             color: scheme.onSurface)),
-                    Text(sub,
+                    Text(hasData ? sub : 'No feedback yet',
                         style: TextStyle(
                             fontSize: 11, color: scheme.onSurfaceVariant)),
                   ],
                 ),
               ),
-              // Score in zone color
-              Text(current.toStringAsFixed(1),
+              // Score in zone color (or em-dash if no data)
+              Text(hasData ? current.toStringAsFixed(1) : '—',
                   style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w900,
                       color: zoneColor)),
               const SizedBox(width: 10),
-              // Decimal delta — easier to read on a 5-point scale than %
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: tColor.withOpacity(0.14),
-                  borderRadius: BorderRadius.circular(14),
+              // Decimal delta — only shown when there's data
+              if (hasData)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: tColor.withOpacity(0.14),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Text('${up ? '+' : '−'}${delta.abs().toStringAsFixed(2)}',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: tColor)),
                 ),
-                child: Text('${up ? '+' : '−'}${delta.abs().toStringAsFixed(2)}',
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: tColor)),
-              ),
               const SizedBox(width: 6),
-              Icon(Icons.chevron_right_rounded,
-                  size: 18, color: scheme.onSurfaceVariant),
+              if (expandable)
+                InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: onExpand,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: AnimatedRotation(
+                      turns: expanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 180),
+                      child: Icon(Icons.expand_more_rounded,
+                          size: 20, color: scheme.primary),
+                    ),
+                  ),
+                )
+              else
+                Icon(Icons.chevron_right_rounded,
+                    size: 18, color: scheme.onSurfaceVariant),
             ],
           ),
         ),
@@ -845,12 +897,13 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
             onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TeamScreen())),
           ),
           Divider(height: 1, color: scheme.outlineVariant),
-          // ── Per-manager: TWO rows (personal + their team) kept separate ──
+          // ── Per-manager: personal row (always) + team row (when expanded) ──
           ...managers.expand((m) {
             final name = m['name'] as String;
             final personal = EmployeeFeedbackLogScreen.averageRating(name);
             final teamAvg = TeamScreen.teamAvgRating(name);
             final reports = TeamScreen.reportsOf(name).length;
+            final expanded = _expandedManagers.contains(name);
             return [
               row(
                 label: name,
@@ -858,19 +911,31 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                 current: personal,
                 prior: priorFor(name),
                 depth: 1,
+                expandable: reports > 0,
+                expanded: expanded,
+                onExpand: reports > 0
+                    ? () => setState(() {
+                          if (expanded) {
+                            _expandedManagers.remove(name);
+                          } else {
+                            _expandedManagers.add(name);
+                          }
+                        })
+                    : null,
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => EmployeeFeedbackLogScreen(employeeName: name))),
               ),
-              row(
-                label: '${name.split(' ').last}\'s team',
-                sub: 'avg across $reports report${reports == 1 ? '' : 's'}',
-                current: teamAvg,
-                prior: priorFor(name) - 0.1,
-                depth: 2,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => ManagerReportsScreen(manager: m)),
+              if (expanded)
+                row(
+                  label: '${name.split(' ').last}\'s team',
+                  sub: 'avg across $reports report${reports == 1 ? '' : 's'}',
+                  current: teamAvg,
+                  prior: priorFor(name) - 0.1,
+                  depth: 2,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => ManagerReportsScreen(manager: m)),
+                  ),
                 ),
-              ),
             ];
           }),
         ],

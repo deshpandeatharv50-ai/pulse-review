@@ -9,12 +9,13 @@ class TeamScreen extends StatefulWidget {
 
   // Public accessors so other screens (dashboard, etc.) can read the org tree
   // without reaching into the private state class.
+  // Rating accessors return null when no feedback exists — callers render blank.
   static List<Map<String, dynamic>> get roster => _TeamScreenState.roster;
   static List<Map<String, dynamic>> get managers => _TeamScreenState.managers;
   static List<Map<String, dynamic>> reportsOf(String name) => _TeamScreenState.reportsOf(name);
-  static double teamAvgRating(String name) => _TeamScreenState.teamAvgRating(name);
+  static double? teamAvgRating(String name) => _TeamScreenState.teamAvgRating(name);
   static int teamFeedbackCount(String name) => _TeamScreenState.teamFeedbackCount(name);
-  static double directReportsAvg() => _TeamScreenState.directReportsAvg();
+  static double? directReportsAvg() => _TeamScreenState.directReportsAvg();
 
   @override
   State<TeamScreen> createState() => _TeamScreenState();
@@ -103,22 +104,31 @@ class _TeamScreenState extends State<TeamScreen> {
     },
   ];
 
-  // Managers, sorted by their team's average rating (top first).
-  // Single sort for the whole app so Team tab + dashboard rollup match.
+  // Managers, sorted by their team's average rating (top first); managers
+  // with no team feedback at all sort to the bottom.
   static List<Map<String, dynamic>> get managers =>
       roster.where((e) => e['manager'] == null).toList()
-        ..sort((a, b) => teamAvgRating(b['name'] as String)
-            .compareTo(teamAvgRating(a['name'] as String)));
+        ..sort((a, b) {
+          final av = teamAvgRating(a['name'] as String);
+          final bv = teamAvgRating(b['name'] as String);
+          if (av == null && bv == null) return 0;
+          if (av == null) return 1;
+          if (bv == null) return -1;
+          return bv.compareTo(av);
+        });
 
   static List<Map<String, dynamic>> reportsOf(String managerName) =>
       roster.where((e) => e['manager'] == managerName).toList();
 
   // Team avg = average across the manager's REPORTS only (not the manager
-  // themselves — the manager has their own personal rating).
-  static double teamAvgRating(String managerName) {
-    final reports = reportsOf(managerName).map((e) => e['name'] as String);
-    if (reports.isEmpty) return 0;
-    final scores = reports.map(EmployeeFeedbackLogScreen.averageRating).toList();
+  // themselves). Reports with no feedback yet are excluded from the avg —
+  // returns null if NO report has any feedback.
+  static double? teamAvgRating(String managerName) {
+    final scores = reportsOf(managerName)
+        .map((e) => EmployeeFeedbackLogScreen.averageRating(e['name'] as String))
+        .whereType<double>()
+        .toList();
+    if (scores.isEmpty) return null;
     return double.parse((scores.reduce((a, b) => a + b) / scores.length).toStringAsFixed(1));
   }
 
@@ -129,10 +139,13 @@ class _TeamScreenState extends State<TeamScreen> {
   }
 
   // Avg across just the top-level managers (your direct line if you're James).
-  static double directReportsAvg() {
-    final mgrs = managers.map((m) => m['name'] as String).toList();
-    if (mgrs.isEmpty) return 0;
-    final scores = mgrs.map(EmployeeFeedbackLogScreen.averageRating).toList();
+  // Managers with no feedback yet are excluded; null if none have any.
+  static double? directReportsAvg() {
+    final scores = managers
+        .map((m) => EmployeeFeedbackLogScreen.averageRating(m['name'] as String))
+        .whereType<double>()
+        .toList();
+    if (scores.isEmpty) return null;
     return double.parse((scores.reduce((a, b) => a + b) / scores.length).toStringAsFixed(1));
   }
 
@@ -298,7 +311,27 @@ class _TeamScreenState extends State<TeamScreen> {
 }
 
 // ─── Shared rating badge (used by Team + ManagerReports + drilldown) ───
-Widget _ratingBadge(double score, ColorScheme scheme, {String? label}) {
+Widget _ratingBadge(double? score, ColorScheme scheme, {String? label}) {
+  // No feedback yet → muted neutral chip, no score
+  if (score == null) {
+    final c = scheme.onSurfaceVariant;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.remove_rounded, size: 12, color: c),
+          const SizedBox(width: 4),
+          Text('No feedback',
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: c)),
+        ],
+      ),
+    );
+  }
   final Color c = score >= 4.5
       ? Colors.green.shade700
       : (score >= 4.0 ? Colors.amber.shade800 : scheme.onSurfaceVariant);
@@ -334,8 +367,14 @@ class ManagerReportsScreen extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final mgrName = manager['name'] as String;
     final reports = _TeamScreenState.reportsOf(mgrName)
-      ..sort((a, b) => EmployeeFeedbackLogScreen.averageRating(b['name'])
-          .compareTo(EmployeeFeedbackLogScreen.averageRating(a['name'])));
+      ..sort((a, b) {
+        final av = EmployeeFeedbackLogScreen.averageRating(a['name'] as String);
+        final bv = EmployeeFeedbackLogScreen.averageRating(b['name'] as String);
+        if (av == null && bv == null) return 0;
+        if (av == null) return 1;
+        if (bv == null) return -1;
+        return bv.compareTo(av);
+      });
     final teamRating = _TeamScreenState.teamAvgRating(mgrName);
     final feedbackCount = _TeamScreenState.teamFeedbackCount(mgrName);
 
@@ -388,7 +427,7 @@ class ManagerReportsScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  _heroStat(teamRating.toStringAsFixed(1), 'Team avg', scheme.onPrimaryContainer),
+                  _heroStat(teamRating?.toStringAsFixed(1) ?? '—', 'Team avg', scheme.onPrimaryContainer),
                   _heroDiv(scheme),
                   _heroStat('${reports.length}', 'Reports', scheme.onPrimaryContainer),
                   _heroDiv(scheme),

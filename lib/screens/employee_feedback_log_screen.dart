@@ -52,9 +52,11 @@ class EmployeeFeedbackLogScreen extends StatelessWidget {
     return entries;
   }
 
-  static double averageRating(String employeeName) {
+  // Returns null when the employee has no feedback yet — callers should
+  // render a blank ("—") and exclude this person from any roll-up average.
+  static double? averageRating(String employeeName) {
     final l = logFor(employeeName);
-    if (l.isEmpty) return 0;
+    if (l.isEmpty) return null;
     final sum = l.fold<double>(0, (a, e) => a + (e['rating'] as double));
     return double.parse((sum / l.length).toStringAsFixed(1));
   }
@@ -140,7 +142,7 @@ class EmployeeFeedbackLogScreen extends StatelessWidget {
                           Icon(Icons.star_rounded,
                               size: 14, color: scheme.onPrimaryContainer),
                           const SizedBox(width: 3),
-                          Text(avg.toStringAsFixed(1),
+                          Text(avg?.toStringAsFixed(1) ?? '—',
                               style: TextStyle(
                                   color: scheme.onPrimaryContainer,
                                   fontWeight: FontWeight.w900,
