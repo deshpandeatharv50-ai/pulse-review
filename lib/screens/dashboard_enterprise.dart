@@ -83,6 +83,24 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
     return '${_mon[r.start.month]} – ${_mon[r.end.month]} ${r.end.year}';
   }
 
+  // The quarter immediately before _activeRange — used as the baseline
+  // for the delta chip so "This Q delta" compares to Last Q, and
+  // "Last Q delta" compares to the Q before that.
+  DateTimeRange get _baselineRange {
+    final qStartMonth = ((_today.month - 1) ~/ 3) * 3 + 1;
+    final currentStart = DateTime(_today.year, qStartMonth, 1);
+    if (_range == DashRange.current) {
+      final lastStart = DateTime(_today.year, qStartMonth - 3, 1);
+      final lastEnd = currentStart.subtract(const Duration(days: 1));
+      return DateTimeRange(start: lastStart, end: lastEnd);
+    } else {
+      final prevStart = DateTime(_today.year, qStartMonth - 6, 1);
+      final lastStart = DateTime(_today.year, qStartMonth - 3, 1);
+      final prevEnd = lastStart.subtract(const Duration(days: 1));
+      return DateTimeRange(start: prevStart, end: prevEnd);
+    }
+  }
+
   List<FeedbackItem> get _filtered {
     final r = _activeRange;
     final start = r.start;
@@ -153,14 +171,22 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
             f.feedbackType == 'Positive' &&
             (!_heroShowsTeam || teamNames.contains(f.employeeName)))
         .toList();
-    // Two distinct pulse scores: Team (direct reports) vs Org (everyone)
-    final orgPulse = avg; // org-wide feedback avg
-    final teamPulse = TeamScreen.directReportsAvg() ?? 0.0; // direct reports personal avg
-    final pulseScore = _heroShowsTeam ? teamPulse : orgPulse;
-    // Synthetic last-quarter score so the trend chip has something to say.
-    final lastQuarterScore = _range == DashRange.current
-        ? (_heroShowsTeam ? 3.7 : 3.6)
-        : (_heroShowsTeam ? 3.5 : 3.4);
+    // ── Pulse score = average across the active scope AND the active
+    // quarter. Delta compares to the quarter immediately before.
+    final activeR = _activeRange;
+    final baseR = _baselineRange;
+    final pulseScore = TeamScreen.avgRatingFor(
+            start: activeR.start,
+            end: activeR.end.add(const Duration(days: 1)),
+            names: scopeNames) ??
+        0.0;
+    final baselineScore = TeamScreen.avgRatingFor(
+        start: baseR.start,
+        end: baseR.end.add(const Duration(days: 1)),
+        names: scopeNames);
+    // If no baseline data, hide the delta — don't fake a "no change" 0.00
+    final hasBaseline = baselineScore != null;
+    final lastQuarterScore = baselineScore ?? pulseScore;
     final delta = pulseScore - lastQuarterScore;
     final heroZone = _zoneIndex(pulseScore);
     final heroZoneColor = _heatColors[heroZone];
@@ -305,16 +331,28 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                                     fontWeight: FontWeight.w700)),
                           ),
                           const SizedBox(width: 14),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 9),
-                            child: Text(
-                              '$sign${delta.abs().toStringAsFixed(2)}',
-                              style: TextStyle(
-                                  color: trendColor,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800),
+                          if (hasBaseline)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 9),
+                              child: Text(
+                                '$sign${delta.abs().toStringAsFixed(2)}',
+                                style: TextStyle(
+                                    color: trendColor,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800),
+                              ),
+                            )
+                          else
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 9),
+                              child: Text(
+                                'no prior data',
+                                style: TextStyle(
+                                    color: scheme.onSurfaceVariant,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600),
+                              ),
                             ),
-                          ),
                         ],
                       );
                     }),
@@ -1037,12 +1075,13 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
   // drill in to see which sub-team is lifting or dragging the number.
   Widget _teamRollup(ColorScheme scheme, double orgAvg) {
     final managers = TeamScreen.managers;
-    // Deterministic synthetic prior-quarter avg per manager so the % column
-    // has something to render. Replace with real history later.
-    double priorFor(String name) {
-      final seed = name.hashCode.abs() % 100;
-      return 3.2 + (seed / 100) * 1.0; // 3.2–4.2
-    }
+    final baseR = _baselineRange;
+    // Real prior-quarter average from feedback in the baseline range —
+    // matches the hero card math so the rollup deltas reconcile.
+    double? priorFor(String name) => TeamScreen.avgRatingFor(
+        start: baseR.start,
+        end: baseR.end.add(const Duration(days: 1)),
+        names: [name]);
 
     Widget row({
       required String label,
@@ -1192,15 +1231,26 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
               label: 'Whole organization',
               sub: 'avg across all $_teamMembers people',
               current: orgAvg,
-              prior: _range == DashRange.current ? 3.6 : 3.4,
+              prior: TeamScreen.avgRatingFor(
+                      start: baseR.start,
+                      end: baseR.end.add(const Duration(days: 1))) ??
+                  orgAvg,
               depth: 0,
               onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TeamScreen())),
             ),
             row(
               label: 'My direct reports',
               sub: 'avg across ${managers.length} direct (personal ratings)',
-              current: TeamScreen.directReportsAvg(),
-              prior: _range == DashRange.current ? 3.7 : 3.5,
+              current: TeamScreen.avgRatingFor(
+                  start: _activeRange.start,
+                  end: _activeRange.end.add(const Duration(days: 1)),
+                  names: managers.map((m) => m['name'] as String).toList()),
+              prior: TeamScreen.avgRatingFor(
+                      start: baseR.start,
+                      end: baseR.end.add(const Duration(days: 1)),
+                      names:
+                          managers.map((m) => m['name'] as String).toList()) ??
+                  3.5,
               depth: 0,
               onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TeamScreen())),
             ),
@@ -1234,7 +1284,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                 label: name,
                 sub: '${m['department']} · personal rating',
                 current: personal,
-                prior: priorFor(name),
+                prior: priorFor(name) ?? (EmployeeFeedbackLogScreen.averageRating(name) ?? 3.5),
                 depth: 1,
                 expandable: reports > 0,
                 expanded: expanded,
@@ -1255,7 +1305,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                   label: 'Team avg ($reports)',
                   sub: 'across reports',
                   current: teamAvg,
-                  prior: priorFor(name) - 0.1,
+                  prior: (priorFor(name) ?? (EmployeeFeedbackLogScreen.averageRating(name) ?? 3.5)) - 0.1,
                   depth: 2,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => ManagerReportsScreen(manager: m)),

@@ -50,6 +50,19 @@ class TeamScreen extends StatefulWidget {
   }) =>
       rosterFeedback(start: start, end: end, type: type, names: names).length;
 
+  // Average rating from per-entry ratings within a date range + name subset.
+  // Returns null when no feedback matches (used to hide the delta chip).
+  static double? avgRatingFor({
+    DateTime? start,
+    DateTime? end,
+    List<String>? names,
+  }) {
+    final entries = rosterFeedback(start: start, end: end, names: names);
+    if (entries.isEmpty) return null;
+    final sum = entries.fold<double>(0, (a, e) => a + (e['rating'] as double));
+    return double.parse((sum / entries.length).toStringAsFixed(1));
+  }
+
   @override
   State<TeamScreen> createState() => _TeamScreenState();
 }
