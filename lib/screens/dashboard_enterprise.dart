@@ -47,6 +47,9 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
         FeedbackItem(id: '3', employeeName: 'Aisha Williams', feedbackType: 'Positive',
             comment: 'Your positive attitude with the VP of Marketing was commendable',
             createdAt: DateTime(2026, 6, 5, 20, 44)),
+        FeedbackItem(id: '3b', employeeName: 'Nina Patel', feedbackType: 'Positive',
+            comment: 'Excellent communication during the difficult transition period.',
+            createdAt: DateTime(2026, 6, 4, 11, 30)),
         FeedbackItem(id: '4', employeeName: 'David Park', feedbackType: 'Constructive',
             comment: 'The redesign could benefit from refinement. There is real potential here.',
             createdAt: DateTime(2026, 6, 2, 9, 12)),
@@ -785,18 +788,23 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
     final orgManagers = _teamMembers >= 8 ? 3 : 2; // derived from roster shape
     final orgReports = _teamMembers - orgManagers;
 
-    // In Team scope, "people" = the 3 direct reports the user manages.
-    // Feedback in Team scope = sum of those direct reports' personal logs.
-    int teamPositive = 0, teamConstructive = 0;
-    for (final m in TeamScreen.managers) {
-      final log = EmployeeFeedbackLogScreen.logFor(m['name'] as String);
-      teamPositive += log.where((e) => e['type'] == 'Positive').length;
-      teamConstructive += log.where((e) => e['type'] == 'Constructive').length;
-    }
+    // Use roster feedback (same source as Feedback tab) so counts match.
+    final r = _activeRange;
+    final scopeNames = teamScope
+        ? TeamScreen.managers.map((m) => m['name'] as String).toList()
+        : TeamScreen.roster.map((m) => m['name'] as String).toList();
+    final positive = TeamScreen.rosterFeedbackCount(
+        start: r.start,
+        end: r.end.add(const Duration(days: 1)),
+        type: 'Positive',
+        names: scopeNames);
+    final constructive = TeamScreen.rosterFeedbackCount(
+        start: r.start,
+        end: r.end.add(const Duration(days: 1)),
+        type: 'Constructive',
+        names: scopeNames);
 
     final people = teamScope ? TeamScreen.managers.length : _teamMembers;
-    final positive = teamScope ? teamPositive : orgPositive;
-    final constructive = teamScope ? teamConstructive : orgConstructive;
     final scopeLabel = teamScope ? 'TEAM · DIRECT REPORTS' : 'ORG-WIDE';
     final compositionA = teamScope ? '$people direct' : '$orgManagers direct';
     final compositionB = teamScope ? '0 indirect' : '$orgReports indirect';
@@ -1110,16 +1118,8 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
           child: Row(
             children: [
-              // Indent ONLY pushes the dot/name — score column stays right-aligned
+              // Indent pushes the name — score column stays right-aligned
               SizedBox(width: depth * 18.0),
-              // Tree connector dot
-              Container(
-                width: 8, height: 8,
-                decoration: BoxDecoration(
-                  color: hasData ? zoneColor : scheme.outlineVariant,
-                  shape: BoxShape.circle,
-                ),
-              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -1415,9 +1415,22 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
   }
 
   void _showFeedbackPopup(String? typeFilter) {
-    final items = typeFilter == null
-        ? _filtered
-        : _filtered.where((f) => f.feedbackType == typeFilter).toList();
+    // Use roster feedback (same as snapshot card + Feedback tab) for consistency
+    final r = _activeRange;
+    final rosterItems = TeamScreen.rosterFeedback(
+      start: r.start,
+      end: r.end.add(const Duration(days: 1)),
+      type: typeFilter,
+    );
+    final items = rosterItems
+        .map((e) => FeedbackItem(
+              id: '${e['employeeName']}-${(e['date'] as DateTime).millisecondsSinceEpoch}',
+              employeeName: e['employeeName'] as String,
+              feedbackType: e['type'] as String,
+              comment: e['comment'] as String,
+              createdAt: e['date'] as DateTime,
+            ))
+        .toList();
     showDialog(
       context: context,
       builder: (context) => Dialog(
