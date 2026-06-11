@@ -276,7 +276,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
               const SizedBox(height: 18),
 
               // ─── Single team snapshot card: composition + feedback split ───
-              _teamSnapshotCard(scheme, positive, constructive),
+              _teamSnapshotCard(scheme, positive, constructive, avg),
               const SizedBox(height: 22),
 
               // ─── Wins this quarter (horizontal celebration row) ───
@@ -398,15 +398,38 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
     );
   }
 
+  // ─── Heatmap palette (soft, professional — no alarm-red) ───
+  static const List<Color> _heatColors = [
+    Color(0xFFE8896B), // <3.0 At-risk (soft coral)
+    Color(0xFFE6B43A), // 3.0-3.5 Watch (warm amber)
+    Color(0xFF6FAACC), // 3.5-4.0 Steady (soft sky blue)
+    Color(0xFF7DC290), // 4.0-4.5 Healthy (light green)
+    Color(0xFF3DA66E), // ≥4.5 Excellent (deeper green)
+  ];
+  static const List<String> _heatLabels = [
+    'At-risk', 'Watch', 'Steady', 'Healthy', 'Excellent'
+  ];
+
+  int _zoneIndex(double r) {
+    if (r >= 4.5) return 4;
+    if (r >= 4.0) return 3;
+    if (r >= 3.5) return 2;
+    if (r >= 3.0) return 1;
+    return 0;
+  }
+
   // Single team snapshot card: people composition + feedback breakdown.
   // Replaces the 4 redundant KPI tiles with one richer surface.
-  Widget _teamSnapshotCard(ColorScheme scheme, int positive, int constructive) {
+  Widget _teamSnapshotCard(ColorScheme scheme, int positive, int constructive, double avg) {
     final total = positive + constructive;
     final posPct = total == 0 ? 0.0 : positive / total;
     final managers = _teamMembers >= 8 ? 3 : 2; // derived from roster shape
     final reports = _teamMembers - managers;
-    final posColor = scheme.tertiary;
-    final conColor = scheme.error;
+    // Soft, calm tones — feedback isn't an alert. Light green for positive,
+    // warm yellow/amber for constructive (caution, not danger).
+    final posColor = const Color(0xFF5BB880); // light green
+    final conColor = const Color(0xFFE6B43A); // warm amber
+    final zone = _zoneIndex(avg);
 
     return Material(
       color: scheme.surfaceContainerLow,
@@ -528,6 +551,70 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                   _legend(scheme, posColor, 'Positive', positive, () => _showFeedbackPopup('Positive')),
                   const SizedBox(width: 18),
                   _legend(scheme, conColor, 'Constructive', constructive, () => _showFeedbackPopup('Constructive')),
+                ],
+              ),
+              const SizedBox(height: 18),
+              // ─── Heatmap strip: 5 zones with current team position marked ───
+              Row(
+                children: [
+                  Text('PULSE HEATMAP',
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.0,
+                          color: scheme.onSurfaceVariant)),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _heatColors[zone].withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8, height: 8,
+                          decoration: BoxDecoration(
+                              color: _heatColors[zone], shape: BoxShape.circle),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(_heatLabels[zone],
+                            style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: _heatColors[zone].withOpacity(0.95))),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Five-segment heatmap row
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Row(
+                  children: List.generate(5, (i) {
+                    final active = i == zone;
+                    return Expanded(
+                      child: Container(
+                        height: active ? 18 : 12,
+                        margin: EdgeInsets.symmetric(horizontal: i == 0 || i == 4 ? 0 : 1),
+                        color: active
+                            ? _heatColors[i]
+                            : _heatColors[i].withOpacity(0.35),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+              const SizedBox(height: 4),
+              // Axis labels
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('1.0', style: TextStyle(fontSize: 9, color: scheme.onSurfaceVariant)),
+                  Text('5.0', style: TextStyle(fontSize: 9, color: scheme.onSurfaceVariant)),
                 ],
               ),
             ],
