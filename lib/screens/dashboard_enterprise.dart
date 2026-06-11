@@ -177,39 +177,73 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
 
-              // ─── HERO Team Pulse card ───
+              // ─── GLOBAL scope toggle (full width) ──
+              _globalScopeToggle(scheme),
+              const SizedBox(height: 10),
+              // ─── Quarter chips, right-aligned ──
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _quarterChip('This Q', DashRange.current, scheme),
+                  const SizedBox(width: 6),
+                  _quarterChip('Last Q', DashRange.last, scheme),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // ─── ONE merged "pulse" card: hero + snapshot connected with
+              // an internal divider. Top accent = scope color (Team=teal,
+              // Org=amber) so the active scope is unmistakable.
               Container(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28),
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      scheme.primary,
-                      Color.lerp(scheme.primary, scheme.tertiary, 0.55)!,
-                    ],
-                  ),
+                  color: scheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border(
+                      top: BorderSide(
+                          color: _heroShowsTeam ? scheme.primary : scheme.tertiary,
+                          width: 4)),
                 ),
                 child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+                      child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── Team / Org pulse toggle ──
+                    // Scope label + range
                     Row(
                       children: [
-                        _pulseToggle('Team pulse', '3 direct', _heroShowsTeam,
-                            () => setState(() => _heroShowsTeam = true)),
-                        const SizedBox(width: 6),
-                        _pulseToggle('Org pulse', '$_teamMembers people', !_heroShowsTeam,
-                            () => setState(() => _heroShowsTeam = false)),
+                        Text(_heroShowsTeam ? 'TEAM PULSE' : 'ORG PULSE',
+                            style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.2,
+                                color: scheme.onSurfaceVariant)),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: heroZoneColor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(heroZoneLabel.toUpperCase(),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.0)),
+                        ),
                         const Spacer(),
                         Text(_rangeLabel,
-                            style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                            style: TextStyle(
+                                color: scheme.onSurfaceVariant,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500)),
                       ],
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 12),
                     // ── Right-aligned ticker line ──
                     Builder(builder: (_) {
                       final sign = trendUp ? '+' : '−';
@@ -218,8 +252,8 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(pulseScore.toStringAsFixed(1),
-                              style: const TextStyle(
-                                  color: Colors.white,
+                              style: TextStyle(
+                                  color: scheme.onSurface,
                                   fontSize: 56,
                                   fontWeight: FontWeight.w900,
                                   height: 1.0)),
@@ -228,7 +262,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                             padding: const EdgeInsets.only(bottom: 10),
                             child: Text('/ 5.0',
                                 style: TextStyle(
-                                    color: Colors.white.withOpacity(0.7),
+                                    color: scheme.onSurfaceVariant,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700)),
                           ),
@@ -239,65 +273,86 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                               '$sign${delta.abs().toStringAsFixed(2)}',
                               style: TextStyle(
                                   color: trendColor,
-                                  fontSize: 17,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w800),
                             ),
                           ),
                         ],
                       );
                     }),
-                    const SizedBox(height: 12),
-                    // Zone tag below — heatmap color cue stays
+                    const SizedBox(height: 14),
+                    // ── Heatmap strip with downward triangle marker on the
+                    // active zone — way more obvious "you are here" than a
+                    // taller bar alone.
+                    SizedBox(
+                      height: 10,
+                      child: Row(
+                        children: List.generate(5, (i) {
+                          final active = i == heroZone;
+                          return Expanded(
+                            child: Center(
+                              child: active
+                                  ? Icon(Icons.arrow_drop_down_rounded,
+                                      size: 22, color: _heatColors[i])
+                                  : const SizedBox.shrink(),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Row(
+                        children: List.generate(5, (i) {
+                          final active = i == heroZone;
+                          return Expanded(
+                            child: Container(
+                              height: active ? 18 : 10,
+                              margin: EdgeInsets.symmetric(horizontal: i == 0 || i == 4 ? 0 : 1),
+                              decoration: BoxDecoration(
+                                color: active
+                                    ? _heatColors[i]
+                                    : _heatColors[i].withOpacity(0.35),
+                                border: active
+                                    ? Border.all(
+                                        color: Colors.white.withOpacity(0.85),
+                                        width: 2)
+                                    : null,
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: heroZoneColor,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(heroZoneLabel.toUpperCase(),
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.0)),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            trendUp
-                                ? 'Trending up — keep the momentum'
-                                : 'Pulse softening — check constructive items',
+                        Text('At-risk',
                             style: TextStyle(
-                                color: Colors.white.withOpacity(0.9), fontSize: 12.5),
-                          ),
-                        ),
+                                color: scheme.onSurfaceVariant,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700)),
+                        Text('Excellent',
+                            style: TextStyle(
+                                color: scheme.onSurfaceVariant,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700)),
                       ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 22),
-
-              // ─── M3 SegmentedButton quarter toggle ───
-              SegmentedButton<DashRange>(
-                segments: const [
-                  ButtonSegment(value: DashRange.current, label: Text('This quarter'), icon: Icon(Icons.flash_on_rounded)),
-                  ButtonSegment(value: DashRange.last, label: Text('Last quarter'), icon: Icon(Icons.history_rounded)),
-                ],
-                selected: {_range},
-                onSelectionChanged: (s) => setState(() => _range = s.first),
-                style: ButtonStyle(
-                  visualDensity: VisualDensity.compact,
-                  shape: WidgetStateProperty.all(
-                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                    // ─── Internal divider connecting hero to snapshot ───
+                    Container(
+                        height: 1,
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        color: scheme.outlineVariant.withOpacity(0.6)),
+                    // ─── Snapshot section (inlined) ───
+                    _teamSnapshotCard(scheme, positive, constructive, avg, _heroShowsTeam),
+                  ],
                 ),
               ),
-              const SizedBox(height: 18),
-
-              // ─── Single team snapshot card: composition + feedback split ───
-              _teamSnapshotCard(scheme, positive, constructive, avg),
               const SizedBox(height: 22),
 
               // ─── Cumulative team rollup: org → managers ───
@@ -445,6 +500,72 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
 
   // Single team snapshot card: people composition + feedback breakdown.
   // Replaces the 4 redundant KPI tiles with one richer surface.
+  // Compact quarter chip — small inline pill instead of full-width segmented.
+  Widget _quarterChip(String label, DashRange value, ColorScheme scheme) {
+    final selected = _range == value;
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: () => setState(() => _range = value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? scheme.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+              color: selected ? scheme.primary : scheme.outlineVariant),
+        ),
+        child: Text(label,
+            style: TextStyle(
+                color: selected ? scheme.onPrimary : scheme.onSurfaceVariant,
+                fontSize: 12,
+                fontWeight: FontWeight.w800)),
+      ),
+    );
+  }
+
+  // Large global scope toggle at the top of the dashboard. Drives every card
+  // below — Team (3 direct reports) vs Org (whole org).
+  Widget _globalScopeToggle(ColorScheme scheme) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: _scopePill(scheme, 'Team', '', _heroShowsTeam,
+              () => setState(() => _heroShowsTeam = true))),
+          Expanded(child: _scopePill(scheme, 'Whole org', '', !_heroShowsTeam,
+              () => setState(() => _heroShowsTeam = false))),
+        ],
+      ),
+    );
+  }
+
+  Widget _scopePill(ColorScheme scheme, String label, String sub, bool active, VoidCallback onTap) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
+        decoration: BoxDecoration(
+          color: active ? scheme.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Center(
+          child: Text(label,
+              style: TextStyle(
+                  color: active ? scheme.onPrimary : scheme.onSurface,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800)),
+        ),
+      ),
+    );
+  }
+
   // Toggle pill for the hero — switches between Team pulse and Org pulse.
   Widget _pulseToggle(String label, String sub, bool active, VoidCallback onTap) {
     return InkWell(
@@ -481,27 +602,55 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
     );
   }
 
-  Widget _teamSnapshotCard(ColorScheme scheme, int positive, int constructive, double avg) {
+  Widget _teamSnapshotCard(ColorScheme scheme, int orgPositive, int orgConstructive, double orgAvg, bool teamScope) {
+    // ── Scope-aware composition & feedback aggregation ──
+    final orgManagers = _teamMembers >= 8 ? 3 : 2; // derived from roster shape
+    final orgReports = _teamMembers - orgManagers;
+
+    // In Team scope, "people" = the 3 direct reports the user manages.
+    // Feedback in Team scope = sum of those direct reports' personal logs.
+    int teamPositive = 0, teamConstructive = 0;
+    for (final m in TeamScreen.managers) {
+      final log = EmployeeFeedbackLogScreen.logFor(m['name'] as String);
+      teamPositive += log.where((e) => e['type'] == 'Positive').length;
+      teamConstructive += log.where((e) => e['type'] == 'Constructive').length;
+    }
+
+    final people = teamScope ? TeamScreen.managers.length : _teamMembers;
+    final positive = teamScope ? teamPositive : orgPositive;
+    final constructive = teamScope ? teamConstructive : orgConstructive;
+    final scopeLabel = teamScope ? 'TEAM · DIRECT REPORTS' : 'ORG-WIDE';
+    final compositionA = teamScope ? '$people direct' : '$orgManagers direct';
+    final compositionB = teamScope ? '0 indirect' : '$orgReports indirect';
+
     final total = positive + constructive;
     final posPct = total == 0 ? 0.0 : positive / total;
-    final managers = _teamMembers >= 8 ? 3 : 2; // derived from roster shape
-    final reports = _teamMembers - managers;
+    // Card zone derived from positive ratio
+    final cardZone = posPct >= 0.7
+        ? 4
+        : posPct >= 0.6
+            ? 3
+            : posPct >= 0.4
+                ? 2
+                : posPct >= 0.25
+                    ? 1
+                    : 0;
+    final cardZoneColor = _heatColors[cardZone];
     // Soft, calm tones — feedback isn't an alert. Light green for positive,
     // warm yellow/amber for constructive (caution, not danger).
     final posColor = const Color(0xFF5BB880); // light green
     final conColor = const Color(0xFFE6B43A); // warm amber
-    final zone = _zoneIndex(avg);
+    // Heatmap row at the bottom: use the rating-based zone for the scope
+    // currently selected (team vs org pulse).
+    final zone = _zoneIndex(teamScope ? (TeamScreen.directReportsAvg() ?? orgAvg) : orgAvg);
 
-    return Material(
-      color: scheme.surfaceContainerLow,
-      borderRadius: BorderRadius.circular(24),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(24),
-        onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const TeamScreen())),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
+    // Embedded section — no outer Material/border; parent container provides them.
+    return InkWell(
+      onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const TeamScreen())),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -509,14 +658,14 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: scheme.primaryContainer,
+                      color: cardZoneColor.withOpacity(0.18),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(Icons.groups_rounded,
-                        size: 18, color: scheme.onPrimaryContainer),
+                        size: 18, color: cardZoneColor),
                   ),
                   const SizedBox(width: 10),
-                  Text('TEAM SNAPSHOT',
+                  Text(scopeLabel,
                       style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
@@ -528,36 +677,50 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                 ],
               ),
               const SizedBox(height: 14),
-              // Big number + composition
+              // Big number — right-aligned. Chips dropped (redundant with the
+              // big number + scope label).
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text('$_teamMembers',
+                  Text('$people',
                       style: TextStyle(
-                          fontSize: 48,
+                          fontSize: 56,
                           fontWeight: FontWeight.w900,
                           height: 1.0,
                           color: scheme.onSurface)),
                   const SizedBox(width: 8),
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.only(bottom: 8),
                     child: Text('people',
                         style: TextStyle(
                             fontSize: 14,
                             color: scheme.onSurfaceVariant,
                             fontWeight: FontWeight.w600)),
                   ),
-                  const Spacer(),
-                  _composChip(scheme, '$managers', 'direct', scheme.primary),
-                  const SizedBox(width: 6),
-                  _composChip(scheme, '$reports', 'indirect', scheme.tertiary),
                 ],
               ),
+              if (!teamScope)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text('$orgManagers direct · $orgReports indirect',
+                          style: TextStyle(
+                              fontSize: 11,
+                              color: scheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ),
               const SizedBox(height: 18),
               // Feedback header + breakdown bar
               Row(
                 children: [
-                  Text('FEEDBACK · ORG-WIDE · THIS QUARTER',
+                  Text(teamScope
+                          ? 'FEEDBACK · 3 DIRECT · THIS QUARTER'
+                          : 'FEEDBACK · ORG-WIDE · THIS QUARTER',
                       style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
@@ -571,115 +734,85 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                           color: scheme.onSurface)),
                 ],
               ),
-              const SizedBox(height: 10),
-              // Stacked horizontal bar — visual positive vs constructive split
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: total == 0
-                    ? Container(
-                        height: 12,
-                        color: scheme.surfaceContainerHighest,
-                      )
-                    : Row(
-                        children: [
-                          Expanded(
-                            flex: (posPct * 1000).round(),
-                            child: GestureDetector(
-                              onTap: () => _showFeedbackPopup('Positive'),
-                              child: Container(
-                                height: 14,
-                                color: posColor,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            flex: ((1 - posPct) * 1000).round(),
-                            child: GestureDetector(
-                              onTap: () => _showFeedbackPopup('Constructive'),
-                              child: Container(
-                                height: 14,
-                                color: conColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
               const SizedBox(height: 12),
-              // Legend
-              Row(
-                children: [
-                  _legend(scheme, posColor, 'Positive', positive, () => _showFeedbackPopup('Positive')),
-                  const SizedBox(width: 18),
-                  _legend(scheme, conColor, 'Constructive', constructive, () => _showFeedbackPopup('Constructive')),
-                ],
-              ),
-              const SizedBox(height: 18),
-              // ─── Heatmap strip: 5 zones with current team position marked ───
-              Row(
-                children: [
-                  Text('PULSE HEATMAP',
-                      style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.0,
-                          color: scheme.onSurfaceVariant)),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _heatColors[zone].withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 8, height: 8,
-                          decoration: BoxDecoration(
-                              color: _heatColors[zone], shape: BoxShape.circle),
-                        ),
-                        const SizedBox(width: 5),
-                        Text(_heatLabels[zone],
-                            style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                color: _heatColors[zone].withOpacity(0.95))),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // Five-segment heatmap row
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Row(
-                  children: List.generate(5, (i) {
-                    final active = i == zone;
-                    return Expanded(
-                      child: Container(
-                        height: active ? 18 : 12,
-                        margin: EdgeInsets.symmetric(horizontal: i == 0 || i == 4 ? 0 : 1),
-                        color: active
-                            ? _heatColors[i]
-                            : _heatColors[i].withOpacity(0.35),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-              const SizedBox(height: 4),
-              // Axis labels
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('1.0', style: TextStyle(fontSize: 9, color: scheme.onSurfaceVariant)),
-                  Text('5.0', style: TextStyle(fontSize: 9, color: scheme.onSurfaceVariant)),
-                ],
-              ),
+              // Two clean horizontal bars (one per type) — much clearer than
+              // a single split bar. Each bar's length = count / total.
+              _feedbackBar(scheme,
+                  label: 'Positive',
+                  count: positive,
+                  total: total,
+                  color: posColor,
+                  onTap: () => _showFeedbackPopup('Positive')),
+              const SizedBox(height: 10),
+              _feedbackBar(scheme,
+                  label: 'Constructive',
+                  count: constructive,
+                  total: total,
+                  color: conColor,
+                  onTap: () => _showFeedbackPopup('Constructive')),
+              // Heatmap strip is already shown in the hero section above —
+              // no need to repeat it here in the snapshot section.
             ],
           ),
+        ),
+    );
+  }
+
+  // Single feedback bar: label + count + horizontal bar fill.
+  Widget _feedbackBar(ColorScheme scheme,
+      {required String label,
+      required int count,
+      required int total,
+      required Color color,
+      required VoidCallback onTap}) {
+    final pct = total == 0 ? 0.0 : count / total;
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 90,
+              child: Text(label,
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: scheme.onSurface)),
+            ),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: Stack(
+                  children: [
+                    Container(
+                        height: 10, color: scheme.surfaceContainerHighest),
+                    FractionallySizedBox(
+                      widthFactor: pct,
+                      child: Container(height: 10, color: color),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            SizedBox(
+              width: 30,
+              child: Text('$count',
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: scheme.onSurface)),
+            ),
+          ],
         ),
       ),
     );
