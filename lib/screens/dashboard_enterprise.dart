@@ -112,7 +112,18 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
         : (fb.isNotEmpty ? fb.first.employeeName : 'your team');
 
     final scheme = Theme.of(context).colorScheme;
-    final positives = fb.where((f) => f.feedbackType == 'Positive').toList();
+    // In team mode, Wins are filtered to people in MY direct line
+    // (managers + their reports). In org mode, all positives.
+    final teamNames = {
+      for (final m in TeamScreen.managers) m['name'] as String,
+      for (final m in TeamScreen.managers)
+        ...TeamScreen.reportsOf(m['name'] as String).map((r) => r['name'] as String),
+    };
+    final positives = fb
+        .where((f) =>
+            f.feedbackType == 'Positive' &&
+            (!_heroShowsTeam || teamNames.contains(f.employeeName)))
+        .toList();
     // Two distinct pulse scores: Team (direct reports) vs Org (everyone)
     final orgPulse = avg; // org-wide feedback avg
     final teamPulse = TeamScreen.directReportsAvg() ?? 0.0; // direct reports personal avg
@@ -179,18 +190,14 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
               ),
               const SizedBox(height: 16),
 
-              // ─── GLOBAL scope toggle (full width) ──
-              _globalScopeToggle(scheme),
-              const SizedBox(height: 10),
-              // ─── Quarter chips, right-aligned ──
+              // ─── Period chip first (timeframe context comes before scope) ──
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  _quarterChip('This Q', DashRange.current, scheme),
-                  const SizedBox(width: 6),
-                  _quarterChip('Last Q', DashRange.last, scheme),
-                ],
+                children: [_periodChip(scheme)],
               ),
+              const SizedBox(height: 10),
+              // ─── Then the scope toggle below ──
+              _globalScopeToggle(scheme),
               const SizedBox(height: 14),
 
               // ─── ONE merged "pulse" card: hero + snapshot connected with
@@ -202,7 +209,9 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                   borderRadius: BorderRadius.circular(24),
                   border: Border(
                       top: BorderSide(
-                          color: _heroShowsTeam ? scheme.primary : scheme.tertiary,
+                          color: _heroShowsTeam
+                              ? scheme.primary
+                              : const Color(0xFFD9883E),
                           width: 4)),
                 ),
                 child: Column(
@@ -281,47 +290,48 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                       );
                     }),
                     const SizedBox(height: 14),
-                    // ── Heatmap strip with downward triangle marker on the
-                    // active zone — way more obvious "you are here" than a
-                    // taller bar alone.
-                    SizedBox(
-                      height: 10,
-                      child: Row(
-                        children: List.generate(5, (i) {
-                          final active = i == heroZone;
-                          return Expanded(
-                            child: Center(
-                              child: active
-                                  ? Icon(Icons.arrow_drop_down_rounded,
-                                      size: 22, color: _heatColors[i])
-                                  : const SizedBox.shrink(),
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Row(
-                        children: List.generate(5, (i) {
-                          final active = i == heroZone;
-                          return Expanded(
-                            child: Container(
-                              height: active ? 18 : 10,
-                              margin: EdgeInsets.symmetric(horizontal: i == 0 || i == 4 ? 0 : 1),
-                              decoration: BoxDecoration(
-                                color: active
-                                    ? _heatColors[i]
-                                    : _heatColors[i].withOpacity(0.35),
-                                border: active
-                                    ? Border.all(
-                                        color: Colors.white.withOpacity(0.85),
-                                        width: 2)
-                                    : null,
+                    // ── Weight-scale heatmap: triangle marker at the EXACT
+                    // score position, value label below it.
+                    LayoutBuilder(builder: (ctx, c) {
+                      // 1.0 .. 5.0 → 0 .. 1 fraction
+                      final frac =
+                          ((pulseScore - 1.0) / 4.0).clamp(0.0, 1.0);
+                      final markerLeft =
+                          (frac * c.maxWidth - 11).clamp(0.0, c.maxWidth - 22);
+                      return SizedBox(
+                        height: 22,
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              left: markerLeft,
+                              top: 0,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                      pulseScore.toStringAsFixed(1),
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w900,
+                                          color: scheme.onSurface)),
+                                  Icon(Icons.arrow_drop_down_rounded,
+                                      size: 22, color: heroZoneColor),
+                                ],
                               ),
                             ),
-                          );
-                        }),
+                          ],
+                        ),
+                      );
+                    }),
+                    // Soft 5-zone gradient bar (no hard segments — feels like
+                    // a gauge, not 5 disconnected stripes)
+                    Container(
+                      height: 12,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        gradient: LinearGradient(
+                          colors: _heatColors,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -478,13 +488,13 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
     );
   }
 
-  // ─── Heatmap palette (soft, professional — no alarm-red) ───
+  // ─── Heatmap palette: orange → yellow → green (no red, no blue) ──
   static const List<Color> _heatColors = [
-    Color(0xFFE8896B), // <3.0 At-risk (soft coral)
-    Color(0xFFE6B43A), // 3.0-3.5 Watch (warm amber)
-    Color(0xFF6FAACC), // 3.5-4.0 Steady (soft sky blue)
-    Color(0xFF7DC290), // 4.0-4.5 Healthy (light green)
-    Color(0xFF3DA66E), // ≥4.5 Excellent (deeper green)
+    Color(0xFFE89A6B), // <3.0 At-risk (soft orange)
+    Color(0xFFEBB57A), // 3.0-3.5 Watch (warm peach)
+    Color(0xFFE0C04A), // 3.5-4.0 Steady (mellow yellow)
+    Color(0xFFA8C977), // 4.0-4.5 Healthy (light green)
+    Color(0xFF3DA66E), // ≥4.5 Excellent (deep green)
   ];
   static const List<String> _heatLabels = [
     'At-risk', 'Watch', 'Steady', 'Healthy', 'Excellent'
@@ -500,6 +510,55 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
 
   // Single team snapshot card: people composition + feedback breakdown.
   // Replaces the 4 redundant KPI tiles with one richer surface.
+  // Period chip: shows the active range (e.g. "Apr–Jun 2026") with a
+  // calendar icon and a small dropdown caret. Tapping opens a menu with
+  // "This quarter" and "Last quarter" options.
+  Widget _periodChip(ColorScheme scheme) {
+    return PopupMenuButton<DashRange>(
+      tooltip: 'Change period',
+      onSelected: (v) => setState(() => _range = v),
+      offset: const Offset(0, 36),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14)),
+      itemBuilder: (_) => [
+        CheckedPopupMenuItem(
+          value: DashRange.current,
+          checked: _range == DashRange.current,
+          child: const Text('This quarter'),
+        ),
+        CheckedPopupMenuItem(
+          value: DashRange.last,
+          checked: _range == DashRange.last,
+          child: const Text('Last quarter'),
+        ),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: scheme.outlineVariant),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.calendar_today_rounded,
+                size: 14, color: scheme.onSurfaceVariant),
+            const SizedBox(width: 8),
+            Text(_rangeLabel,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: scheme.onSurface)),
+            const SizedBox(width: 6),
+            Icon(Icons.expand_more_rounded,
+                size: 16, color: scheme.onSurfaceVariant),
+          ],
+        ),
+      ),
+    );
+  }
+
   // Compact quarter chip — small inline pill instead of full-width segmented.
   Widget _quarterChip(String label, DashRange value, ColorScheme scheme) {
     final selected = _range == value;
@@ -535,16 +594,28 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
       ),
       child: Row(
         children: [
-          Expanded(child: _scopePill(scheme, 'Team', '', _heroShowsTeam,
-              () => setState(() => _heroShowsTeam = true))),
-          Expanded(child: _scopePill(scheme, 'Whole org', '', !_heroShowsTeam,
-              () => setState(() => _heroShowsTeam = false))),
+          // Team = teal (primary), matches card border in Team mode
+          Expanded(child: _scopePill(scheme, 'Team', '',
+              icon: Icons.diversity_3_rounded,
+              activeColor: scheme.primary,
+              active: _heroShowsTeam,
+              onTap: () => setState(() => _heroShowsTeam = true))),
+          // Whole org = warm amber so it's clearly distinct from Team teal
+          Expanded(child: _scopePill(scheme, 'Whole org', '',
+              icon: Icons.apartment_rounded,
+              activeColor: const Color(0xFFD9883E),
+              active: !_heroShowsTeam,
+              onTap: () => setState(() => _heroShowsTeam = false))),
         ],
       ),
     );
   }
 
-  Widget _scopePill(ColorScheme scheme, String label, String sub, bool active, VoidCallback onTap) {
+  Widget _scopePill(ColorScheme scheme, String label, String sub,
+      {required IconData icon,
+      required Color activeColor,
+      required bool active,
+      required VoidCallback onTap}) {
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: onTap,
@@ -552,15 +623,25 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
         duration: const Duration(milliseconds: 160),
         padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
         decoration: BoxDecoration(
-          color: active ? scheme.primary : Colors.transparent,
+          color: active ? activeColor : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
+          border: !active
+              ? Border.all(color: activeColor.withOpacity(0.35), width: 1.5)
+              : null,
         ),
-        child: Center(
-          child: Text(label,
-              style: TextStyle(
-                  color: active ? scheme.onPrimary : scheme.onSurface,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon,
+                size: 16,
+                color: active ? Colors.white : activeColor),
+            const SizedBox(width: 6),
+            Text(label,
+                style: TextStyle(
+                    color: active ? Colors.white : scheme.onSurface,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800)),
+          ],
         ),
       ),
     );
@@ -645,116 +726,204 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
     final zone = _zoneIndex(teamScope ? (TeamScreen.directReportsAvg() ?? orgAvg) : orgAvg);
 
     // Embedded section — no outer Material/border; parent container provides them.
-    return InkWell(
-      onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const TeamScreen())),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: cardZoneColor.withOpacity(0.18),
-                      borderRadius: BorderRadius.circular(12),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ─── CELL A: FEEDBACK (now FIRST — what's been said about them) ───
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: scheme.tertiaryContainer.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: scheme.tertiaryContainer,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.chat_bubble_rounded,
+                          size: 14, color: scheme.onTertiaryContainer),
                     ),
-                    child: Icon(Icons.groups_rounded,
-                        size: 18, color: cardZoneColor),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(scopeLabel,
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.0,
-                          color: scheme.onSurfaceVariant)),
-                  const Spacer(),
-                  Icon(Icons.chevron_right_rounded,
-                      size: 18, color: scheme.onSurfaceVariant),
-                ],
-              ),
-              const SizedBox(height: 14),
-              // Big number — right-aligned. Chips dropped (redundant with the
-              // big number + scope label).
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text('$people',
-                      style: TextStyle(
-                          fontSize: 56,
-                          fontWeight: FontWeight.w900,
-                          height: 1.0,
-                          color: scheme.onSurface)),
-                  const SizedBox(width: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text('people',
+                    const SizedBox(width: 8),
+                    Text('FEEDBACK · THIS QUARTER',
                         style: TextStyle(
-                            fontSize: 14,
-                            color: scheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w600)),
-                  ),
-                ],
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.0,
+                            color: scheme.onTertiaryContainer.withOpacity(0.85))),
+                    const Spacer(),
+                    Text('$total total',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            color: scheme.onSurface)),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                _feedbackBar(scheme,
+                    label: 'Positive',
+                    count: positive,
+                    total: total,
+                    color: posColor,
+                    onTap: () => _showFeedbackPopup('Positive')),
+                const SizedBox(height: 8),
+                _feedbackBar(scheme,
+                    label: 'Constructive',
+                    count: constructive,
+                    total: total,
+                    color: conColor,
+                    onTap: () => _showFeedbackPopup('Constructive')),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          // ─── CELL B: PEOPLE (now BELOW — the roster) ───
+          InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const TeamScreen())),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer.withOpacity(0.35),
+                borderRadius: BorderRadius.circular(20),
               ),
-              if (!teamScope)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Text('$orgManagers direct · $orgReports indirect',
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: scheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(Icons.groups_rounded,
+                            size: 14, color: scheme.onPrimaryContainer),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(teamScope ? 'PEOPLE · DIRECT REPORTS' : 'PEOPLE · WHOLE ORG',
                           style: TextStyle(
-                              fontSize: 11,
-                              color: scheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w600)),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.0,
+                              color: scheme.onPrimaryContainer.withOpacity(0.85))),
+                      const Spacer(),
+                      Icon(Icons.chevron_right_rounded,
+                          size: 16, color: scheme.onPrimaryContainer.withOpacity(0.7)),
                     ],
                   ),
-                ),
-              const SizedBox(height: 18),
-              // Feedback header + breakdown bar
-              Row(
-                children: [
-                  Text(teamScope
-                          ? 'FEEDBACK · 3 DIRECT · THIS QUARTER'
-                          : 'FEEDBACK · ORG-WIDE · THIS QUARTER',
-                      style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.0,
-                          color: scheme.onSurfaceVariant)),
-                  const Spacer(),
-                  Text('$total total',
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: scheme.onSurface)),
+                  const SizedBox(height: 12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _avatarStack(scheme, teamScope: teamScope),
+                      const Spacer(),
+                      Text('$people',
+                          style: TextStyle(
+                              fontSize: 48,
+                              fontWeight: FontWeight.w900,
+                              height: 1.0,
+                              color: scheme.onSurface)),
+                    ],
+                  ),
+                  if (!teamScope) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text('$orgManagers direct · $orgReports indirect',
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: scheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ],
                 ],
               ),
-              const SizedBox(height: 12),
-              // Two clean horizontal bars (one per type) — much clearer than
-              // a single split bar. Each bar's length = count / total.
-              _feedbackBar(scheme,
-                  label: 'Positive',
-                  count: positive,
-                  total: total,
-                  color: posColor,
-                  onTap: () => _showFeedbackPopup('Positive')),
-              const SizedBox(height: 10),
-              _feedbackBar(scheme,
-                  label: 'Constructive',
-                  count: constructive,
-                  total: total,
-                  color: conColor,
-                  onTap: () => _showFeedbackPopup('Constructive')),
-              // Heatmap strip is already shown in the hero section above —
-              // no need to repeat it here in the snapshot section.
-            ],
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  // Overlapping avatar stack — shows up to 5 actual people in the roster,
+  // colored by their personal pulse zone. Tonal Material 3 styling.
+  Widget _avatarStack(ColorScheme scheme, {required bool teamScope}) {
+    final pool = teamScope
+        ? TeamScreen.managers
+        : TeamScreen.roster;
+    final visible = pool.take(5).toList();
+    final extra = pool.length - visible.length;
+    const avatarSize = 30.0;
+    const overlap = 10.0;
+    final stackWidth = avatarSize +
+        (visible.length - 1) * (avatarSize - overlap) +
+        (extra > 0 ? avatarSize - overlap : 0);
+
+    Widget avatar(String name, {bool isPlus = false, int? plus}) {
+      final initials = name
+          .split(' ')
+          .where((p) => p.isNotEmpty)
+          .map((p) => p[0])
+          .take(2)
+          .join()
+          .toUpperCase();
+      final zone = isPlus
+          ? null
+          : _zoneIndex(EmployeeFeedbackLogScreen.averageRating(name) ?? 3.5);
+      final bg = isPlus
+          ? scheme.surfaceContainerHighest
+          : _heatColors[zone!].withOpacity(0.35);
+      final fg = isPlus
+          ? scheme.onSurfaceVariant
+          : Colors.black.withOpacity(0.75);
+      return Container(
+        width: avatarSize,
+        height: avatarSize,
+        decoration: BoxDecoration(
+          color: bg,
+          shape: BoxShape.circle,
+          border: Border.all(color: scheme.surfaceContainerLow, width: 2.5),
         ),
+        alignment: Alignment.center,
+        child: Text(
+          isPlus ? '+$plus' : initials,
+          style: TextStyle(
+              fontSize: 10, fontWeight: FontWeight.w900, color: fg),
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: stackWidth,
+      height: avatarSize,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          for (var i = 0; i < visible.length; i++)
+            Positioned(
+              left: i * (avatarSize - overlap),
+              child: avatar(visible[i]['name'] as String),
+            ),
+          if (extra > 0)
+            Positioned(
+              left: visible.length * (avatarSize - overlap),
+              child: avatar('', isPlus: true, plus: extra),
+            ),
+        ],
+      ),
     );
   }
 
@@ -908,9 +1077,11 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
         borderRadius: BorderRadius.circular(14),
         onTap: onTap,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(12 + depth * 14.0, 12, 12, 12),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
           child: Row(
             children: [
+              // Indent ONLY pushes the dot/name — score column stays right-aligned
+              SizedBox(width: depth * 18.0),
               // Tree connector dot
               Container(
                 width: 8, height: 8,
@@ -935,45 +1106,56 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                   ],
                 ),
               ),
-              // Score in zone color (or em-dash if no data)
-              Text(hasData ? current.toStringAsFixed(1) : '—',
-                  style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w900,
-                      color: zoneColor)),
+              // ── Fixed-width right column for clean vertical alignment ──
+              SizedBox(
+                width: 42,
+                child: Text(hasData ? current.toStringAsFixed(1) : '—',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                        color: zoneColor)),
+              ),
               const SizedBox(width: 10),
-              // Decimal delta — only shown when there's data
-              if (hasData)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: tColor.withOpacity(0.14),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Text('${up ? '+' : '−'}${delta.abs().toStringAsFixed(2)}',
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: tColor)),
-                ),
+              SizedBox(
+                width: 64,
+                child: hasData
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: tColor.withOpacity(0.14),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                            '${up ? '+' : '−'}${delta.abs().toStringAsFixed(2)}',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: tColor)),
+                      )
+                    : const SizedBox.shrink(),
+              ),
               const SizedBox(width: 6),
-              if (expandable)
-                InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  onTap: onExpand,
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: AnimatedRotation(
-                      turns: expanded ? 0.5 : 0,
-                      duration: const Duration(milliseconds: 180),
-                      child: Icon(Icons.expand_more_rounded,
-                          size: 20, color: scheme.primary),
-                    ),
-                  ),
-                )
-              else
-                Icon(Icons.chevron_right_rounded,
-                    size: 18, color: scheme.onSurfaceVariant),
+              SizedBox(
+                width: 24,
+                child: expandable
+                    ? InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: onExpand,
+                        child: Padding(
+                          padding: const EdgeInsets.all(2),
+                          child: AnimatedRotation(
+                            turns: expanded ? 0.5 : 0,
+                            duration: const Duration(milliseconds: 180),
+                            child: Icon(Icons.expand_more_rounded,
+                                size: 20, color: scheme.primary),
+                          ),
+                        ),
+                      )
+                    : Icon(Icons.chevron_right_rounded,
+                        size: 18, color: scheme.onSurfaceVariant),
+              ),
             ],
           ),
         ),
@@ -1011,25 +1193,51 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
             ),
           ),
           const SizedBox(height: 6),
-          row(
-            label: 'Whole organization',
-            sub: 'avg across all $_teamMembers people',
-            current: orgAvg,
-            prior: _range == DashRange.current ? 3.6 : 3.4,
-            depth: 0,
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TeamScreen())),
+          // In Team mode we skip org rollups — focus is just the directs below.
+          if (!_heroShowsTeam) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+              child: Text('ORG ROLLUPS',
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                      color: scheme.onSurfaceVariant)),
+            ),
+            row(
+              label: 'Whole organization',
+              sub: 'avg across all $_teamMembers people',
+              current: orgAvg,
+              prior: _range == DashRange.current ? 3.6 : 3.4,
+              depth: 0,
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TeamScreen())),
+            ),
+            row(
+              label: 'My direct reports',
+              sub: 'avg across ${managers.length} direct (personal ratings)',
+              current: TeamScreen.directReportsAvg(),
+              prior: _range == DashRange.current ? 3.7 : 3.5,
+              depth: 0,
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TeamScreen())),
+            ),
+          ],
+          // ── Per-manager breakdown ──
+          Padding(
+            padding: EdgeInsets.fromLTRB(12, _heroShowsTeam ? 4 : 12, 12, 4),
+            child: Row(
+              children: [
+                Text(_heroShowsTeam ? 'YOUR DIRECT REPORTS' : 'BY MANAGER',
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
+                        color: scheme.onSurfaceVariant)),
+                const SizedBox(width: 6),
+                Expanded(
+                    child: Container(height: 1, color: scheme.outlineVariant)),
+              ],
+            ),
           ),
-          Divider(height: 1, color: scheme.outlineVariant),
-          // ── My direct reports (just the manager line — Chen, Anderson, Martinez) ──
-          row(
-            label: 'My direct reports',
-            sub: 'avg across ${managers.length} direct (their personal ratings)',
-            current: TeamScreen.directReportsAvg(),
-            prior: _range == DashRange.current ? 3.7 : 3.5,
-            depth: 0,
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TeamScreen())),
-          ),
-          Divider(height: 1, color: scheme.outlineVariant),
           // ── Per-manager: personal row (always) + team row (when expanded) ──
           ...managers.expand((m) {
             final name = m['name'] as String;
@@ -1060,8 +1268,8 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
               ),
               if (expanded)
                 row(
-                  label: '${name.split(' ').last}\'s team',
-                  sub: 'avg across $reports report${reports == 1 ? '' : 's'}',
+                  label: 'Team avg ($reports)',
+                  sub: 'across reports',
                   current: teamAvg,
                   prior: priorFor(name) - 0.1,
                   depth: 2,

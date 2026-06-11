@@ -22,6 +22,21 @@ class TeamScreen extends StatefulWidget {
 }
 
 class _TeamScreenState extends State<TeamScreen> {
+  // Filter: 'all' or 'needs_feedback' (managers with sparse / stale feedback)
+  String _filter = 'all';
+
+  bool _needsAttention(String name) {
+    final log = EmployeeFeedbackLogScreen.logFor(name);
+    final today = DateTime(2026, 6, 10);
+    DateTime? latest;
+    for (final e in log) {
+      final d = e['date'] as DateTime?;
+      if (d != null && (latest == null || d.isAfter(latest))) latest = d;
+    }
+    final daysSince = latest == null ? 9999 : today.difference(latest).inDays;
+    return log.length < 3 || daysSince > 21;
+  }
+
   // Org roster — managers have manager: null, ICs reference their manager by name.
   // Single source of truth for the whole app's team data.
   static final List<Map<String, dynamic>> roster = [
@@ -195,15 +210,39 @@ class _TeamScreenState extends State<TeamScreen> {
             ),
             const SizedBox(height: 22),
 
-            Text('YOUR DIRECT REPORTS',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800,
-                    color: scheme.onSurfaceVariant, letterSpacing: 0.8)),
-            const SizedBox(height: 10),
+            Row(
+              children: [
+                Text('YOUR DIRECT REPORTS',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800,
+                        color: scheme.onSurfaceVariant, letterSpacing: 0.8)),
+                const Spacer(),
+                if (mgrs.any((m) => _needsAttention(m['name'] as String)))
+                  Text(
+                      '${mgrs.where((m) => _needsAttention(m['name'] as String)).length} need attention',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFFB07E1B))),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // ── Filter chips ──
+            Row(
+              children: [
+                _filterChip(scheme, 'All', 'all'),
+                const SizedBox(width: 6),
+                _filterChip(scheme, 'Needs feedback', 'needs_feedback'),
+              ],
+            ),
+            const SizedBox(height: 12),
 
-            ...mgrs.map((m) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _managerCard(m, scheme),
-                )),
+            ...mgrs
+                .where((m) =>
+                    _filter == 'all' || _needsAttention(m['name'] as String))
+                .map((m) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _managerCard(m, scheme),
+                    )),
           ],
         ),
       ),
@@ -212,6 +251,29 @@ class _TeamScreenState extends State<TeamScreen> {
 
   Widget _vDiv(ColorScheme scheme) =>
       Container(width: 1, height: 36, color: scheme.outlineVariant);
+
+  Widget _filterChip(ColorScheme scheme, String label, String value) {
+    final selected = _filter == value;
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: () => setState(() => _filter = value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? scheme.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+              color: selected ? scheme.primary : scheme.outlineVariant),
+        ),
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: selected ? scheme.onPrimary : scheme.onSurfaceVariant)),
+      ),
+    );
+  }
 
   Widget _topStat(ColorScheme scheme, String value, String label, Color accent) {
     return Expanded(
@@ -230,8 +292,25 @@ class _TeamScreenState extends State<TeamScreen> {
     final name = mgr['name'] as String;
     final reports = reportsOf(name);
     final teamRating = teamAvgRating(name);
+    final personalRating = EmployeeFeedbackLogScreen.averageRating(name);
+    final personalLog = EmployeeFeedbackLogScreen.logFor(name);
     final feedbackCount = teamFeedbackCount(name);
     final initials = name.split(' ').map((p) => p.isEmpty ? '' : p[0]).join().toUpperCase();
+
+    // ── "Needs attention" computation ──
+    // Demo today is 2026-06-10. Flag if last feedback > 21 days or < 3 entries.
+    final today = DateTime(2026, 6, 10);
+    DateTime? latest;
+    for (final e in personalLog) {
+      final d = e['date'] as DateTime?;
+      if (d != null && (latest == null || d.isAfter(latest))) latest = d;
+    }
+    final daysSince = latest == null ? 9999 : today.difference(latest).inDays;
+    final needsAttention =
+        personalLog.length < 3 || daysSince > 21;
+    final flagReason = personalLog.length < 3
+        ? 'Only ${personalLog.length} feedback ${personalLog.length == 1 ? "entry" : "entries"}'
+        : 'Last feedback $daysSince days ago';
 
     return Material(
       color: scheme.surfaceContainerLow,
@@ -268,10 +347,46 @@ class _TeamScreenState extends State<TeamScreen> {
                       ],
                     ),
                   ),
-                  _ratingBadge(teamRating, scheme, label: 'Team'),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      // Personal rating — primary (what's most important per user)
+                      _ratingBadge(personalRating, scheme, label: 'Personal'),
+                      const SizedBox(height: 4),
+                      // Team avg — secondary, smaller
+                      _ratingBadge(teamRating, scheme, label: 'Team avg'),
+                    ],
+                  ),
                 ],
               ),
-              const SizedBox(height: 14),
+              if (needsAttention) ...[
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE6B43A).withOpacity(0.14),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFE6B43A).withOpacity(0.4)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.flag_circle_rounded,
+                          size: 16, color: Color(0xFFB07E1B)),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Needs feedback · $flagReason',
+                          style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFB07E1B)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                 decoration: BoxDecoration(
@@ -310,50 +425,53 @@ class _TeamScreenState extends State<TeamScreen> {
   }
 }
 
-// ─── Shared rating badge (used by Team + ManagerReports + drilldown) ───
+// ─── Shared rating badge — no background pill; color tells the story ───
+// Color thresholds match the 5-zone heatmap palette:
+//   >=4.5 deep green (Excellent), >=4.0 light green (Healthy),
+//   >=3.5 sky blue (Steady), >=3.0 warm amber (Watch), <3.0 soft coral.
 Widget _ratingBadge(double? score, ColorScheme scheme, {String? label}) {
-  // No feedback yet → muted neutral chip, no score
   if (score == null) {
     final c = scheme.onSurfaceVariant;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.remove_rounded, size: 12, color: c),
-          const SizedBox(width: 4),
-          Text('No feedback',
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: c)),
-        ],
-      ),
-    );
-  }
-  final Color c = score >= 4.5
-      ? Colors.green.shade700
-      : (score >= 4.0 ? Colors.amber.shade800 : scheme.onSurfaceVariant);
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-    decoration: BoxDecoration(
-      color: c.withOpacity(0.12),
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Row(
+    return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.star_rounded, size: 14, color: c),
-        const SizedBox(width: 3),
-        Text(score.toStringAsFixed(1),
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: c)),
-        if (label != null) ...[
-          const SizedBox(width: 5),
-          Text(label, style: TextStyle(fontSize: 9, color: c.withOpacity(0.8), fontWeight: FontWeight.w700)),
-        ],
+        Icon(Icons.remove_rounded, size: 13, color: c),
+        const SizedBox(width: 4),
+        Text('No feedback',
+            style: TextStyle(
+                fontSize: 11, fontWeight: FontWeight.w700, color: c)),
       ],
-    ),
+    );
+  }
+  Color c;
+  if (score >= 4.5) {
+    c = const Color(0xFF3DA66E); // Excellent (deep green)
+  } else if (score >= 4.0) {
+    c = const Color(0xFFA8C977); // Healthy (light green)
+  } else if (score >= 3.5) {
+    c = const Color(0xFFE0C04A); // Steady (mellow yellow)
+  } else if (score >= 3.0) {
+    c = const Color(0xFFEBB57A); // Watch (warm peach)
+  } else {
+    c = const Color(0xFFE89A6B); // At-risk (soft orange)
+  }
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(Icons.star_rounded, size: 15, color: c),
+      const SizedBox(width: 4),
+      Text(score.toStringAsFixed(1),
+          style: TextStyle(
+              fontSize: 13, fontWeight: FontWeight.w900, color: c)),
+      if (label != null) ...[
+        const SizedBox(width: 5),
+        Text(label,
+            style: TextStyle(
+                fontSize: 10,
+                color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600)),
+      ],
+    ],
   );
 }
 
