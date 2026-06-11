@@ -240,7 +240,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                       top: BorderSide(
                           color: _heroShowsTeam
                               ? scheme.primary
-                              : const Color(0xFFD9883E),
+                              : const Color(0xFF2C3E40),
                           width: 4)),
                 ),
                 child: Column(

@@ -22,6 +22,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   String _searchQuery = '';
   String _dateFilter = 'This Quarter';
   String _typeFilter = 'All'; // All | Positive | Constructive (set by tapping a metric)
+  String _scopeFilter = 'Direct'; // Direct (default) | All — narrows to direct reports
 
   final _nameController = TextEditingController();
   final _commentController = TextEditingController();
@@ -813,6 +814,43 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     return totalRating / feedbacks.length;
   }
 
+  // Scope filter chip — Direct vs All
+  Widget _scopeChip(ColorScheme scheme, String value, String label, String sub) {
+    final selected = _scopeFilter == value;
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: () => setState(() => _scopeFilter = value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? scheme.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+              color: selected ? scheme.primary : scheme.outlineVariant),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label,
+                style: TextStyle(
+                    color: selected ? scheme.onPrimary : scheme.onSurface,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800)),
+            const SizedBox(width: 5),
+            Text('· $sub',
+                style: TextStyle(
+                    color: selected
+                        ? scheme.onPrimary.withOpacity(0.75)
+                        : scheme.onSurfaceVariant,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Color _getHeatmapColor(double avgRating) {
     if (avgRating >= 4.5) return Colors.green;
     if (avgRating >= 4.0) return Colors.lightGreen;
@@ -873,13 +911,32 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       body: FutureBuilder<List<FeedbackItem>>(
         future: _feedbacksFuture,
         builder: (context, snapshot) {
-          final allFeedbacks = [..._localFeedbacks, ...(snapshot.data ?? <FeedbackItem>[])];
+          // Apply scope filter first (Direct = managers only, All = whole roster)
+          final mergedFeedbacks = [..._localFeedbacks, ...(snapshot.data ?? <FeedbackItem>[])];
+          final directNames =
+              TeamScreen.managers.map((m) => m['name'] as String).toSet();
+          final allFeedbacks = _scopeFilter == 'Direct'
+              ? mergedFeedbacks.where((f) => directNames.contains(f.employeeName)).toList()
+              : mergedFeedbacks;
 
           return Column(
             children: [
-              // Date Range Selector - TOP
+              // ── Scope filter: Direct (default) vs All ──
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                child: Row(
+                  children: [
+                    _scopeChip(scheme, 'Direct', 'Direct',
+                        '${TeamScreen.managers.length} direct reports'),
+                    const SizedBox(width: 8),
+                    _scopeChip(scheme, 'All', 'All',
+                        '${TeamScreen.roster.length} people'),
+                  ],
+                ),
+              ),
+              // Date Range Selector
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
