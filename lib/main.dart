@@ -11,24 +11,44 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('Supabase init failed (continuing): $e');
   }
-  runApp(const MediFlowApp());
+  runApp(const Elev8App());
 }
 
-class MediFlowApp extends StatelessWidget {
-  const MediFlowApp({Key? key}) : super(key: key);
+class Elev8App extends StatelessWidget {
+  const Elev8App({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Material 3 vibrant theme — seeded from ELEV8 teal but Flutter generates
+    // the full tonal palette (primary / secondary / tertiary containers etc.)
+    // so the whole app gets that Google Material You feel.
+    final scheme = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF0E7C7B),
+      brightness: Brightness.light,
+    );
     return MaterialApp(
-      title: 'MediFlow × ELEVATE',
+      title: 'ELEV8',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF0E7C7B), // medical teal
-          primary: const Color(0xFF0E7C7B),
+        colorScheme: scheme,
+        scaffoldBackgroundColor: scheme.surface,
+        fontFamily: 'Roboto',
+        cardTheme: CardThemeData(
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          color: scheme.surfaceContainerLow,
         ),
-        scaffoldBackgroundColor: const Color(0xFFF2F8F8),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          ),
+        ),
+        chipTheme: ChipThemeData(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          side: BorderSide.none,
+        ),
       ),
       home: const OrganizationPickerScreen(),
     );

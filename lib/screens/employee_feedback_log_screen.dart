@@ -12,8 +12,9 @@ class EmployeeFeedbackLogScreen extends StatelessWidget {
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
 
-  // Deterministic sample history for this employee (stable per name).
-  List<Map<String, dynamic>> get _log {
+  // Single source of truth for sample feedback per employee — used by
+  // the team card rating badge AND this log so they stay in sync.
+  static List<Map<String, dynamic>> logFor(String employeeName) {
     final seed = employeeName.hashCode.abs();
     const positives = [
       'Strong clinical judgment and clear patient communication.',
@@ -34,16 +35,29 @@ class EmployeeFeedbackLogScreen extends StatelessWidget {
     for (var i = 0; i < count; i++) {
       final isPos = ((seed >> i) & 1) == 0;
       final list = isPos ? positives : constructives;
+      final r = isPos
+          ? 4.2 + ((seed + i * 7) % 9) / 10.0
+          : 2.5 + ((seed + i * 11) % 13) / 10.0;
       entries.add({
         'type': isPos ? 'Positive' : 'Constructive',
         'comment': list[(seed + i) % list.length],
         'date': day,
+        'rating': double.parse(r.toStringAsFixed(1)),
       });
       day = day.subtract(Duration(days: 12 + ((seed + i) % 20)));
     }
     entries.sort((a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
     return entries;
   }
+
+  static double averageRating(String employeeName) {
+    final l = logFor(employeeName);
+    if (l.isEmpty) return 0;
+    final sum = l.fold<double>(0, (a, e) => a + (e['rating'] as double));
+    return double.parse((sum / l.length).toStringAsFixed(1));
+  }
+
+  List<Map<String, dynamic>> get _log => logFor(employeeName);
 
   @override
   Widget build(BuildContext context) {
@@ -138,20 +152,25 @@ class EmployeeFeedbackLogScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: accent.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(e['type'],
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: textColor)),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: accent.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(e['type'],
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: textColor)),
+                    ),
+                    const Spacer(),
+                    Text(when, style: TextStyle(fontSize: 10, color: Colors.grey[500])),
+                  ],
                 ),
                 const SizedBox(height: 6),
                 Text(e['comment'],
                     style: TextStyle(fontSize: 13, color: Colors.grey[800], height: 1.4)),
-                const SizedBox(height: 6),
-                Text(when, style: TextStyle(fontSize: 10, color: Colors.grey[500])),
               ],
             ),
           ),

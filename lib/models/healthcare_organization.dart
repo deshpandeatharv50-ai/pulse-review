@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// MediFlow healthcare organization for demo with HR department.
+/// ELEV8 demo healthcare organizations.
 class HealthcareOrganization {
   final String id;
   final String name;
@@ -27,7 +27,7 @@ class HealthcareOrganization {
       type: 'Hospital Network',
       description: 'Multi-specialty network with integrated HR',
       accentColor: Color(0xFF0E7C7B), // Medical teal
-      icon: Icons.local_hospital_rounded,
+      icon: Icons.account_balance_rounded,
       personas: [
         HealthcarePersona(employeeId: '7234', password: 'elevate123', name: 'James Peterson', role: 'Admin', dept: 'Operations'),
         HealthcarePersona(employeeId: '4891', password: 'elevate123', name: 'Dr. Mehta', role: 'Doctor', dept: 'Clinical'),
@@ -41,7 +41,7 @@ class HealthcareOrganization {
       type: 'Teaching Hospital',
       description: 'Specialty care & research institution',
       accentColor: Color(0xFF1A5F7A), // Deep blue
-      icon: Icons.favorite_rounded,
+      icon: Icons.school_rounded,
       personas: [
         HealthcarePersona(employeeId: '2945', password: 'elevate123',  name: 'Hon Williams', role: 'Admin', dept: 'Operations'),
         HealthcarePersona(employeeId: '6738', password: 'elevate123',  name: 'Dr. Kapoor', role: 'Doctor', dept: 'Clinical'),
@@ -54,7 +54,7 @@ class HealthcareOrganization {
       type: 'Clinic Network',
       description: 'Primary care & ambulatory services',
       accentColor: Color(0xFFE97C3D), // Sunrise orange
-      icon: Icons.medical_services_rounded,
+      icon: Icons.apartment_rounded,
       personas: [
         HealthcarePersona(employeeId: '9183', password: 'elevate123',  name: 'Amit Kumar', role: 'Admin', dept: 'Operations'),
         HealthcarePersona(employeeId: '1672', password: 'elevate123', name: 'Dr. Patel', role: 'Doctor', dept: 'Clinical'),

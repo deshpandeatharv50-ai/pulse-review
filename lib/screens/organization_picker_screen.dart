@@ -27,33 +27,17 @@ class OrganizationPickerScreen extends StatelessWidget {
                     color: Colors.white, size: 36),
               ),
               const SizedBox(height: 12),
-              RichText(
-                text: const TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'ELEVATE',
-                      style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF0E7C7B)),
-                    ),
-                    TextSpan(
-                      text: ' × ',
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
-                    ),
-                    TextSpan(
-                      text: 'MediFlow',
-                      style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFFE97C3D)),
-                    ),
-                  ],
-                ),
+              const Text(
+                'ELEV8',
+                style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0E7C7B),
+                    letterSpacing: 2),
               ),
               const SizedBox(height: 4),
               Text(
-                'Healthcare Performance Management',
+                'Team performance, made simple',
                 style: TextStyle(color: Colors.grey[600], fontSize: 13),
               ),
               const SizedBox(height: 24),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'feedback_screen.dart';
 import 'employee_feedback_log_screen.dart';
 
+// Two-level org: top tab shows managers (with aggregate stats across
+// their reports), tap a manager to drill into that manager's reports.
 class TeamScreen extends StatefulWidget {
   const TeamScreen({Key? key}) : super(key: key);
 
@@ -10,440 +12,250 @@ class TeamScreen extends StatefulWidget {
 }
 
 class _TeamScreenState extends State<TeamScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  String _filterDepartment = 'All';
-
   static const teal = Color(0xFF0E7C7B);
 
-  final List<Map<String, dynamic>> _medicalTeam = const [
+  // Org roster — managers have manager: null, ICs reference their manager by name.
+  // Single source of truth for the whole app's team data.
+  static final List<Map<String, dynamic>> roster = [
+    // ── Managers (level 1) ──
     {
-      'id': 'EMP-001',
-      'name': 'Dr. Sarah Mitchell',
-      'title': 'Chief Medical Officer',
-      'specialty': 'Internal Medicine',
-      'department': 'Clinical',
-      'status': 'Available',
-      'patientLoad': 12,
-      'qualifications': 'MD, Board Certified',
-      'email': 'sarah.mitchell@hospital.com',
-      'phone': '+1-555-0101',
-      'licenseNumber': 'LIC-2024-001',
-      'yearsExperience': 15,
-      'performanceScore': 4.9,
-    },
-    {
-      'id': 'EMP-002',
-      'name': 'Dr. James Anderson',
-      'title': 'Senior Cardiologist',
-      'specialty': 'Cardiology',
-      'department': 'Cardiac Care',
-      'status': 'On-Shift',
-      'patientLoad': 8,
+      'id': 'EMP-002', 'name': 'Dr. James Anderson', 'title': 'Senior Cardiologist',
+      'specialty': 'Cardiology', 'department': 'Cardiac Care', 'status': 'On-Shift',
       'qualifications': 'MD, Board Certified - Cardiology',
-      'email': 'james.anderson@hospital.com',
-      'phone': '+1-555-0102',
-      'licenseNumber': 'LIC-2024-002',
-      'yearsExperience': 18,
-      'performanceScore': 4.8,
+      'email': 'james.anderson@hospital.com', 'phone': '+1-555-0102',
+      'yearsExperience': 18, 'manager': null,
     },
     {
-      'id': 'EMP-003',
-      'name': 'RN. Emily Rodriguez',
-      'title': 'Charge Nurse',
-      'specialty': 'Surgical Nursing',
-      'department': 'OR',
-      'status': 'Available',
-      'patientLoad': 6,
-      'qualifications': 'RN, BSN, CNOR',
-      'email': 'emily.rodriguez@hospital.com',
-      'phone': '+1-555-0103',
-      'licenseNumber': 'LIC-2024-003',
-      'yearsExperience': 10,
-      'performanceScore': 4.7,
-    },
-    {
-      'id': 'EMP-004',
-      'name': 'Dr. Michael Chen',
-      'title': 'Pulmonologist',
-      'specialty': 'Pulmonology',
-      'department': 'Respiratory',
-      'status': 'On-Call',
-      'patientLoad': 5,
+      'id': 'EMP-004', 'name': 'Dr. Michael Chen', 'title': 'Pulmonologist',
+      'specialty': 'Pulmonology', 'department': 'Respiratory', 'status': 'On-Call',
       'qualifications': 'MD, Board Certified - Pulmonology',
-      'email': 'michael.chen@hospital.com',
-      'phone': '+1-555-0104',
-      'licenseNumber': 'LIC-2024-004',
-      'yearsExperience': 12,
-      'performanceScore': 4.6,
+      'email': 'michael.chen@hospital.com', 'phone': '+1-555-0104',
+      'yearsExperience': 12, 'manager': null,
     },
     {
-      'id': 'EMP-005',
-      'name': 'RN. Jessica Thompson',
-      'title': 'ICU Nurse',
-      'specialty': 'Critical Care',
-      'department': 'ICU',
-      'status': 'Available',
-      'patientLoad': 4,
-      'qualifications': 'RN, CCRN, MSN',
-      'email': 'jessica.thompson@hospital.com',
-      'phone': '+1-555-0105',
-      'licenseNumber': 'LIC-2024-005',
-      'yearsExperience': 8,
-      'performanceScore': 4.8,
-    },
-    {
-      'id': 'EMP-006',
-      'name': 'Dr. Robert Martinez',
-      'title': 'Emergency Medicine',
-      'specialty': 'Emergency Medicine',
-      'department': 'ER',
-      'status': 'On-Shift',
-      'patientLoad': 15,
+      'id': 'EMP-006', 'name': 'Dr. Robert Martinez', 'title': 'Emergency Medicine Lead',
+      'specialty': 'Emergency Medicine', 'department': 'ER', 'status': 'On-Shift',
       'qualifications': 'MD, Board Certified - EM',
-      'email': 'robert.martinez@hospital.com',
-      'phone': '+1-555-0106',
-      'licenseNumber': 'LIC-2024-006',
-      'yearsExperience': 14,
-      'performanceScore': 4.5,
+      'email': 'robert.martinez@hospital.com', 'phone': '+1-555-0106',
+      'yearsExperience': 14, 'manager': null,
+    },
+
+    // ── Cardiac Care reports → Dr. James Anderson ──
+    {
+      'id': 'EMP-003', 'name': 'RN. Emily Rodriguez', 'title': 'Charge Nurse',
+      'specialty': 'Surgical Nursing', 'department': 'Cardiac Care', 'status': 'Available',
+      'qualifications': 'RN, BSN, CNOR',
+      'email': 'emily.rodriguez@hospital.com', 'phone': '+1-555-0103',
+      'yearsExperience': 10, 'manager': 'Dr. James Anderson',
+    },
+    {
+      'id': 'EMP-005', 'name': 'RN. Jessica Thompson', 'title': 'ICU Nurse',
+      'specialty': 'Critical Care', 'department': 'Cardiac Care', 'status': 'Available',
+      'qualifications': 'RN, CCRN, MSN',
+      'email': 'jessica.thompson@hospital.com', 'phone': '+1-555-0105',
+      'yearsExperience': 8, 'manager': 'Dr. James Anderson',
+    },
+    {
+      'id': 'EMP-007', 'name': 'RN. Priya Sharma', 'title': 'Cardiac Nurse',
+      'specialty': 'Cardiology', 'department': 'Cardiac Care', 'status': 'On-Shift',
+      'qualifications': 'RN, BSN, CCRN',
+      'email': 'priya.sharma@hospital.com', 'phone': '+1-555-0107',
+      'yearsExperience': 6, 'manager': 'Dr. James Anderson',
+    },
+
+    // ── Respiratory reports → Dr. Michael Chen ──
+    {
+      'id': 'EMP-008', 'name': 'RT. Alex Kim', 'title': 'Respiratory Therapist',
+      'specialty': 'Pulmonary Function', 'department': 'Respiratory', 'status': 'Available',
+      'qualifications': 'RRT, BSRC',
+      'email': 'alex.kim@hospital.com', 'phone': '+1-555-0108',
+      'yearsExperience': 5, 'manager': 'Dr. Michael Chen',
+    },
+    {
+      'id': 'EMP-009', 'name': 'RT. Maya Patel', 'title': 'Senior Respiratory Therapist',
+      'specialty': 'Critical Care', 'department': 'Respiratory', 'status': 'On-Shift',
+      'qualifications': 'RRT-ACCS, BSRC',
+      'email': 'maya.patel@hospital.com', 'phone': '+1-555-0109',
+      'yearsExperience': 9, 'manager': 'Dr. Michael Chen',
+    },
+
+    // ── ER reports → Dr. Robert Martinez ──
+    {
+      'id': 'EMP-010', 'name': 'RN. Carlos Rivera', 'title': 'ER Triage Nurse',
+      'specialty': 'Emergency', 'department': 'ER', 'status': 'On-Shift',
+      'qualifications': 'RN, CEN',
+      'email': 'carlos.rivera@hospital.com', 'phone': '+1-555-0110',
+      'yearsExperience': 7, 'manager': 'Dr. Robert Martinez',
+    },
+    {
+      'id': 'EMP-011', 'name': 'RN. Nina Brooks', 'title': 'ER Charge Nurse',
+      'specialty': 'Emergency', 'department': 'ER', 'status': 'On-Call',
+      'qualifications': 'RN, CEN, MSN',
+      'email': 'nina.brooks@hospital.com', 'phone': '+1-555-0111',
+      'yearsExperience': 11, 'manager': 'Dr. Robert Martinez',
     },
   ];
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  static List<Map<String, dynamic>> get managers =>
+      roster.where((e) => e['manager'] == null).toList();
+
+  static List<Map<String, dynamic>> reportsOf(String managerName) =>
+      roster.where((e) => e['manager'] == managerName).toList();
+
+  // Aggregate: avg rating across a manager + all their reports.
+  static double teamAvgRating(String managerName) {
+    final names = [managerName, ...reportsOf(managerName).map((e) => e['name'] as String)];
+    final scores = names.map(EmployeeFeedbackLogScreen.averageRating).toList();
+    if (scores.isEmpty) return 0;
+    return double.parse((scores.reduce((a, b) => a + b) / scores.length).toStringAsFixed(1));
+  }
+
+  static int teamFeedbackCount(String managerName) {
+    final names = [managerName, ...reportsOf(managerName).map((e) => e['name'] as String)];
+    return names.fold<int>(0, (a, n) => a + EmployeeFeedbackLogScreen.logFor(n).length);
   }
 
   @override
   Widget build(BuildContext context) {
-    final departments = {
-      'All',
-      ..._medicalTeam.map((e) => e['department'] as String),
-    }.toList();
-
-    final searchTerm = _searchController.text.toLowerCase();
-    final filtered = _medicalTeam.where((emp) {
-      final matchesSearch = emp['name'].toString().toLowerCase().contains(searchTerm) ||
-          emp['title'].toString().toLowerCase().contains(searchTerm) ||
-          emp['specialty'].toString().toLowerCase().contains(searchTerm);
-      final matchesDept = _filterDepartment == 'All' || emp['department'] == _filterDepartment;
-      return matchesSearch && matchesDept;
-    }).toList()
-      // Top-rated employees first.
-      ..sort((a, b) => (b['performanceScore'] as num).compareTo(a['performanceScore'] as num));
+    final mgrs = managers;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Healthcare Team', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20)),
+        title: const Text('Team', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20)),
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Search + Filter
             Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+              child: Text('MANAGERS',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey[500], letterSpacing: 0.5)),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+              child: Text('Tap a manager to drill into their reports',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+            ),
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                itemCount: mgrs.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (_, i) => _managerCard(mgrs[i]),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _managerCard(Map<String, dynamic> mgr) {
+    final name = mgr['name'] as String;
+    final reports = reportsOf(name);
+    final teamRating = teamAvgRating(name);
+    final feedbackCount = teamFeedbackCount(name);
+    final initials = name.split(' ').map((p) => p.isEmpty ? '' : p[0]).join().toUpperCase();
+    final avatarColor = Colors.primaries[name.hashCode.abs() % Colors.primaries.length];
+
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      elevation: 0,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => ManagerReportsScreen(manager: mgr)),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[200]!),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search by name, role, or specialty...',
-                      prefixIcon: const Icon(Icons.search, color: teal),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() {});
-                              },
-                            )
-                          : null,
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: teal, width: 2),
-                      ),
-                    ),
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    height: 36,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: departments.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemBuilder: (_, i) {
-                        final dept = departments[i];
-                        final selected = _filterDepartment == dept;
-                        return FilterChip(
-                          label: Text(dept),
-                          selected: selected,
-                          onSelected: (_) => setState(() => _filterDepartment = dept),
-                          backgroundColor: Colors.white,
-                          selectedColor: teal,
-                          labelStyle: TextStyle(
-                            color: selected ? Colors.white : Colors.grey[700],
-                            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                            fontSize: 12,
-                          ),
-                          side: BorderSide(
-                            color: selected ? teal : Colors.grey[300]!,
-                          ),
-                        );
-                      },
+                  CircleAvatar(radius: 22, backgroundColor: avatarColor,
+                      child: Text(initials,
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white))),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                        Text(mgr['title'], style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                      ],
                     ),
                   ),
+                  _ratingBadge(teamRating, label: 'Team'),
                 ],
               ),
-            ),
-            // List
-            Expanded(
-              child: filtered.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.people_outline, size: 64, color: Colors.grey[300]),
-                          const SizedBox(height: 12),
-                          Text('No team members found', style: TextStyle(color: Colors.grey[600])),
-                        ],
-                      ),
-                    )
-                  : GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.75,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                      ),
-                      itemCount: filtered.length,
-                      itemBuilder: (_, i) => _staffCard(filtered[i]),
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _staffCard(Map<String, dynamic> emp) {
-    final initials = emp['name']
-        .toString()
-        .split(' ')
-        .map((name) => name[0])
-        .join()
-        .toUpperCase();
-
-    final avatarColors = [Colors.blue, Colors.pink, Colors.purple, Colors.orange, Colors.green, Colors.red, Colors.amber, Colors.cyan];
-    final colorIndex = emp['name'].toString().hashCode % avatarColors.length;
-    final avatarColor = avatarColors[colorIndex];
-
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => EmployeeFeedbackLogScreen(employeeName: emp['name']),
-          ),
-        ),
-        child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            // Average-rating badge (top-right) — surfaces top performers
-            Align(
-              alignment: Alignment.topRight,
-              child: _ratingBadge((emp['performanceScore'] as num).toDouble()),
-            ),
-            // Avatar
-            Center(
-              child: CircleAvatar(
-                radius: 28,
-                backgroundColor: avatarColor,
-                child: Text(
-                  initials,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: teal.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _aggStat('${reports.length}', 'Reports'),
+                    _divider(),
+                    _aggStat(mgr['department'], 'Department'),
+                    _divider(),
+                    _aggStat('$feedbackCount', 'Feedback'),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 10),
-            // Name
-            Text(
-              emp['name'],
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            // Designation
-            Text(
-              emp['title'],
-              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 8),
-            // Department Tags
-            Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: [
-                _tagChip(emp['department']),
-                _tagChip(emp['specialty']),
-              ],
-            ),
-            const Spacer(),
-            // Quick actions
-            Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 32,
-                    child: ElevatedButton.icon(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => FeedbackScreen(initialEmployee: emp['name']),
-                        ),
-                      ),
-                      icon: const Icon(Icons.add_comment_outlined, size: 14),
-                      label: const Text('Feedback', style: TextStyle(fontSize: 11)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: teal,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 6),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Icon(Icons.people_alt_outlined, size: 14, color: Colors.grey[500]),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      reports.map((r) => (r['name'] as String).split(' ').last).join(' · '),
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                ),
-                const SizedBox(width: 6),
-                SizedBox(
-                  height: 32,
-                  width: 36,
-                  child: OutlinedButton(
-                    onPressed: () => _showProfile(emp),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: teal,
-                      side: BorderSide(color: teal.withOpacity(0.4)),
-                      padding: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: const Icon(Icons.person_outline, size: 16),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      ),
-    );
-  }
-
-  void _showProfile(Map<String, dynamic> emp) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40, height: 4,
-                decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+                  Icon(Icons.chevron_right, size: 18, color: Colors.grey[400]),
+                ],
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(emp['name'], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-            Text(emp['title'], style: TextStyle(fontSize: 13, color: Colors.grey[600])),
-            const SizedBox(height: 16),
-            _profileRow(Icons.workspace_premium_outlined, 'Qualifications', emp['qualifications']),
-            _profileRow(Icons.local_hospital_outlined, 'Department', emp['department']),
-            _profileRow(Icons.medical_services_outlined, 'Specialty', emp['specialty']),
-            _profileRow(Icons.timelapse, 'Experience', '${emp['yearsExperience']} years'),
-            _profileRow(Icons.star_outline, 'Performance', '${emp['performanceScore']} / 5.0'),
-            _profileRow(Icons.circle, 'Status', emp['status']),
-            _profileRow(Icons.mail_outline, 'Email', emp['email']),
-            _profileRow(Icons.phone_outlined, 'Phone', emp['phone']),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => FeedbackScreen(initialEmployee: emp['name']),
-                  ));
-                },
-                icon: const Icon(Icons.add_comment_outlined, size: 18),
-                label: const Text('Give Feedback'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: teal,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _profileRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 7),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: teal),
-          const SizedBox(width: 12),
-          Text(label, style: TextStyle(fontSize: 13, color: Colors.grey[600])),
-          const Spacer(),
-          Flexible(
-            child: Text(value,
-                textAlign: TextAlign.right,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _ratingBadge(double score) {
-    final Color c = score >= 4.5
-        ? Colors.green[700]!
-        : (score >= 4.0 ? Colors.amber[800]! : Colors.grey[600]!);
+  Widget _divider() => Container(width: 1, height: 28, color: Colors.grey[300]);
+
+  Widget _aggStat(String value, String label) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+      ],
+    );
+  }
+
+  Widget _ratingBadge(double score, {String? label}) {
+    final Color c = score >= 4.5 ? Colors.green[700]! : (score >= 4.0 ? Colors.amber[800]! : Colors.grey[600]!);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: c.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(20),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(color: c.withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -451,52 +263,173 @@ class _TeamScreenState extends State<TeamScreen> {
           const SizedBox(width: 3),
           Text(score.toStringAsFixed(1),
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: c)),
+          if (label != null) ...[
+            const SizedBox(width: 4),
+            Text(label, style: TextStyle(fontSize: 9, color: c.withOpacity(0.8), fontWeight: FontWeight.w600)),
+          ],
         ],
       ),
     );
   }
+}
 
-  Widget _tagChip(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(10),
+// ─── Drilldown: a single manager's direct reports ───
+class ManagerReportsScreen extends StatelessWidget {
+  final Map<String, dynamic> manager;
+  const ManagerReportsScreen({Key? key, required this.manager}) : super(key: key);
+
+  static const teal = Color(0xFF0E7C7B);
+
+  @override
+  Widget build(BuildContext context) {
+    final mgrName = manager['name'] as String;
+    final reports = _TeamScreenState.reportsOf(mgrName)
+      ..sort((a, b) => EmployeeFeedbackLogScreen.averageRating(b['name'])
+          .compareTo(EmployeeFeedbackLogScreen.averageRating(a['name'])));
+    final teamRating = _TeamScreenState.teamAvgRating(mgrName);
+    final feedbackCount = _TeamScreenState.teamFeedbackCount(mgrName);
+
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(mgrName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            Text("${manager['department']} · ${reports.length} reports",
+                style: const TextStyle(fontSize: 11, color: Colors.grey)),
+          ],
+        ),
       ),
-      child: Text(
-        label,
-        style: TextStyle(fontSize: 9, color: Colors.grey[700]),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Breadcrumb
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: Row(
+                children: [
+                  Text('Team', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                  Icon(Icons.chevron_right, size: 14, color: Colors.grey[400]),
+                  Text(mgrName.split(' ').last + "'s team",
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ),
+            // Aggregate summary
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _summary(teamRating.toStringAsFixed(1), 'Team avg', Colors.green),
+                  _summary('${reports.length}', 'Reports', Colors.blue),
+                  _summary('$feedbackCount', 'Feedback', Colors.orange),
+                ],
+              ),
+            ),
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.78,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                itemCount: reports.length,
+                itemBuilder: (_, i) => _staffCard(context, reports[i]),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _chip(IconData icon, String label, String value) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: teal.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: teal.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+  Widget _summary(String value, String label, Color color) {
+    return Column(
+      children: [
+        Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: color)),
+        Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+      ],
+    );
+  }
+
+  Widget _staffCard(BuildContext context, Map<String, dynamic> emp) {
+    final name = emp['name'] as String;
+    final initials = name.split(' ').map((p) => p.isEmpty ? '' : p[0]).join().toUpperCase();
+    final rating = EmployeeFeedbackLogScreen.averageRating(name);
+    final avatarColor = Colors.primaries[name.hashCode.abs() % Colors.primaries.length];
+
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => EmployeeFeedbackLogScreen(employeeName: name)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 12, color: teal),
-              const SizedBox(width: 4),
-              Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+              Align(alignment: Alignment.topRight, child: _ratingBadge(rating)),
+              Center(
+                child: CircleAvatar(radius: 26, backgroundColor: avatarColor,
+                    child: Text(initials, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white))),
+              ),
+              const SizedBox(height: 8),
+              Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(emp['title'], style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                  maxLines: 2, overflow: TextOverflow.ellipsis),
+              const Spacer(),
+              SizedBox(
+                width: double.infinity, height: 30,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => FeedbackScreen(initialEmployee: name),
+                  )),
+                  icon: const Icon(Icons.add_comment_outlined, size: 13),
+                  label: const Text('Feedback', style: TextStyle(fontSize: 11)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: teal, foregroundColor: Colors.white,
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _ratingBadge(double score) {
+    final Color c = score >= 4.5 ? Colors.green[700]! : (score >= 4.0 ? Colors.amber[800]! : Colors.grey[600]!);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(color: c.withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.star_rounded, size: 13, color: c),
+          const SizedBox(width: 3),
+          Text(score.toStringAsFixed(1),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: c)),
         ],
       ),
     );

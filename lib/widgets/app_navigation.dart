@@ -78,31 +78,34 @@ class _AppNavigationState extends State<AppNavigation> {
         onPageChanged: (index) => setState(() => _selectedIndex = index),
         children: _screens,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onTabTapped,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF0E7C7B),
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: _onTabTapped,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard_rounded),
             label: 'Dashboard',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people),
+          NavigationDestination(
+            icon: Icon(Icons.groups_outlined),
+            selectedIcon: Icon(Icons.groups_rounded),
             label: 'Team',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
+          NavigationDestination(
+            icon: Icon(Icons.chat_bubble_outline_rounded),
+            selectedIcon: Icon(Icons.chat_bubble_rounded),
             label: 'Feedback',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment),
+          NavigationDestination(
+            icon: Icon(Icons.flag_outlined),
+            selectedIcon: Icon(Icons.flag_rounded),
             label: 'Goals',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.star),
+          NavigationDestination(
+            icon: Icon(Icons.star_outline_rounded),
+            selectedIcon: Icon(Icons.star_rounded),
             label: 'Reviews',
           ),
         ],
