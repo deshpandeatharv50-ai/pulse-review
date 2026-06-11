@@ -17,6 +17,39 @@ class TeamScreen extends StatefulWidget {
   static int teamFeedbackCount(String name) => _TeamScreenState.teamFeedbackCount(name);
   static double? directReportsAvg() => _TeamScreenState.directReportsAvg();
 
+  // ─── ONE source of truth for feedback counts/lists across the app ──
+  // Filter by date range, type, and a subset of employee names so the
+  // same numbers reconcile on Dashboard + Feedback tab + Team screen.
+  static List<Map<String, dynamic>> rosterFeedback({
+    DateTime? start,
+    DateTime? end,
+    String? type,
+    List<String>? names,
+  }) {
+    final list = names ?? roster.map((m) => m['name'] as String).toList();
+    final out = <Map<String, dynamic>>[];
+    for (final n in list) {
+      for (final e in _TeamScreenState.feedbackFor(n)) {
+        final d = e['date'] as DateTime;
+        final t = e['type'] as String;
+        if (type != null && t != type) continue;
+        if (start != null && d.isBefore(start)) continue;
+        if (end != null && d.isAfter(end)) continue;
+        out.add(e);
+      }
+    }
+    out.sort((a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
+    return out;
+  }
+
+  static int rosterFeedbackCount({
+    DateTime? start,
+    DateTime? end,
+    String? type,
+    List<String>? names,
+  }) =>
+      rosterFeedback(start: start, end: end, type: type, names: names).length;
+
   @override
   State<TeamScreen> createState() => _TeamScreenState();
 }
@@ -134,6 +167,14 @@ class _TeamScreenState extends State<TeamScreen> {
 
   static List<Map<String, dynamic>> reportsOf(String managerName) =>
       roster.where((e) => e['manager'] == managerName).toList();
+
+  // Returns the per-employee feedback log with employeeName attached on
+  // each entry — used to aggregate across the roster consistently.
+  static List<Map<String, dynamic>> feedbackFor(String name) {
+    return EmployeeFeedbackLogScreen.logFor(name)
+        .map((e) => {...e, 'employeeName': name})
+        .toList();
+  }
 
   // Team avg = average across the manager's REPORTS only (not the manager
   // themselves). Reports with no feedback yet are excluded from the avg —

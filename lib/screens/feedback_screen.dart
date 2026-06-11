@@ -3,6 +3,7 @@ import '../services/supabase_service.dart';
 import '../models/feedback.dart';
 import '../models/employee_feedback_summary.dart';
 import '../models/healthcare_organization.dart';
+import 'team_screen.dart';
 import 'employee_feedback_dashboard.dart';
 
 class FeedbackScreen extends StatefulWidget {
@@ -44,29 +45,17 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       WidgetsBinding.instance.addPostFrameCallback(
           (_) => _showFeedbackForm(employee: widget.initialEmployee));
     }
-    _localFeedbacks = [
-      FeedbackItem(
-        id: '1',
-        employeeName: 'Dr. Mehta',
-        feedbackType: 'Positive',
-        comment: 'Demonstrates strong clinical judgment and excellent patient communication skills.',
-        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-      ),
-      FeedbackItem(
-        id: '2',
-        employeeName: 'Sarah Chen',
-        feedbackType: 'Constructive',
-        comment: 'Needs development in documentation efficiency. Consider time management strategies.',
-        createdAt: DateTime.now().subtract(const Duration(hours: 4)),
-      ),
-      FeedbackItem(
-        id: '3',
-        employeeName: 'James Peterson',
-        feedbackType: 'Positive',
-        comment: 'Outstanding leadership in team coordination. Sets excellent example for junior staff.',
-        createdAt: DateTime.now().subtract(const Duration(days: 1)),
-      ),
-    ];
+    // Consolidated feedback source: aggregate from roster so counts match
+    // the Dashboard snapshot and Team rollup numbers.
+    _localFeedbacks = TeamScreen.rosterFeedback()
+        .map((e) => FeedbackItem(
+              id: '${e['employeeName']}-${(e['date'] as DateTime).millisecondsSinceEpoch}',
+              employeeName: e['employeeName'] as String,
+              feedbackType: e['type'] as String,
+              comment: e['comment'] as String,
+              createdAt: e['date'] as DateTime,
+            ))
+        .toList();
   }
 
   @override

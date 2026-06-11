@@ -102,10 +102,39 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
 
   @override
   Widget build(BuildContext context) {
+    // ── Consolidated feedback source: aggregate from roster per active range
+    // and active scope (Team = managers only, Org = whole roster).
+    final r = _activeRange;
+    final scopeNames = _heroShowsTeam
+        ? TeamScreen.managers.map((m) => m['name'] as String).toList()
+        : TeamScreen.roster.map((m) => m['name'] as String).toList();
+    final positive = TeamScreen.rosterFeedbackCount(
+        start: r.start,
+        end: r.end.add(const Duration(days: 1)),
+        type: 'Positive',
+        names: scopeNames);
+    final constructive = TeamScreen.rosterFeedbackCount(
+        start: r.start,
+        end: r.end.add(const Duration(days: 1)),
+        type: 'Constructive',
+        names: scopeNames);
+    // Org-wide avg used only by hero (Org pulse). Team pulse uses
+    // directReportsAvg() unchanged.
+    final fbForAvg = TeamScreen.rosterFeedback(
+        start: r.start,
+        end: r.end.add(const Duration(days: 1)),
+        names: TeamScreen.roster.map((m) => m['name'] as String).toList());
+    final totalForAvg = fbForAvg.length;
+    final posForAvg =
+        fbForAvg.where((e) => e['type'] == 'Positive').length;
+    final conForAvg = totalForAvg - posForAvg;
+    final avg = totalForAvg == 0
+        ? 0.0
+        : (posForAvg * 5 + conForAvg * 3) / totalForAvg;
+    // For "Wins this quarter" + recent activity strip, we still use the
+    // legacy static feedback list filtered by date (those are demo entries
+    // with rich comments that the snapshot card doesn't need).
     final fb = _filtered;
-    final positive = fb.where((f) => f.feedbackType == 'Positive').length;
-    final constructive = fb.where((f) => f.feedbackType == 'Constructive').length;
-    final avg = fb.isEmpty ? 0.0 : (positive * 5 + constructive * 3) / fb.length;
     final constructiveList = fb.where((f) => f.feedbackType == 'Constructive').toList();
     final focusName = constructiveList.isNotEmpty
         ? constructiveList.first.employeeName
@@ -290,17 +319,15 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                       );
                     }),
                     const SizedBox(height: 14),
-                    // ── Weight-scale heatmap: triangle marker at exact score
+                    // ── Weight-scale marker: just a small triangle + tiny number
                     LayoutBuilder(builder: (ctx, c) {
-                      // 1.0 .. 5.0 → 0 .. 1 fraction
                       final frac =
                           ((pulseScore - 1.0) / 4.0).clamp(0.0, 1.0);
-                      // Center a ~50px wide bubble (score chip + triangle)
-                      const bubbleW = 50.0;
+                      const bubbleW = 30.0;
                       final left = (frac * c.maxWidth - bubbleW / 2)
                           .clamp(0.0, c.maxWidth - bubbleW);
                       return SizedBox(
-                        height: 38,
+                        height: 22,
                         child: Stack(
                           clipBehavior: Clip.none,
                           children: [
@@ -311,26 +338,17 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: scheme.onSurface,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      pulseScore.toStringAsFixed(1),
-                                      style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w900,
-                                          color: scheme.surface),
-                                    ),
-                                  ),
-                                  // Solid triangle pointing down
                                   CustomPaint(
-                                    size: const Size(14, 10),
+                                    size: const Size(10, 8),
                                     painter: _TrianglePainter(
                                         color: scheme.onSurface),
+                                  ),
+                                  Text(
+                                    pulseScore.toStringAsFixed(1),
+                                    style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w700,
+                                        color: scheme.onSurfaceVariant),
                                   ),
                                 ],
                               ),
@@ -631,28 +649,24 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
   // Large global scope toggle at the top of the dashboard. Drives every card
   // below — Team (3 direct reports) vs Org (whole org).
   Widget _globalScopeToggle(ColorScheme scheme) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
+    // No container background — minimalist, sharp for the CHRO demo.
+    return Row(
+      children: [
           // Team = teal (primary), matches card border in Team mode
           Expanded(child: _scopePill(scheme, 'Team', '',
               icon: Icons.diversity_3_rounded,
               activeColor: scheme.primary,
               active: _heroShowsTeam,
               onTap: () => setState(() => _heroShowsTeam = true))),
-          // Whole org = warm amber so it's clearly distinct from Team teal
+          const SizedBox(width: 10),
+          // Whole org = dark charcoal (neutral, brand-safe). Warm/cool feedback
+          // hues are reserved exclusively for the heatmap/ratings.
           Expanded(child: _scopePill(scheme, 'Whole org', '',
               icon: Icons.apartment_rounded,
-              activeColor: const Color(0xFFD9883E),
+              activeColor: const Color(0xFF2C3E40),
               active: !_heroShowsTeam,
               onTap: () => setState(() => _heroShowsTeam = false))),
-        ],
-      ),
+      ],
     );
   }
 
@@ -1100,15 +1114,16 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                     ? Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: tColor.withOpacity(0.14),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: tColor.withOpacity(0.5)),
                         ),
                         alignment: Alignment.center,
                         child: Text(
                             '${up ? '+' : '−'}${delta.abs().toStringAsFixed(2)}',
                             style: TextStyle(
                                 fontSize: 12,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w900,
                                 color: tColor)),
                       )
                     : const SizedBox.shrink(),
@@ -1152,14 +1167,6 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
             padding: const EdgeInsets.symmetric(horizontal: 6),
             child: Row(
               children: [
-                Icon(Icons.account_tree_rounded, size: 16, color: scheme.primary),
-                const SizedBox(width: 6),
-                Text('CUMULATIVE AVERAGES',
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.0,
-                        color: scheme.onSurfaceVariant)),
                 const Spacer(),
                 Text('avg · Δ vs last Q',
                     style: TextStyle(
