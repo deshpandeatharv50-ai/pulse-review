@@ -114,6 +114,14 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
     // Synthetic last-quarter score so the trend chip has something to say.
     final lastQuarterScore = _range == DashRange.current ? 3.6 : 3.4;
     final delta = pulseScore - lastQuarterScore;
+    final heroZone = _zoneIndex(pulseScore);
+    final heroZoneColor = _heatColors[heroZone];
+    final heroZoneLabel = _heatLabels[heroZone];
+    // Trend semantics: up = good (soft green); down = warning (warm amber).
+    final trendUp = delta >= 0;
+    final trendColor = trendUp
+        ? const Color(0xFF5BB880)
+        : const Color(0xFFE6B43A);
 
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -204,55 +212,101 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(pulseScore.toStringAsFixed(1),
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 56,
-                                fontWeight: FontWeight.w900,
-                                height: 1.0)),
-                        const SizedBox(width: 4),
-                        const Padding(
-                          padding: EdgeInsets.only(bottom: 10),
-                          child: Text('/ 5.0',
-                              style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600)),
+                        // Score in a zone-colored bordered pill — the heatmap
+                        // band is now read directly off the headline number.
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
+                          decoration: BoxDecoration(
+                            color: heroZoneColor.withOpacity(0.25),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: heroZoneColor, width: 3),
+                            boxShadow: [
+                              BoxShadow(
+                                color: heroZoneColor.withOpacity(0.45),
+                                blurRadius: 12,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(pulseScore.toStringAsFixed(1),
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 48,
+                                      fontWeight: FontWeight.w900,
+                                      height: 1.0)),
+                              const SizedBox(width: 4),
+                              const Padding(
+                                padding: EdgeInsets.only(bottom: 8),
+                                child: Text('/ 5.0',
+                                    style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700)),
+                              ),
+                            ],
+                          ),
                         ),
                         const Spacer(),
+                        // Trend chip: white background for max readability
+                        // on the dark hero; green text for up, amber for down.
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.22),
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                  delta >= 0
+                                  trendUp
                                       ? Icons.trending_up_rounded
                                       : Icons.trending_down_rounded,
-                                  color: Colors.white,
+                                  color: trendColor,
                                   size: 16),
                               const SizedBox(width: 4),
                               Text(
-                                  '${delta >= 0 ? '+' : ''}${delta.toStringAsFixed(1)} vs last Q',
-                                  style: const TextStyle(
-                                      color: Colors.white,
+                                  '${trendUp ? '+' : ''}${delta.toStringAsFixed(1)} vs last Q',
+                                  style: TextStyle(
+                                      color: trendColor,
                                       fontSize: 11,
-                                      fontWeight: FontWeight.w700)),
+                                      fontWeight: FontWeight.w800)),
                             ],
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      delta >= 0
-                          ? 'Your team is trending up this quarter — keep the momentum'
-                          : 'Pulse softening — review constructive items below',
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                    const SizedBox(height: 12),
+                    // Zone tag right under the score
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: heroZoneColor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(heroZoneLabel.toUpperCase(),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.0)),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            trendUp
+                                ? 'Trending up — keep the momentum'
+                                : 'Pulse softening — check constructive items below',
+                            style: const TextStyle(color: Colors.white, fontSize: 12.5),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
