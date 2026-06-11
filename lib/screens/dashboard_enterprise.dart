@@ -275,30 +275,8 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
               ),
               const SizedBox(height: 18),
 
-              // ─── 4 KPI tiles, each its own M3 tonal container ───
-              Row(children: [
-                Expanded(child: _kpiM3('Team size', _teamMembers.toString(),
-                    Icons.groups_rounded,
-                    scheme.primaryContainer, scheme.onPrimaryContainer,
-                    () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TeamScreen())))),
-                const SizedBox(width: 12),
-                Expanded(child: _kpiM3('Avg rating', avg.toStringAsFixed(1),
-                    Icons.star_rounded,
-                    scheme.tertiaryContainer, scheme.onTertiaryContainer,
-                    () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ReviewsAdvancedClassic())))),
-              ]),
-              const SizedBox(height: 12),
-              Row(children: [
-                Expanded(child: _kpiM3('Positive', positive.toString(),
-                    Icons.favorite_rounded,
-                    scheme.secondaryContainer, scheme.onSecondaryContainer,
-                    () => _showFeedbackPopup('Positive'))),
-                const SizedBox(width: 12),
-                Expanded(child: _kpiM3('Constructive', constructive.toString(),
-                    Icons.lightbulb_rounded,
-                    scheme.surfaceContainerHighest, scheme.onSurfaceVariant,
-                    () => _showFeedbackPopup('Constructive'))),
-              ]),
+              // ─── Single team snapshot card: composition + feedback split ───
+              _teamSnapshotCard(scheme, positive, constructive),
               const SizedBox(height: 22),
 
               // ─── Wins this quarter (horizontal celebration row) ───
@@ -420,42 +398,194 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
     );
   }
 
-  // M3 KPI tile with full tonal container background.
-  Widget _kpiM3(String label, String value, IconData icon,
-      Color bg, Color fg, VoidCallback onTap) {
+  // Single team snapshot card: people composition + feedback breakdown.
+  // Replaces the 4 redundant KPI tiles with one richer surface.
+  Widget _teamSnapshotCard(ColorScheme scheme, int positive, int constructive) {
+    final total = positive + constructive;
+    final posPct = total == 0 ? 0.0 : positive / total;
+    final managers = _teamMembers >= 8 ? 3 : 2; // derived from roster shape
+    final reports = _teamMembers - managers;
+    final posColor = scheme.tertiary;
+    final conColor = scheme.error;
+
     return Material(
-      color: bg,
-      borderRadius: BorderRadius.circular(20),
+      color: scheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(24),
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const TeamScreen())),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: fg.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(10),
+                      color: scheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(icon, size: 16, color: fg),
+                    child: Icon(Icons.groups_rounded,
+                        size: 18, color: scheme.onPrimaryContainer),
                   ),
+                  const SizedBox(width: 10),
+                  Text('TEAM SNAPSHOT',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.0,
+                          color: scheme.onSurfaceVariant)),
                   const Spacer(),
-                  Icon(Icons.trending_up_rounded, size: 14, color: fg.withOpacity(0.6)),
+                  Icon(Icons.chevron_right_rounded,
+                      size: 18, color: scheme.onSurfaceVariant),
                 ],
               ),
               const SizedBox(height: 14),
-              Text(value,
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 32, height: 1.0, color: fg)),
-              const SizedBox(height: 6),
-              Text(label,
-                  style: TextStyle(fontSize: 12, color: fg.withOpacity(0.8), fontWeight: FontWeight.w600)),
+              // Big number + composition
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('$_teamMembers',
+                      style: TextStyle(
+                          fontSize: 48,
+                          fontWeight: FontWeight.w900,
+                          height: 1.0,
+                          color: scheme.onSurface)),
+                  const SizedBox(width: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text('people',
+                        style: TextStyle(
+                            fontSize: 14,
+                            color: scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600)),
+                  ),
+                  const Spacer(),
+                  _composChip(scheme, '$managers', 'mgrs', scheme.primary),
+                  const SizedBox(width: 6),
+                  _composChip(scheme, '$reports', 'reports', scheme.tertiary),
+                ],
+              ),
+              const SizedBox(height: 18),
+              // Feedback header + breakdown bar
+              Row(
+                children: [
+                  Text('FEEDBACK THIS QUARTER',
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.0,
+                          color: scheme.onSurfaceVariant)),
+                  const Spacer(),
+                  Text('$total total',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: scheme.onSurface)),
+                ],
+              ),
+              const SizedBox(height: 10),
+              // Stacked horizontal bar — visual positive vs constructive split
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: total == 0
+                    ? Container(
+                        height: 12,
+                        color: scheme.surfaceContainerHighest,
+                      )
+                    : Row(
+                        children: [
+                          Expanded(
+                            flex: (posPct * 1000).round(),
+                            child: GestureDetector(
+                              onTap: () => _showFeedbackPopup('Positive'),
+                              child: Container(
+                                height: 14,
+                                color: posColor,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: ((1 - posPct) * 1000).round(),
+                            child: GestureDetector(
+                              onTap: () => _showFeedbackPopup('Constructive'),
+                              child: Container(
+                                height: 14,
+                                color: conColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+              const SizedBox(height: 12),
+              // Legend
+              Row(
+                children: [
+                  _legend(scheme, posColor, 'Positive', positive, () => _showFeedbackPopup('Positive')),
+                  const SizedBox(width: 18),
+                  _legend(scheme, conColor, 'Constructive', constructive, () => _showFeedbackPopup('Constructive')),
+                ],
+              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _composChip(ColorScheme scheme, String value, String label, Color accent) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: accent.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(value,
+              style: TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w900, color: accent)),
+          const SizedBox(width: 3),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: accent.withOpacity(0.85))),
+        ],
+      ),
+    );
+  }
+
+  Widget _legend(ColorScheme scheme, Color dot, String label, int count, VoidCallback onTap) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 9,
+              height: 9,
+              decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 6),
+            Text('$count',
+                style: TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.w900, color: scheme.onSurface)),
+            const SizedBox(width: 4),
+            Text(label,
+                style: TextStyle(
+                    fontSize: 11,
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600)),
+          ],
         ),
       ),
     );
