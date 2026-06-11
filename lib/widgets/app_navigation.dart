@@ -72,7 +72,16 @@ class _AppNavigationState extends State<AppNavigation> {
   Widget build(BuildContext context) {
     final org = widget.organization;
     final persona = widget.persona;
-    return Scaffold(
+    return PopScope(
+      // System back from any non-Dashboard tab → switch to Dashboard
+      // instead of exiting the app.
+      canPop: _selectedIndex == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _selectedIndex != 0) {
+          _onTabTapped(0);
+        }
+      },
+      child: Scaffold(
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) => setState(() => _selectedIndex = index),
@@ -109,6 +118,7 @@ class _AppNavigationState extends State<AppNavigation> {
             label: 'Reviews',
           ),
         ],
+      ),
       ),
     );
   }

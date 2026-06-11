@@ -198,15 +198,22 @@ class _TeamScreenState extends State<TeamScreen> {
                 color: scheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Row(
-                children: [
-                  _topStat(scheme, '${mgrs.length}', 'Direct', scheme.primary),
-                  _vDiv(scheme),
-                  _topStat(scheme, '$totalReports', 'Indirect', scheme.tertiary),
-                  _vDiv(scheme),
-                  _topStat(scheme, '${mgrs.length + totalReports}', 'Total team', scheme.secondary),
-                ],
-              ),
+              child: Builder(builder: (_) {
+                final teamAvg = directReportsAvg();
+                final teamAvgLabel = teamAvg?.toStringAsFixed(1) ?? '—';
+                return Row(
+                  children: [
+                    _topStat(scheme, '${mgrs.length}', 'Direct', scheme.primary),
+                    _vDiv(scheme),
+                    _topStat(scheme, '$totalReports', 'Indirect', scheme.tertiary),
+                    _vDiv(scheme),
+                    _topStat(scheme, '${mgrs.length + totalReports}', 'Total', scheme.secondary),
+                    _vDiv(scheme),
+                    _topStat(scheme, teamAvgLabel, 'Team avg',
+                        const Color(0xFFE0C04A), withStar: true),
+                  ],
+                );
+              }),
             ),
             const SizedBox(height: 22),
 
@@ -275,14 +282,24 @@ class _TeamScreenState extends State<TeamScreen> {
     );
   }
 
-  Widget _topStat(ColorScheme scheme, String value, String label, Color accent) {
+  Widget _topStat(ColorScheme scheme, String value, String label, Color accent,
+      {bool withStar = false}) {
     return Expanded(
       child: Column(
         children: [
-          Text(value,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: accent)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (withStar) ...[
+                Icon(Icons.star_rounded, size: 16, color: accent),
+                const SizedBox(width: 2),
+              ],
+              Text(value,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: accent)),
+            ],
+          ),
           const SizedBox(height: 2),
-          Text(label, style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
+          Text(label, style: TextStyle(fontSize: 10, color: scheme.onSurfaceVariant)),
         ],
       ),
     );
@@ -396,11 +413,26 @@ class _TeamScreenState extends State<TeamScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _aggStat(scheme, '${reports.length}', 'Reports'),
+                    // Tappable → drill into reports list
+                    InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (_) => ManagerReportsScreen(manager: mgr)),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 2),
+                        child: _aggStat(scheme,
+                            '${reports.length}', 'Reports',
+                            interactive: true),
+                      ),
+                    ),
                     _innerDiv(scheme),
                     _aggStat(scheme, mgr['department'], 'Dept'),
                     _innerDiv(scheme),
-                    _aggStat(scheme, '$feedbackCount', 'Feedback'),
+                    _aggStat(scheme, '$feedbackCount',
+                        feedbackCount == 1 ? 'Feedback' : 'Feedbacks'),
                   ],
                 ),
               ),
@@ -414,12 +446,31 @@ class _TeamScreenState extends State<TeamScreen> {
   Widget _innerDiv(ColorScheme scheme) =>
       Container(width: 1, height: 28, color: scheme.outlineVariant);
 
-  Widget _aggStat(ColorScheme scheme, String value, String label) {
+  Widget _aggStat(ColorScheme scheme, String value, String label,
+      {bool interactive = false}) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: scheme.onSurface)),
-        Text(label, style: TextStyle(fontSize: 10, color: scheme.onSurfaceVariant)),
+        Text(value,
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: interactive ? scheme.primary : scheme.onSurface)),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label,
+                style: TextStyle(
+                    fontSize: 10,
+                    color: interactive
+                        ? scheme.primary.withOpacity(0.8)
+                        : scheme.onSurfaceVariant,
+                    fontWeight: interactive ? FontWeight.w700 : FontWeight.w500)),
+            if (interactive)
+              Icon(Icons.chevron_right_rounded,
+                  size: 12, color: scheme.primary),
+          ],
+        ),
       ],
     );
   }

@@ -290,32 +290,48 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                       );
                     }),
                     const SizedBox(height: 14),
-                    // ── Weight-scale heatmap: triangle marker at the EXACT
-                    // score position, value label below it.
+                    // ── Weight-scale heatmap: triangle marker at exact score
                     LayoutBuilder(builder: (ctx, c) {
                       // 1.0 .. 5.0 → 0 .. 1 fraction
                       final frac =
                           ((pulseScore - 1.0) / 4.0).clamp(0.0, 1.0);
-                      final markerLeft =
-                          (frac * c.maxWidth - 11).clamp(0.0, c.maxWidth - 22);
+                      // Center a ~50px wide bubble (score chip + triangle)
+                      const bubbleW = 50.0;
+                      final left = (frac * c.maxWidth - bubbleW / 2)
+                          .clamp(0.0, c.maxWidth - bubbleW);
                       return SizedBox(
-                        height: 22,
+                        height: 38,
                         child: Stack(
+                          clipBehavior: Clip.none,
                           children: [
                             Positioned(
-                              left: markerLeft,
+                              left: left,
                               top: 0,
+                              width: bubbleW,
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: scheme.onSurface,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
                                       pulseScore.toStringAsFixed(1),
                                       style: TextStyle(
-                                          fontSize: 10,
+                                          fontSize: 11,
                                           fontWeight: FontWeight.w900,
-                                          color: scheme.onSurface)),
-                                  Icon(Icons.arrow_drop_down_rounded,
-                                      size: 22, color: heroZoneColor),
+                                          color: scheme.surface),
+                                    ),
+                                  ),
+                                  // Solid triangle pointing down
+                                  CustomPaint(
+                                    size: const Size(14, 10),
+                                    painter: _TrianglePainter(
+                                        color: scheme.onSurface),
+                                  ),
                                 ],
                               ),
                             ),
@@ -349,6 +365,33 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700)),
                       ],
+                    ),
+                    const SizedBox(height: 14),
+                    // ─── People row, merged inside the hero (saves space) ──
+                    InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const TeamScreen())),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            _avatarStack(scheme, teamScope: _heroShowsTeam),
+                            const SizedBox(width: 12),
+                            Text(
+                                _heroShowsTeam
+                                    ? '${TeamScreen.managers.length} direct reports'
+                                    : '$_teamMembers people',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: scheme.onSurface)),
+                            const Spacer(),
+                            Icon(Icons.chevron_right_rounded,
+                                size: 18, color: scheme.onSurfaceVariant),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -487,6 +530,8 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
       ),
     );
   }
+
+  // No-op painter helper class lives at file bottom.
 
   // ─── Heatmap palette: orange → yellow → green (no red, no blue) ──
   static const List<Color> _heatColors = [
@@ -784,75 +829,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
               ],
             ),
           ),
-          const SizedBox(height: 10),
-          // ─── CELL B: PEOPLE (now BELOW — the roster) ───
-          InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const TeamScreen())),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: scheme.primaryContainer.withOpacity(0.35),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: scheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(Icons.groups_rounded,
-                            size: 14, color: scheme.onPrimaryContainer),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(teamScope ? 'PEOPLE · DIRECT REPORTS' : 'PEOPLE · WHOLE ORG',
-                          style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.0,
-                              color: scheme.onPrimaryContainer.withOpacity(0.85))),
-                      const Spacer(),
-                      Icon(Icons.chevron_right_rounded,
-                          size: 16, color: scheme.onPrimaryContainer.withOpacity(0.7)),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      _avatarStack(scheme, teamScope: teamScope),
-                      const Spacer(),
-                      Text('$people',
-                          style: TextStyle(
-                              fontSize: 48,
-                              fontWeight: FontWeight.w900,
-                              height: 1.0,
-                              color: scheme.onSurface)),
-                    ],
-                  ),
-                  if (!teamScope) ...[
-                    const SizedBox(height: 4),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text('$orgManagers direct · $orgReports indirect',
-                            style: TextStyle(
-                                fontSize: 11,
-                                color: scheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w600)),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
+          // People row is now merged INTO the hero above — no second cell needed.
         ],
       ),
     );
@@ -1461,4 +1438,21 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
       ),
     );
   }
+}
+
+class _TrianglePainter extends CustomPainter {
+  final Color color;
+  _TrianglePainter({required this.color});
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()..color = color..style = PaintingStyle.fill;
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..close();
+    canvas.drawPath(path, p);
+  }
+  @override
+  bool shouldRepaint(covariant _TrianglePainter old) => old.color != color;
 }
