@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'reviews_advanced_classic.dart';
+import 'employee_feedback_log_screen.dart';
 
 class ReviewsList extends StatefulWidget {
   const ReviewsList({Key? key}) : super(key: key);
@@ -251,24 +252,45 @@ class _ReviewsListState extends State<ReviewsList> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      ...List.generate(5, (i) {
-                        return Icon(
-                          Icons.star_rounded,
-                          size: 14,
-                          color: i < (review['rating'] as int)
-                              ? Colors.amber[700]
-                              : scheme.outlineVariant,
-                        );
-                      }),
-                      const SizedBox(width: 8),
-                      Text(
-                        review['date'] as String,
-                        style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant, fontWeight: FontWeight.w500),
-                      ),
-                    ],
-                  ),
+                  Builder(builder: (_) {
+                    // Compute rating from actual feedback data (0-5 stars).
+                    // Falls back to hardcoded rating if employee has no feedback.
+                    final empName = review['employeeName'] as String;
+                    final feedbackAvg = EmployeeFeedbackLogScreen.averageRating(empName);
+                    final stars = feedbackAvg != null
+                        ? feedbackAvg.round().clamp(0, 5)
+                        : (review['rating'] as int);
+                    final ratingText = feedbackAvg != null
+                        ? feedbackAvg.toStringAsFixed(1)
+                        : '${review['rating']}.0';
+                    return Row(
+                      children: [
+                        ...List.generate(5, (i) {
+                          return Icon(
+                            Icons.star_rounded,
+                            size: 14,
+                            color: i < stars
+                                ? Colors.amber[700]
+                                : scheme.outlineVariant,
+                          );
+                        }),
+                        const SizedBox(width: 4),
+                        Text(
+                          ratingText,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.amber[800],
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          review['date'] as String,
+                          style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    );
+                  }),
                 ],
               ),
             ),
