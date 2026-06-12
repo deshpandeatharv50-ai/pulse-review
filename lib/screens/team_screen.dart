@@ -406,9 +406,11 @@ class _TeamScreenState extends State<TeamScreen> {
     final daysSince = latest == null ? 9999 : today.difference(latest).inDays;
     final needsAttention =
         personalLog.length < 3 || daysSince > 21;
-    final flagReason = personalLog.length < 3
-        ? 'Only ${personalLog.length} feedback ${personalLog.length == 1 ? "entry" : "entries"}'
-        : 'Last feedback $daysSince days ago';
+    final flagReason = personalLog.isEmpty
+        ? 'No feedback yet'
+        : personalLog.length < 3
+            ? 'Only ${personalLog.length} feedback ${personalLog.length == 1 ? "entry" : "entries"} so far'
+            : 'Last feedback $daysSince days ago';
 
     return Material(
       color: scheme.surfaceContainerLow,

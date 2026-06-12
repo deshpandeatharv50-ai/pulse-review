@@ -568,36 +568,34 @@ class _EmployeeFeedbackLogScreenState extends State<EmployeeFeedbackLogScreen> {
             children: [
               // Left: rating shown as colored number (no "Positive"/"Constructive"
               // word — the color tells the story)
+              // Render the rating as 5 little stars (filled/half/empty).
+              // Filled portions use the zone color so 2 stars in orange
+              // reads at-risk, 4 stars in green reads healthy. Empty
+              // outlines stay neutral grey so the "unfilled" portion is
+              // visually quiet.
               Builder(builder: (_) {
                 final r = e['rating'] as double;
                 final zone = _zoneIndex(r);
-                // Drop the .0 for whole stars (3 vs 3.0); keep .5 for halves
-                final label =
-                    r == r.roundToDouble() ? r.toInt().toString() : r.toStringAsFixed(1);
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: _heatColors[zone].withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                          r == r.roundToDouble()
-                              ? Icons.star_rounded
-                              : Icons.star_half_rounded,
-                          size: 14,
-                          color: _heatColors[zone]),
-                      const SizedBox(width: 3),
-                      Text(label,
-                          style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w900,
-                              color: _heatColors[zone])),
-                    ],
-                  ),
+                final filledColor = _heatColors[zone];
+                final emptyColor = Colors.grey.shade400;
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(5, (i) {
+                    final position = i + 1;
+                    IconData icon;
+                    Color c;
+                    if (r >= position) {
+                      icon = Icons.star_rounded;
+                      c = filledColor;
+                    } else if (r >= position - 0.5) {
+                      icon = Icons.star_half_rounded;
+                      c = filledColor;
+                    } else {
+                      icon = Icons.star_outline_rounded;
+                      c = emptyColor;
+                    }
+                    return Icon(icon, size: 16, color: c);
+                  }),
                 );
               }),
               const Spacer(),
