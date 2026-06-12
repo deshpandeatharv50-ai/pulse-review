@@ -423,38 +423,25 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                       );
                     }),
                     const SizedBox(height: 14),
-                    // ── Weight-scale marker: just a small triangle + tiny number
+                    // ── Downward triangle marker pointing to position on bar ──
                     LayoutBuilder(builder: (ctx, c) {
                       final frac =
                           ((pulseScore - 1.0) / 4.0).clamp(0.0, 1.0);
-                      const bubbleW = 30.0;
-                      final left = (frac * c.maxWidth - bubbleW / 2)
-                          .clamp(0.0, c.maxWidth - bubbleW);
+                      const markerW = 12.0;
+                      final left = (frac * c.maxWidth - markerW / 2)
+                          .clamp(0.0, c.maxWidth - markerW);
                       return SizedBox(
-                        height: 22,
+                        height: 10,
                         child: Stack(
                           clipBehavior: Clip.none,
                           children: [
                             Positioned(
                               left: left,
-                              top: 0,
-                              width: bubbleW,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  CustomPaint(
-                                    size: const Size(10, 8),
-                                    painter: _TrianglePainter(
-                                        color: scheme.onSurface),
-                                  ),
-                                  Text(
-                                    pulseScore.toStringAsFixed(1),
-                                    style: TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w700,
-                                        color: scheme.onSurfaceVariant),
-                                  ),
-                                ],
+                              bottom: 0,
+                              child: CustomPaint(
+                                size: const Size(markerW, 8),
+                                painter: _TrianglePainter(
+                                    color: scheme.onSurface),
                               ),
                             ),
                           ],

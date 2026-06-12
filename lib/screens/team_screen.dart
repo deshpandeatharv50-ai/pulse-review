@@ -130,14 +130,14 @@ class _TeamScreenState extends State<TeamScreen> {
       'specialty': 'Innovation', 'department': 'Innovation', 'status': 'Available',
       'qualifications': 'MD, MBA',
       'email': 'sarah.mitchell@hospital.com', 'phone': '+1-555-0112',
-      'yearsExperience': 9, 'manager': null, 'noFeedback': true,
+      'yearsExperience': 9, 'manager': null,
     },
     {
       'id': 'EMP-013', 'name': 'Dr. Lisa Chang', 'title': 'Quality Director',
       'specialty': 'Quality & Safety', 'department': 'Quality', 'status': 'Available',
       'qualifications': 'MD, MPH',
       'email': 'lisa.chang@hospital.com', 'phone': '+1-555-0113',
-      'yearsExperience': 7, 'manager': null, 'noFeedback': true,
+      'yearsExperience': 7, 'manager': null,
     },
 
     // ── Cardiac Care reports → Dr. James Anderson ──
@@ -415,15 +415,16 @@ class _TeamScreenState extends State<TeamScreen> {
     return Material(
       color: scheme.surfaceContainerLow,
       borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        // Tap manager card → manager's OWN feedback log (primary).
-        // Team drilldown is a secondary action from inside that log.
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-              builder: (_) => EmployeeFeedbackLogScreen(employeeName: name)),
-        ),
-        child: Padding(
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (_) => EmployeeFeedbackLogScreen(employeeName: name)),
+            ),
+            child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -450,12 +451,38 @@ class _TeamScreenState extends State<TeamScreen> {
                       ],
                     ),
                   ),
-                  // Personal block: rating + feedback count tied together
+                  // Rating in transparent bordered box
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      _ratingBadge(personalRating, scheme),
-                      const SizedBox(height: 2),
+                      if (personalRating != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: _tierColor(personalRating).withOpacity(0.5),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.star_rounded,
+                                  size: 14, color: _tierColor(personalRating)),
+                              const SizedBox(width: 3),
+                              Text(personalRating.toStringAsFixed(1),
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w900,
+                                      color: _tierColor(personalRating))),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                      ],
                       Text(
                           '${feedbackCount} ${feedbackCount == 1 ? "entry" : "entries"}',
                           style: TextStyle(
@@ -494,54 +521,57 @@ class _TeamScreenState extends State<TeamScreen> {
                 ),
               ],
               const SizedBox(height: 12),
-              const SizedBox(height: 12),
-              Container(
-                height: 1,
-                color: scheme.outlineVariant.withOpacity(0.6),
-              ),
-              const SizedBox(height: 10),
               if (reports.isNotEmpty)
-                Row(
-                  children: [
-                    Text('THEIR TEAM',
-                        style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.8,
-                            color: scheme.onSurfaceVariant)),
-                    const Spacer(),
-                    InkWell(
-                      borderRadius: BorderRadius.circular(8),
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (_) => ManagerReportsScreen(manager: mgr)),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 4, vertical: 2),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('${reports.length}',
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w900,
-                                    color: scheme.primary)),
-                            const SizedBox(width: 4),
-                            Text('reports',
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    color: scheme.primary,
-                                    fontWeight: FontWeight.w700)),
-                            Icon(Icons.chevron_right_rounded,
-                                size: 14, color: scheme.primary),
-                          ],
+                Container(
+                  margin: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: scheme.primaryContainer.withOpacity(0.35),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    children: [
+                      Text('THEIR TEAM',
+                          style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.8,
+                              color: scheme.onSurfaceVariant)),
+                      const Spacer(),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => ManagerReportsScreen(manager: mgr)),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 2),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('${reports.length}',
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w900,
+                                      color: scheme.primary)),
+                              const SizedBox(width: 4),
+                              Text('reports',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: scheme.primary,
+                                      fontWeight: FontWeight.w700)),
+                              Icon(Icons.chevron_right_rounded,
+                                  size: 14, color: scheme.primary),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 18),
-                    _inlineTeamAvg(scheme, teamRating),
-                  ],
+                      const SizedBox(width: 18),
+                      _inlineTeamAvg(scheme, teamRating),
+                    ],
+                  ),
                 )
               else
                 Row(
@@ -562,7 +592,85 @@ class _TeamScreenState extends State<TeamScreen> {
                 ),
             ],
           ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Performance tier color — HR standard 4-tier system
+  static Color _tierColor(double rating) {
+    if (rating >= 4.5) return const Color(0xFF1D9E75); // Exceeds - green
+    if (rating >= 3.5) return const Color(0xFF3F7DBE); // Meets - blue
+    if (rating >= 2.5) return const Color(0xFFE6B43A); // Developing - amber
+    return const Color(0xFFE89A6B); // Needs focus - coral
+  }
+
+  // Performance tier label — corporate HR terminology (neutral styling)
+  Widget _tierLabel(double rating, ColorScheme scheme) {
+    final String label;
+    if (rating >= 4.5) {
+      label = 'EXCEEDS';
+    } else if (rating >= 3.5) {
+      label = 'MEETS';
+    } else if (rating >= 2.5) {
+      label = 'DEVELOPING';
+    } else {
+      label = 'NEEDS FOCUS';
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: scheme.outlineVariant, width: 1),
+      ),
+      child: Text(label,
+          style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              color: scheme.onSurfaceVariant,
+              letterSpacing: 0.6)),
+    );
+  }
+
+  Widget _diagonalRatingSticker(double rating, ColorScheme scheme) {
+    final Color bg = rating >= 4.0
+        ? const Color(0xFF1D9E75)
+        : rating >= 3.0
+            ? const Color(0xFFE6B43A)
+            : const Color(0xFFE89A6B);
+    return Container(
+      width: 78,
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [bg, Color.lerp(bg, Colors.black, 0.15)!],
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.star_rounded, size: 14, color: Colors.white),
+          const SizedBox(width: 3),
+          Text(rating.toStringAsFixed(1),
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.3)),
+        ],
       ),
     );
   }
@@ -709,27 +817,16 @@ class _TeamScreenState extends State<TeamScreen> {
             final left = (frac * c.maxWidth - bubbleW / 2)
                 .clamp(0.0, c.maxWidth - bubbleW);
             return SizedBox(
-              height: 22,
+              height: 10,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
                   Positioned(
                     left: left,
-                    top: 0,
-                    width: bubbleW,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomPaint(
-                          size: const Size(10, 8),
-                          painter: _TeamTri(color: scheme.onSurface),
-                        ),
-                        Text(pulse.toStringAsFixed(1),
-                            style: TextStyle(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w700,
-                                color: scheme.onSurfaceVariant)),
-                      ],
+                    bottom: 0,
+                    child: CustomPaint(
+                      size: const Size(12, 8),
+                      painter: _TeamTri(color: scheme.onSurface),
                     ),
                   ),
                 ],
@@ -998,15 +1095,10 @@ class ManagerReportsScreen extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: GridView.builder(
+              child: ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.78,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                ),
                 itemCount: reports.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (_, i) => _staffCard(context, reports[i], scheme),
               ),
             ),
@@ -1034,6 +1126,10 @@ class ManagerReportsScreen extends StatelessWidget {
     final name = emp['name'] as String;
     final initials = name.split(' ').map((p) => p.isEmpty ? '' : p[0]).join().toUpperCase();
     final rating = EmployeeFeedbackLogScreen.averageRating(name);
+    // Check if this person has reports of their own — if so, drill into
+    // ManagerReportsScreen recursively. Otherwise show their feedback log.
+    final subReports = _TeamScreenState.reportsOf(name);
+    final hasTeam = subReports.isNotEmpty;
 
     return Material(
       color: scheme.surfaceContainerLow,
@@ -1041,40 +1137,105 @@ class ManagerReportsScreen extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => EmployeeFeedbackLogScreen(employeeName: name)),
+          MaterialPageRoute(
+            builder: (_) => hasTeam
+                ? ManagerReportsScreen(manager: emp)
+                : EmployeeFeedbackLogScreen(employeeName: name),
+          ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.all(14),
+          child: Row(
             children: [
-              Align(alignment: Alignment.topRight, child: _ratingBadge(rating, scheme)),
-              Center(
-                child: CircleAvatar(
-                    radius: 26,
-                    backgroundColor: scheme.secondaryContainer,
-                    child: Text(initials,
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w800,
-                            color: scheme.onSecondaryContainer))),
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: scheme.secondaryContainer,
+                child: Text(initials,
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: scheme.onSecondaryContainer)),
               ),
-              const SizedBox(height: 8),
-              Text(name, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: scheme.onSurface),
-                  maxLines: 1, overflow: TextOverflow.ellipsis),
-              Text(emp['title'], style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
-                  maxLines: 2, overflow: TextOverflow.ellipsis),
-              const Spacer(),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(name,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: scheme.onSurface),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 2),
+                    Text(emp['title'],
+                        style: TextStyle(
+                            fontSize: 12, color: scheme.onSurfaceVariant),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: hasTeam
+                            ? scheme.primaryContainer
+                            : scheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                            color: hasTeam
+                                ? Colors.transparent
+                                : scheme.outlineVariant,
+                            width: 1),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            hasTeam
+                                ? Icons.groups_rounded
+                                : Icons.person_rounded,
+                            size: 10,
+                            color: hasTeam
+                                ? scheme.onPrimaryContainer
+                                : scheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            hasTeam
+                                ? '${subReports.length} reports'
+                                : 'Individual Contributor',
+                            style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: hasTeam
+                                    ? scheme.onPrimaryContainer
+                                    : scheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              _ratingBadge(rating, scheme),
+              const SizedBox(width: 8),
               SizedBox(
-                width: double.infinity, height: 34,
+                height: 34,
                 child: FilledButton.icon(
                   onPressed: () => Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => FeedbackScreen(initialEmployee: name),
                   )),
                   icon: const Icon(Icons.add_comment_rounded, size: 13),
-                  label: const Text('Feedback', style: TextStyle(fontSize: 11)),
+                  label: const Text('Feedback',
+                      style: TextStyle(fontSize: 11)),
                   style: FilledButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),

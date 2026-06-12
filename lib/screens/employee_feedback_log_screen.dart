@@ -222,7 +222,12 @@ class _EmployeeFeedbackLogScreenState extends State<EmployeeFeedbackLogScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final thisQAvg = _avgForRange(_thisQ);
+    // Use the SELECTED period for the headline rating + badge.
+    // Falls back to thisQ when 'All' is selected.
+    final selectedRange = _filter == 'Last Q' ? _lastQ : _thisQ;
+    final thisQAvg = _filter == 'All'
+        ? EmployeeFeedbackLogScreen.averageRating(widget.employeeName)
+        : _avgForRange(selectedRange);
     final lastQAvg = _avgForRange(_lastQ);
     final overallAvg =
         EmployeeFeedbackLogScreen.averageRating(widget.employeeName);
@@ -375,7 +380,10 @@ class _EmployeeFeedbackLogScreenState extends State<EmployeeFeedbackLogScreen> {
           const SizedBox(height: 6),
           Row(
             children: [
-              Text(_qLabel(_thisQ.start),
+              Text(
+                  _filter == 'All'
+                      ? 'All time'
+                      : _qLabel((_filter == 'Last Q' ? _lastQ : _thisQ).start),
                   style: TextStyle(
                       fontSize: 11,
                       color: scheme.onSurfaceVariant,
@@ -444,46 +452,42 @@ class _EmployeeFeedbackLogScreenState extends State<EmployeeFeedbackLogScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          // Heatmap bar with triangle marker
-          LayoutBuilder(builder: (ctx, c) {
-            final frac =
-                ((pulseForBar - 1.0) / 4.0).clamp(0.0, 1.0);
-            const bubbleW = 26.0;
-            final left = (frac * c.maxWidth - bubbleW / 2)
-                .clamp(0.0, c.maxWidth - bubbleW);
-            return SizedBox(
-              height: 18,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned(
-                    left: left,
-                    top: 0,
-                    width: bubbleW,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomPaint(
-                          size: const Size(10, 8),
-                          painter: _MiniTri(color: scheme.onSurface),
-                        ),
-                        Text(pulseForBar.toStringAsFixed(1),
-                            style: TextStyle(
-                                fontSize: 8,
-                                fontWeight: FontWeight.w700,
-                                color: scheme.onSurfaceVariant)),
-                      ],
+          // Heatmap bar — triangle marker only shows if there's feedback this period
+          Builder(builder: (_) {
+            final avg = thisQAvg;
+            if (avg == null) return const SizedBox.shrink();
+            return LayoutBuilder(builder: (ctx, c) {
+              final frac = ((avg - 1.0) / 4.0).clamp(0.0, 1.0);
+              const markerW = 12.0;
+              final left = (frac * c.maxWidth - markerW / 2)
+                  .clamp(0.0, c.maxWidth - markerW);
+              return SizedBox(
+                height: 10,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      left: left,
+                      bottom: 0,
+                      child: CustomPaint(
+                        size: const Size(markerW, 8),
+                        painter: _MiniTri(color: scheme.onSurface),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
+                  ],
+                ),
+              );
+            });
           }),
           Container(
             height: 10,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              gradient: const LinearGradient(colors: _heatColors),
+              gradient: LinearGradient(
+                colors: thisQAvg == null
+                    ? _heatColors.map((c) => c.withOpacity(0.3)).toList()
+                    : _heatColors,
+              ),
             ),
           ),
           const SizedBox(height: 4),
