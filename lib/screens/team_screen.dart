@@ -71,6 +71,22 @@ class _TeamScreenState extends State<TeamScreen> {
   // Filter: 'all' or 'needs_feedback' (managers with sparse / stale feedback)
   String _filter = 'all';
 
+  void _onFeedbackChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    EmployeeFeedbackLogScreen.feedbackVersion.addListener(_onFeedbackChange);
+  }
+
+  @override
+  void dispose() {
+    EmployeeFeedbackLogScreen.feedbackVersion.removeListener(_onFeedbackChange);
+    super.dispose();
+  }
+
   bool _needsAttention(String name) {
     final log = EmployeeFeedbackLogScreen.logFor(name);
     final today = DateTime(2026, 6, 10);

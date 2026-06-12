@@ -11,8 +11,33 @@ class EmployeeFeedbackLogScreen extends StatefulWidget {
 
   static const teal = Color(0xFF0E7C7B);
 
+  // ─── App-wide feedback notifier ──
+  // Any screen that mutates feedback bumps this; the Dashboard listens
+  // and rebuilds, so its rolled-up numbers always match the latest edits.
+  static final ValueNotifier<int> feedbackVersion = ValueNotifier<int>(0);
+  // Per-employee local overrides — writes from this screen land here so
+  // the static logFor() returns the edited list to every other screen too.
+  static final Map<String, List<Map<String, dynamic>>> _overrides = {};
+
+  static void _publishOverride(
+      String employeeName, List<Map<String, dynamic>> entries) {
+    _overrides[employeeName] = entries
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+    feedbackVersion.value++;
+  }
+
   // ─── Static helpers used by Team screen + Dashboard (kept stable) ──
   static List<Map<String, dynamic>> logFor(String employeeName) {
+    if (_overrides.containsKey(employeeName)) {
+      return _overrides[employeeName]!
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+    return _generateLogFor(employeeName);
+  }
+
+  static List<Map<String, dynamic>> _generateLogFor(String employeeName) {
     final seed = employeeName.hashCode.abs();
     const positives = [
       'Strong clinical judgment and clear patient communication.',
@@ -798,6 +823,8 @@ class _EmployeeFeedbackLogScreenState extends State<EmployeeFeedbackLogScreen> {
                   _entries.sort((a, b) =>
                       (b['date'] as DateTime).compareTo(a['date'] as DateTime));
                 });
+                EmployeeFeedbackLogScreen._publishOverride(
+                    widget.employeeName, _entries);
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text(isEdit ? 'Feedback updated' : 'Feedback added'),
@@ -856,6 +883,8 @@ class _EmployeeFeedbackLogScreenState extends State<EmployeeFeedbackLogScreen> {
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
               setState(() => _entries.removeWhere((x) => x['id'] == e['id']));
+              EmployeeFeedbackLogScreen._publishOverride(
+                  widget.employeeName, _entries);
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Feedback deleted')),

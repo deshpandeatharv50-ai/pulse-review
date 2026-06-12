@@ -23,6 +23,25 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
   bool _heroShowsTeam = true; // true = Team pulse (3 direct), false = Org pulse (all 10)
   final Set<String> _expandedManagers = {};
 
+  // Rebuild the dashboard any time feedback is mutated anywhere in the app
+  // (edit / add / delete in the per-employee log screen, etc.). The notifier
+  // bumps a counter — we just call setState to re-derive the numbers.
+  void _onFeedbackChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    EmployeeFeedbackLogScreen.feedbackVersion.addListener(_onFeedbackChange);
+  }
+
+  @override
+  void dispose() {
+    EmployeeFeedbackLogScreen.feedbackVersion.removeListener(_onFeedbackChange);
+    super.dispose();
+  }
+
   static const Color _teal = Color(0xFF0E7C7B);
   static const Color _green = Color(0xFF1D9E75);
   static const Color _amber = Color(0xFFBA7517);
