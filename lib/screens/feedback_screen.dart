@@ -766,10 +766,11 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   Color _getHealthColor(List<FeedbackItem> feedbacks) {
     if (feedbacks.isEmpty) return Colors.grey;
     final positiveRatio = feedbacks.where((f) => f.feedbackType == 'Positive').length / feedbacks.length;
-    if (positiveRatio > 0.7) return Colors.green;
-    if (positiveRatio > 0.5) return Colors.blue;
-    if (positiveRatio > 0.3) return Colors.amber;
-    return Colors.red;
+    // Reserved feedback palette — no red, no blue.
+    if (positiveRatio > 0.7) return const Color(0xFF3DA66E); // Excellent
+    if (positiveRatio > 0.5) return const Color(0xFFA8C977); // Healthy
+    if (positiveRatio > 0.3) return const Color(0xFFE0C04A); // Steady
+    return const Color(0xFFE89A6B); // At-risk
   }
 
   Widget _buildStatItem(String label, String value, Color color) {
@@ -852,11 +853,13 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   }
 
   Color _getHeatmapColor(double avgRating) {
-    if (avgRating >= 4.5) return Colors.green;
-    if (avgRating >= 4.0) return Colors.lightGreen;
-    if (avgRating >= 3.5) return Colors.blue;
-    if (avgRating >= 3.0) return Colors.amber;
-    return Colors.red;
+    // Same warm orange → yellow → green palette + thresholds used across
+    // the dashboard. 3.0 is the midpoint; above is positive territory.
+    if (avgRating >= 4.5) return const Color(0xFF3DA66E); // Excellent
+    if (avgRating >= 3.5) return const Color(0xFFA8C977); // Healthy
+    if (avgRating >= 3.0) return const Color(0xFFE0C04A); // Steady
+    if (avgRating >= 2.5) return const Color(0xFFEBB57A); // Watch
+    return const Color(0xFFE89A6B); // At-risk
   }
 
   String _getEmployeeRole(String employeeName) {

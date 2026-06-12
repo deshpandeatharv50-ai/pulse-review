@@ -152,28 +152,56 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
     final avg = totalForAvg == 0
         ? 0.0
         : (posForAvg * 5 + conForAvg * 3) / totalForAvg;
-    // For "Wins this quarter" + recent activity strip, we still use the
-    // legacy static feedback list filtered by date (those are demo entries
-    // with rich comments that the snapshot card doesn't need).
-    final fb = _filtered;
+    final scheme = Theme.of(context).colorScheme;
+
+    // ── Wins, focus, and recent activity ALL pull from the consolidated
+    // rosterFeedback source — every employee shown is in the real org
+    // tree, no orphan demo names.
+    final winScopeNames = _heroShowsTeam
+        ? {
+            for (final m in TeamScreen.managers) m['name'] as String,
+            for (final m in TeamScreen.managers)
+              ...TeamScreen.reportsOf(m['name'] as String)
+                  .map((r) => r['name'] as String),
+          }.toList()
+        : TeamScreen.roster.map((m) => m['name'] as String).toList();
+
+    final _r = _activeRange;
+    final positivesRaw = TeamScreen.rosterFeedback(
+        start: _r.start,
+        end: _r.end.add(const Duration(days: 1)),
+        type: 'Positive',
+        names: winScopeNames);
+    final constructiveRaw = TeamScreen.rosterFeedback(
+        start: _r.start,
+        end: _r.end.add(const Duration(days: 1)),
+        type: 'Constructive',
+        names: winScopeNames);
+
+    final positives = positivesRaw
+        .map((e) => FeedbackItem(
+              id: '${e['employeeName']}-${(e['date'] as DateTime).millisecondsSinceEpoch}',
+              employeeName: e['employeeName'] as String,
+              feedbackType: 'Positive',
+              comment: e['comment'] as String,
+              createdAt: e['date'] as DateTime,
+            ))
+        .toList();
+    final fb = [
+      ...positives,
+      ...constructiveRaw.map((e) => FeedbackItem(
+            id: '${e['employeeName']}-${(e['date'] as DateTime).millisecondsSinceEpoch}',
+            employeeName: e['employeeName'] as String,
+            feedbackType: 'Constructive',
+            comment: e['comment'] as String,
+            createdAt: e['date'] as DateTime,
+          )),
+    ]..sort((a, b) => (b.createdAt ?? DateTime(0))
+        .compareTo(a.createdAt ?? DateTime(0)));
     final constructiveList = fb.where((f) => f.feedbackType == 'Constructive').toList();
     final focusName = constructiveList.isNotEmpty
         ? constructiveList.first.employeeName
         : (fb.isNotEmpty ? fb.first.employeeName : 'your team');
-
-    final scheme = Theme.of(context).colorScheme;
-    // In team mode, Wins are filtered to people in MY direct line
-    // (managers + their reports). In org mode, all positives.
-    final teamNames = {
-      for (final m in TeamScreen.managers) m['name'] as String,
-      for (final m in TeamScreen.managers)
-        ...TeamScreen.reportsOf(m['name'] as String).map((r) => r['name'] as String),
-    };
-    final positives = fb
-        .where((f) =>
-            f.feedbackType == 'Positive' &&
-            (!_heroShowsTeam || teamNames.contains(f.employeeName)))
-        .toList();
     // ── Pulse score = average across the active scope AND the active
     // quarter. Delta compares to the quarter immediately before.
     final activeR = _activeRange;
@@ -259,11 +287,15 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
               const SizedBox(height: 14),
 
               // ─── ONE merged "pulse" card: hero + snapshot connected with
-              // an internal divider. Top accent = scope color (Team=teal,
-              // Org=amber) so the active scope is unmistakable.
+              // an internal divider. Both background tint AND top border use
+              // the scope color so the active scope reads at a glance.
               Container(
                 decoration: BoxDecoration(
-                  color: scheme.surfaceContainerLow,
+                  color: _heroShowsTeam
+                      ? Color.lerp(scheme.surfaceContainerLow,
+                          scheme.primary, 0.06)
+                      : Color.lerp(scheme.surfaceContainerLow,
+                          const Color(0xFF2C3E40), 0.05),
                   borderRadius: BorderRadius.circular(24),
                   border: Border(
                       top: BorderSide(
@@ -337,12 +369,24 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                           if (hasBaseline)
                             Padding(
                               padding: const EdgeInsets.only(bottom: 9),
-                              child: Text(
-                                '$sign${delta.abs().toStringAsFixed(2)}',
-                                style: TextStyle(
-                                    color: trendColor,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w800),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                      trendUp
+                                          ? Icons.arrow_upward_rounded
+                                          : Icons.arrow_downward_rounded,
+                                      size: 18,
+                                      color: trendColor),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    delta.abs().toStringAsFixed(2),
+                                    style: TextStyle(
+                                        color: trendColor,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w800),
+                                  ),
+                                ],
                               ),
                             )
                           else
@@ -605,11 +649,13 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
   ];
 
   int _zoneIndex(double r) {
-    if (r >= 4.5) return 4;
-    if (r >= 4.0) return 3;
-    if (r >= 3.5) return 2;
-    if (r >= 3.0) return 1;
-    return 0;
+    // Midpoint of the 1-5 scale is 3.0. Anything above starts becoming
+    // positive (green tones); below is constructive (warm tones).
+    if (r >= 4.5) return 4; // Excellent (deep green)
+    if (r >= 3.5) return 3; // Healthy (light green) — 3.5 lives here
+    if (r >= 3.0) return 2; // Steady (mellow yellow)
+    if (r >= 2.5) return 1; // Watch (warm peach)
+    return 0; // At-risk (soft orange) — only <2.5
   }
 
   // Single team snapshot card: people composition + feedback breakdown.
@@ -872,20 +918,42 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                             color: scheme.onSurface)),
                   ],
                 ),
-                const SizedBox(height: 10),
-                _feedbackBar(scheme,
-                    label: 'Positive',
-                    count: positive,
-                    total: total,
-                    color: posColor,
-                    onTap: () => _showFeedbackPopup('Positive')),
-                const SizedBox(height: 8),
-                _feedbackBar(scheme,
-                    label: 'Constructive',
-                    count: constructive,
-                    total: total,
-                    color: conColor,
-                    onTap: () => _showFeedbackPopup('Constructive')),
+                const SizedBox(height: 14),
+                // ─── Donut chart for positive vs constructive split ───
+                Row(
+                  children: [
+                    _feedbackDonut(
+                        positive: positive,
+                        constructive: constructive,
+                        total: total,
+                        posColor: posColor,
+                        conColor: conColor,
+                        scheme: scheme),
+                    const SizedBox(width: 18),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _donutLegend(
+                              color: posColor,
+                              label: 'Positive',
+                              count: positive,
+                              total: total,
+                              scheme: scheme,
+                              onTap: () => _showFeedbackPopup('Positive')),
+                          const SizedBox(height: 10),
+                          _donutLegend(
+                              color: conColor,
+                              label: 'Constructive',
+                              count: constructive,
+                              total: total,
+                              scheme: scheme,
+                              onTap: () => _showFeedbackPopup('Constructive')),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -960,6 +1028,99 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
               child: avatar('', isPlus: true, plus: extra),
             ),
         ],
+      ),
+    );
+  }
+
+  // ─── Donut chart: positive vs constructive ratio ──
+  Widget _feedbackDonut({
+    required int positive,
+    required int constructive,
+    required int total,
+    required Color posColor,
+    required Color conColor,
+    required ColorScheme scheme,
+  }) {
+    return SizedBox(
+      width: 92,
+      height: 92,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          CustomPaint(
+            size: const Size(92, 92),
+            painter: _DonutPainter(
+              positive: positive,
+              constructive: constructive,
+              posColor: posColor,
+              conColor: conColor,
+              emptyColor: scheme.surfaceContainerHighest,
+              thickness: 14,
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('$total',
+                  style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: scheme.onSurface,
+                      height: 1.0)),
+              Text('total',
+                  style: TextStyle(
+                      fontSize: 10,
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _donutLegend({
+    required Color color,
+    required String label,
+    required int count,
+    required int total,
+    required ColorScheme scheme,
+    required VoidCallback onTap,
+  }) {
+    final pct = total == 0 ? 0 : (count * 100 / total).round();
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(label,
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: scheme.onSurface)),
+            ),
+            Text('$count',
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: scheme.onSurface)),
+            const SizedBox(width: 6),
+            Text('$pct%',
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: color)),
+          ],
+        ),
       ),
     );
   }
@@ -1148,7 +1309,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
               ),
               const SizedBox(width: 10),
               SizedBox(
-                width: 64,
+                width: 70,
                 child: hasData
                     ? Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -1158,12 +1319,23 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
                           border: Border.all(color: tColor.withOpacity(0.5)),
                         ),
                         alignment: Alignment.center,
-                        child: Text(
-                            '${up ? '+' : '−'}${delta.abs().toStringAsFixed(2)}',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w900,
-                                color: tColor)),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                                up
+                                    ? Icons.arrow_upward_rounded
+                                    : Icons.arrow_downward_rounded,
+                                size: 12,
+                                color: tColor),
+                            const SizedBox(width: 2),
+                            Text(delta.abs().toStringAsFixed(2),
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                    color: tColor)),
+                          ],
+                        ),
                       )
                     : const SizedBox.shrink(),
               ),
@@ -1202,20 +1374,7 @@ class _DashboardEnterpriseState extends State<DashboardEnterprise> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: Row(
-              children: [
-                const Spacer(),
-                Text('avg · Δ vs last Q',
-                    style: TextStyle(
-                        fontSize: 10,
-                        color: scheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           // In Team mode we skip org rollups — focus is just the directs below.
           if (!_heroShowsTeam) ...[
             Padding(
@@ -1525,4 +1684,65 @@ class _TrianglePainter extends CustomPainter {
   }
   @override
   bool shouldRepaint(covariant _TrianglePainter old) => old.color != color;
+}
+
+class _DonutPainter extends CustomPainter {
+  final int positive;
+  final int constructive;
+  final Color posColor;
+  final Color conColor;
+  final Color emptyColor;
+  final double thickness;
+  _DonutPainter({
+    required this.positive,
+    required this.constructive,
+    required this.posColor,
+    required this.conColor,
+    required this.emptyColor,
+    this.thickness = 12,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = (size.shortestSide / 2) - thickness / 2;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    final total = positive + constructive;
+
+    final base = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = thickness
+      ..strokeCap = StrokeCap.butt
+      ..color = emptyColor;
+
+    if (total == 0) {
+      canvas.drawCircle(center, radius, base);
+      return;
+    }
+
+    final posPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = thickness
+      ..strokeCap = StrokeCap.butt
+      ..color = posColor;
+    final conPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = thickness
+      ..strokeCap = StrokeCap.butt
+      ..color = conColor;
+
+    const startAngle = -3.14159 / 2;
+    final posSweep = (positive / total) * 2 * 3.14159;
+    final conSweep = (constructive / total) * 2 * 3.14159;
+
+    canvas.drawArc(rect, startAngle, posSweep, false, posPaint);
+    canvas.drawArc(rect, startAngle + posSweep, conSweep, false, conPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _DonutPainter old) =>
+      old.positive != positive ||
+      old.constructive != constructive ||
+      old.posColor != posColor ||
+      old.conColor != conColor;
 }

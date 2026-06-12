@@ -549,13 +549,15 @@ Widget _ratingBadge(double? score, ColorScheme scheme, {String? label}) {
     );
   }
   Color c;
+  // Midpoint of 1-5 is 3.0. Above = positive (green); below = constructive
+  // (warm). 3.5 already reads as Healthy green.
   if (score >= 4.5) {
     c = const Color(0xFF3DA66E); // Excellent (deep green)
-  } else if (score >= 4.0) {
-    c = const Color(0xFFA8C977); // Healthy (light green)
   } else if (score >= 3.5) {
-    c = const Color(0xFFE0C04A); // Steady (mellow yellow)
+    c = const Color(0xFFA8C977); // Healthy (light green) — 3.5 lives here
   } else if (score >= 3.0) {
+    c = const Color(0xFFE0C04A); // Steady (mellow yellow)
+  } else if (score >= 2.5) {
     c = const Color(0xFFEBB57A); // Watch (warm peach)
   } else {
     c = const Color(0xFFE89A6B); // At-risk (soft orange)

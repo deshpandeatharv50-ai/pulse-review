@@ -69,10 +69,16 @@ class SupabaseService {
           .eq('organisation_id', orgId);
 
       return data.map((e) => FeedbackItem(
-        id: e['id'],
+        id: e['id'].toString(),
         employeeName: e['employee_name'],
         feedbackType: e['feedback_type'],
         comment: e['comment'],
+        createdAt: e['created_at'] != null
+            ? DateTime.tryParse(e['created_at'].toString())
+            : null,
+        rating: e['rating'] == null
+            ? null
+            : double.tryParse(e['rating'].toString()),
       )).toList();
     } catch (e) {
       print('Error getting feedbacks: $e');
@@ -141,23 +147,35 @@ class SupabaseService {
     }
   }
 
-  // Submit feedback to Supabase (with fallback to local storage)
-  Future<void> submitFeedback(String employeeName, String feedbackType, String comment) async {
+  // Submit feedback to Supabase (with fallback to local storage). `rating`
+  // is a half-star value (0.5–5.0 in 0.5 steps). The DB CHECK constraint
+  // rejects anything else, so we snap to nearest half on the client too.
+  Future<void> submitFeedback(
+    String employeeName,
+    String feedbackType,
+    String comment, {
+    double? rating,
+  }) async {
+    final snapped = rating == null
+        ? null
+        : ((rating * 2).round() / 2.0).clamp(0.5, 5.0);
     try {
       await client.from('feedbacks').insert({
         'employee_name': employeeName,
         'feedback_type': feedbackType,
         'comment': comment,
+        if (snapped != null) 'rating': snapped,
       });
       print('✅ Feedback saved to Supabase');
       print('   Employee: $employeeName');
       print('   Type: $feedbackType');
+      if (snapped != null) print('   Rating: $snapped');
     } catch (e) {
-      // RLS or connection error - use local storage fallback
       print('⚠️ Supabase save failed, using local storage: $e');
       print('✅ Feedback saved locally');
       print('   Employee: $employeeName');
       print('   Type: $feedbackType');
+      if (snapped != null) print('   Rating: $snapped');
     }
   }
 
