@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'team_screen.dart';
+import '../services/supabase_service.dart';
 
 // Per-employee feedback log — every feedback entry for one person,
 // sorted newest first. Includes a quarter filter, a trend block matching
@@ -27,6 +28,50 @@ class EmployeeFeedbackLogScreen extends StatefulWidget {
     feedbackVersion.value++;
   }
 
+  // One-shot hydration on app start: pull all feedbacks from Supabase and
+  // merge into the deterministic baseline so dashboard/team see cross-device
+  // data without the user having to open each employee's log first.
+  static Future<void> hydrateAllFromSupabase() async {
+    try {
+      final all = await SupabaseService().getFeedbacks();
+      if (all.isEmpty) return;
+      final byEmployee = <String, List<Map<String, dynamic>>>{};
+      for (final f in all) {
+        byEmployee.putIfAbsent(f.employeeName, () => []);
+        byEmployee[f.employeeName]!.add({
+          'id': f.id,
+          'type': f.feedbackType,
+          'comment': f.comment,
+          'date': f.createdAt ?? DateTime.now(),
+          'rating': f.rating ?? 3.0,
+          '_supabase': true,
+        });
+      }
+      byEmployee.forEach((name, cloud) {
+        final baseline = _generateLogFor(name);
+        final merged = [...baseline, ...cloud]
+          ..sort((a, b) =>
+              (b['date'] as DateTime).compareTo(a['date'] as DateTime));
+        _overrides[name] = merged;
+      });
+      feedbackVersion.value++;
+      print('✅ Hydrated ${all.length} Supabase feedbacks');
+    } catch (e) {
+      print('⚠️ Supabase hydration failed: $e');
+    }
+  }
+
+  // Employees marked with `noFeedback: true` in the roster get an empty
+  // history — useful for "fresh hire" demo scenarios.
+  static bool _isNoFeedback(String name) {
+    try {
+      final entry = TeamScreen.roster.firstWhere((e) => e['name'] == name);
+      return entry['noFeedback'] == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // ─── Static helpers used by Team screen + Dashboard (kept stable) ──
   static List<Map<String, dynamic>> logFor(String employeeName) {
     if (_overrides.containsKey(employeeName)) {
@@ -38,6 +83,8 @@ class EmployeeFeedbackLogScreen extends StatefulWidget {
   }
 
   static List<Map<String, dynamic>> _generateLogFor(String employeeName) {
+    // Fresh hires / new roles have no history yet.
+    if (_isNoFeedback(employeeName)) return [];
     final seed = employeeName.hashCode.abs();
     const positives = [
       'Strong clinical judgment and clear patient communication.',
@@ -90,6 +137,8 @@ class EmployeeFeedbackLogScreen extends StatefulWidget {
 }
 
 class _EmployeeFeedbackLogScreenState extends State<EmployeeFeedbackLogScreen> {
+  final _supabase = SupabaseService();
+
   static const List<String> _mon = [
     '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
@@ -799,6 +848,11 @@ class _EmployeeFeedbackLogScreenState extends State<EmployeeFeedbackLogScreen> {
                 }
                 final newRating = halfSteps / 2.0;
                 final derivedType = typeFromRating(halfSteps);
+                final comment = commentC.text.trim();
+                Navigator.pop(ctx);
+                // Optimistic local update first, then sync with Supabase
+                String entryId = existing?['id'] as String? ??
+                    'pending-${DateTime.now().millisecondsSinceEpoch}';
                 setState(() {
                   if (isEdit) {
                     final i = _entries.indexWhere((x) => x['id'] == existing['id']);
@@ -806,16 +860,16 @@ class _EmployeeFeedbackLogScreenState extends State<EmployeeFeedbackLogScreen> {
                       _entries[i] = {
                         ..._entries[i],
                         'type': derivedType,
-                        'comment': commentC.text.trim(),
+                        'comment': comment,
                         'rating': newRating,
                         'date': date,
                       };
                     }
                   } else {
                     _entries.insert(0, {
-                      'id': 'new-${DateTime.now().millisecondsSinceEpoch}',
+                      'id': entryId,
                       'type': derivedType,
-                      'comment': commentC.text.trim(),
+                      'comment': comment,
                       'rating': newRating,
                       'date': date,
                     });
@@ -825,11 +879,43 @@ class _EmployeeFeedbackLogScreenState extends State<EmployeeFeedbackLogScreen> {
                 });
                 EmployeeFeedbackLogScreen._publishOverride(
                     widget.employeeName, _entries);
-                Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text(isEdit ? 'Feedback updated' : 'Feedback added'),
                   backgroundColor: Colors.green,
                 ));
+
+                // Background Supabase sync — silent on failure so the demo
+                // keeps moving even if RLS rejects the write.
+                if (isEdit && existing['_supabase'] == true) {
+                  _supabase.updateFeedback(
+                    existing['id'].toString(),
+                    feedbackType: derivedType,
+                    comment: comment,
+                    rating: newRating,
+                    createdAt: date,
+                  );
+                } else if (!isEdit) {
+                  () async {
+                    final realId = await _supabase.submitFeedback(
+                      widget.employeeName,
+                      derivedType,
+                      comment,
+                      rating: newRating,
+                      createdAt: date,
+                    );
+                    if (realId != null && mounted) {
+                      setState(() {
+                        final i = _entries.indexWhere((x) => x['id'] == entryId);
+                        if (i >= 0) {
+                          _entries[i]['id'] = realId;
+                          _entries[i]['_supabase'] = true;
+                        }
+                      });
+                      EmployeeFeedbackLogScreen._publishOverride(
+                          widget.employeeName, _entries);
+                    }
+                  }();
+                }
               },
               child: Text(isEdit ? 'Save' : 'Add'),
             ),
@@ -885,6 +971,10 @@ class _EmployeeFeedbackLogScreenState extends State<EmployeeFeedbackLogScreen> {
               setState(() => _entries.removeWhere((x) => x['id'] == e['id']));
               EmployeeFeedbackLogScreen._publishOverride(
                   widget.employeeName, _entries);
+              // Background Supabase delete only if this was a cloud-backed row
+              if (e['_supabase'] == true) {
+                _supabase.deleteFeedback(e['id'].toString());
+              }
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Feedback deleted')),

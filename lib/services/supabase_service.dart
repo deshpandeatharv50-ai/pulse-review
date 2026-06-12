@@ -147,35 +147,72 @@ class SupabaseService {
     }
   }
 
-  // Submit feedback to Supabase (with fallback to local storage). `rating`
-  // is a half-star value (0.5–5.0 in 0.5 steps). The DB CHECK constraint
-  // rejects anything else, so we snap to nearest half on the client too.
-  Future<void> submitFeedback(
+  // Submit feedback to Supabase. Returns the inserted row id on success,
+  // null on failure (caller falls back to local-only storage).
+  // `rating` is a half-star value (0.5–5.0 in 0.5 steps).
+  Future<String?> submitFeedback(
     String employeeName,
     String feedbackType,
     String comment, {
     double? rating,
+    DateTime? createdAt,
   }) async {
     final snapped = rating == null
         ? null
         : ((rating * 2).round() / 2.0).clamp(0.5, 5.0);
     try {
-      await client.from('feedbacks').insert({
+      final inserted = await client.from('feedbacks').insert({
         'employee_name': employeeName,
         'feedback_type': feedbackType,
         'comment': comment,
         if (snapped != null) 'rating': snapped,
-      });
-      print('✅ Feedback saved to Supabase');
-      print('   Employee: $employeeName');
-      print('   Type: $feedbackType');
-      if (snapped != null) print('   Rating: $snapped');
+        if (createdAt != null) 'created_at': createdAt.toIso8601String(),
+      }).select().single();
+      print('✅ Feedback saved to Supabase (id=${inserted['id']})');
+      return inserted['id'].toString();
     } catch (e) {
-      print('⚠️ Supabase save failed, using local storage: $e');
-      print('✅ Feedback saved locally');
-      print('   Employee: $employeeName');
-      print('   Type: $feedbackType');
-      if (snapped != null) print('   Rating: $snapped');
+      print('⚠️ Supabase submit failed: $e');
+      return null;
+    }
+  }
+
+  // Update an existing Supabase feedback row.
+  Future<bool> updateFeedback(
+    String id, {
+    String? employeeName,
+    String? feedbackType,
+    String? comment,
+    double? rating,
+    DateTime? createdAt,
+  }) async {
+    final snapped = rating == null
+        ? null
+        : ((rating * 2).round() / 2.0).clamp(0.5, 5.0);
+    try {
+      await client.from('feedbacks').update({
+        if (employeeName != null) 'employee_name': employeeName,
+        if (feedbackType != null) 'feedback_type': feedbackType,
+        if (comment != null) 'comment': comment,
+        if (snapped != null) 'rating': snapped,
+        if (createdAt != null) 'created_at': createdAt.toIso8601String(),
+      }).eq('id', id);
+      print('✅ Feedback updated in Supabase (id=$id)');
+      return true;
+    } catch (e) {
+      print('⚠️ Supabase update failed: $e');
+      return false;
+    }
+  }
+
+  // Delete a Supabase feedback row.
+  Future<bool> deleteFeedback(String id) async {
+    try {
+      await client.from('feedbacks').delete().eq('id', id);
+      print('✅ Feedback deleted from Supabase (id=$id)');
+      return true;
+    } catch (e) {
+      print('⚠️ Supabase delete failed: $e');
+      return false;
     }
   }
 

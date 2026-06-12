@@ -124,6 +124,21 @@ class _TeamScreenState extends State<TeamScreen> {
       'email': 'robert.martinez@hospital.com', 'phone': '+1-555-0106',
       'yearsExperience': 14, 'manager': null,
     },
+    // ── New direct reports of James Peterson: no team, no feedback yet ──
+    {
+      'id': 'EMP-012', 'name': 'Dr. Sarah Mitchell', 'title': 'Chief Innovation Officer',
+      'specialty': 'Innovation', 'department': 'Innovation', 'status': 'Available',
+      'qualifications': 'MD, MBA',
+      'email': 'sarah.mitchell@hospital.com', 'phone': '+1-555-0112',
+      'yearsExperience': 9, 'manager': null, 'noFeedback': true,
+    },
+    {
+      'id': 'EMP-013', 'name': 'Dr. Lisa Chang', 'title': 'Quality Director',
+      'specialty': 'Quality & Safety', 'department': 'Quality', 'status': 'Available',
+      'qualifications': 'MD, MPH',
+      'email': 'lisa.chang@hospital.com', 'phone': '+1-555-0113',
+      'yearsExperience': 7, 'manager': null, 'noFeedback': true,
+    },
 
     // ── Cardiac Care reports → Dr. James Anderson ──
     {
@@ -250,8 +265,23 @@ class _TeamScreenState extends State<TeamScreen> {
         elevation: 0,
         // Tab use → no leading; pushed (from rollup) → back arrow appears.
         automaticallyImplyLeading: canPop,
-        title: const Text('Team',
-            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22)),
+        titleSpacing: 0,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('James Peterson',
+                style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 18,
+                    color: scheme.onSurface)),
+            Text('Direct reports · ${mgrs.length}',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                    color: scheme.onSurfaceVariant)),
+          ],
+        ),
       ),
       body: SafeArea(
         child: ListView(
@@ -261,30 +291,8 @@ class _TeamScreenState extends State<TeamScreen> {
                 style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
             const SizedBox(height: 20),
 
-            // ── Aggregate strip ──
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Builder(builder: (_) {
-                final teamAvg = directReportsAvg();
-                final teamAvgLabel = teamAvg?.toStringAsFixed(1) ?? '—';
-                return Row(
-                  children: [
-                    _topStat(scheme, '${mgrs.length}', 'Direct', scheme.primary),
-                    _vDiv(scheme),
-                    _topStat(scheme, '$totalReports', 'Indirect', scheme.tertiary),
-                    _vDiv(scheme),
-                    _topStat(scheme, '${mgrs.length + totalReports}', 'Total', scheme.secondary),
-                    _vDiv(scheme),
-                    _topStat(scheme, teamAvgLabel, 'Team avg',
-                        const Color(0xFFE0C04A), withStar: true),
-                  ],
-                );
-              }),
-            ),
+            // ── Team pulse hero (mirrors the dashboard) ──
+            _teamPulseHero(scheme),
             const SizedBox(height: 22),
 
             Row(
@@ -381,7 +389,10 @@ class _TeamScreenState extends State<TeamScreen> {
     final teamRating = teamAvgRating(name);
     final personalRating = EmployeeFeedbackLogScreen.averageRating(name);
     final personalLog = EmployeeFeedbackLogScreen.logFor(name);
-    final feedbackCount = teamFeedbackCount(name);
+    // Per-card "Feedbacks" = the MANAGER's own feedback count (matches what
+    // shows on their feedback log when you tap in). Team-aggregate counts
+    // live in the dashboard rollup, not on the manager card.
+    final feedbackCount = EmployeeFeedbackLogScreen.logFor(name).length;
     final initials = name.split(' ').map((p) => p.isEmpty ? '' : p[0]).join().toUpperCase();
 
     // ── "Needs attention" computation ──
@@ -430,18 +441,25 @@ class _TeamScreenState extends State<TeamScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(name, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: scheme.onSurface)),
-                        Text(mgr['title'], style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+                        Text('${mgr['title']} · ${mgr['department']}',
+                            style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
                       ],
                     ),
                   ),
+                  // Personal block: rating + feedback count tied together
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      // Personal rating — primary (what's most important per user)
-                      _ratingBadge(personalRating, scheme, label: 'Personal'),
-                      const SizedBox(height: 4),
-                      // Team avg — secondary, smaller
-                      _ratingBadge(teamRating, scheme, label: 'Team avg'),
+                      _ratingBadge(personalRating, scheme),
+                      const SizedBox(height: 2),
+                      Text(
+                          '${feedbackCount} ${feedbackCount == 1 ? "entry" : "entries"}',
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: scheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600)),
                     ],
                   ),
                 ],
@@ -474,16 +492,22 @@ class _TeamScreenState extends State<TeamScreen> {
                 ),
               ],
               const SizedBox(height: 12),
+              const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                decoration: BoxDecoration(
-                  color: scheme.primaryContainer.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                height: 1,
+                color: scheme.outlineVariant.withOpacity(0.6),
+              ),
+              const SizedBox(height: 10),
+              if (reports.isNotEmpty)
+                Row(
                   children: [
-                    // Tappable → drill into reports list
+                    Text('THEIR TEAM',
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
+                            color: scheme.onSurfaceVariant)),
+                    const Spacer(),
                     InkWell(
                       borderRadius: BorderRadius.circular(8),
                       onTap: () => Navigator.of(context).push(
@@ -493,19 +517,47 @@ class _TeamScreenState extends State<TeamScreen> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 4, vertical: 2),
-                        child: _aggStat(scheme,
-                            '${reports.length}', 'Reports',
-                            interactive: true),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('${reports.length}',
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w900,
+                                    color: scheme.primary)),
+                            const SizedBox(width: 4),
+                            Text('reports',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: scheme.primary,
+                                    fontWeight: FontWeight.w700)),
+                            Icon(Icons.chevron_right_rounded,
+                                size: 14, color: scheme.primary),
+                          ],
+                        ),
                       ),
                     ),
-                    _innerDiv(scheme),
-                    _aggStat(scheme, mgr['department'], 'Dept'),
-                    _innerDiv(scheme),
-                    _aggStat(scheme, '$feedbackCount',
-                        feedbackCount == 1 ? 'Feedback' : 'Feedbacks'),
+                    const SizedBox(width: 18),
+                    _inlineTeamAvg(scheme, teamRating),
+                  ],
+                )
+              else
+                Row(
+                  children: [
+                    Text('INDIVIDUAL CONTRIBUTOR',
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
+                            color: scheme.onSurfaceVariant)),
+                    const Spacer(),
+                    Text('no team yet',
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: scheme.onSurfaceVariant,
+                            fontStyle: FontStyle.italic)),
                   ],
                 ),
-              ),
             ],
           ),
         ),
@@ -515,6 +567,273 @@ class _TeamScreenState extends State<TeamScreen> {
 
   Widget _innerDiv(ColorScheme scheme) =>
       Container(width: 1, height: 28, color: scheme.outlineVariant);
+
+  // Same heatmap palette + thresholds the dashboard uses.
+  static const List<Color> _heatColors = [
+    Color(0xFFE89A6B), // <2.5 At-risk
+    Color(0xFFEBB57A), // 2.5-3.0 Watch
+    Color(0xFFE0C04A), // 3.0-3.5 Steady
+    Color(0xFFA8C977), // 3.5-4.5 Healthy
+    Color(0xFF3DA66E), // ≥4.5 Excellent
+  ];
+
+  int _zoneIndex(double r) {
+    if (r >= 4.5) return 4;
+    if (r >= 3.5) return 3;
+    if (r >= 3.0) return 2;
+    if (r >= 2.5) return 1;
+    return 0;
+  }
+
+  // Team-tab hero: same visual elements as the dashboard hero so the user
+  // does the same mind-mapping in both places.
+  Widget _teamPulseHero(ColorScheme scheme) {
+    final mgrs = managers;
+    final mgrNames = mgrs.map((m) => m['name'] as String).toList();
+    final today = DateTime(2026, 6, 10);
+    final qStartMonth = ((today.month - 1) ~/ 3) * 3 + 1;
+    final thisStart = DateTime(today.year, qStartMonth, 1);
+    final thisEnd = DateTime(today.year, qStartMonth + 3, 1)
+        .subtract(const Duration(days: 1));
+    final lastStart = DateTime(today.year, qStartMonth - 3, 1);
+    final lastEnd = thisStart.subtract(const Duration(days: 1));
+
+    final thisAvg = TeamScreen.avgRatingFor(
+        start: thisStart,
+        end: thisEnd.add(const Duration(days: 1)),
+        names: mgrNames);
+    final lastAvg = TeamScreen.avgRatingFor(
+        start: lastStart,
+        end: lastEnd.add(const Duration(days: 1)),
+        names: mgrNames);
+    final pulse = thisAvg ?? 0.0;
+    final hasTrend = thisAvg != null && lastAvg != null;
+    final delta = hasTrend ? thisAvg - lastAvg : 0.0;
+    final trendUp = delta >= 0;
+    final trendColor = trendUp
+        ? const Color(0xFF5BB880)
+        : const Color(0xFFE6B43A);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border(top: BorderSide(color: scheme.primary, width: 4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('TEAM PULSE',
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.0,
+                      color: scheme.onSurfaceVariant)),
+              const SizedBox(width: 8),
+              Text('${mgrs.length} direct reports',
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600)),
+              const Spacer(),
+              Text('Apr – Jun 2026',
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(thisAvg?.toStringAsFixed(1) ?? '—',
+                  style: TextStyle(
+                      color: scheme.onSurface,
+                      fontSize: 48,
+                      fontWeight: FontWeight.w900,
+                      height: 1.0)),
+              const SizedBox(width: 6),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text('/ 5.0',
+                    style: TextStyle(
+                        color: scheme.onSurfaceVariant,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(width: 12),
+              if (hasTrend)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                          trendUp
+                              ? Icons.arrow_upward_rounded
+                              : Icons.arrow_downward_rounded,
+                          size: 16,
+                          color: trendColor),
+                      const SizedBox(width: 2),
+                      Text(delta.abs().toStringAsFixed(2),
+                          style: TextStyle(
+                              color: trendColor,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900)),
+                    ],
+                  ),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Text('—',
+                      style: TextStyle(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Triangle marker
+          LayoutBuilder(builder: (ctx, c) {
+            final frac = ((pulse - 1.0) / 4.0).clamp(0.0, 1.0);
+            const bubbleW = 30.0;
+            final left = (frac * c.maxWidth - bubbleW / 2)
+                .clamp(0.0, c.maxWidth - bubbleW);
+            return SizedBox(
+              height: 22,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    left: left,
+                    top: 0,
+                    width: bubbleW,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomPaint(
+                          size: const Size(10, 8),
+                          painter: _TeamTri(color: scheme.onSurface),
+                        ),
+                        Text(pulse.toStringAsFixed(1),
+                            style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                color: scheme.onSurfaceVariant)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          Container(
+            height: 12,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              gradient: const LinearGradient(colors: _heatColors),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('At-risk',
+                  style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700)),
+              Text('Excellent',
+                  style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _inlineTeamAvg(ColorScheme scheme, double? rating) {
+    if (rating == null) {
+      return Text('— No team data',
+          style: TextStyle(
+              fontSize: 11, color: scheme.onSurfaceVariant));
+    }
+    Color c;
+    if (rating >= 4.5) {
+      c = const Color(0xFF3DA66E);
+    } else if (rating >= 3.5) {
+      c = const Color(0xFFA8C977);
+    } else if (rating >= 3.0) {
+      c = const Color(0xFFE0C04A);
+    } else if (rating >= 2.5) {
+      c = const Color(0xFFEBB57A);
+    } else {
+      c = const Color(0xFFE89A6B);
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.star_rounded, size: 14, color: c),
+        const SizedBox(width: 3),
+        Text(rating.toStringAsFixed(1),
+            style: TextStyle(
+                fontSize: 15, fontWeight: FontWeight.w900, color: c)),
+        const SizedBox(width: 5),
+        Text('team avg',
+            style: TextStyle(
+                fontSize: 11,
+                color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600)),
+      ],
+    );
+  }
+
+  Widget _teamAvgStat(ColorScheme scheme, double? rating) {
+    final value = rating?.toStringAsFixed(1) ?? '—';
+    Color c;
+    if (rating == null) {
+      c = scheme.onSurfaceVariant;
+    } else if (rating >= 4.5) {
+      c = const Color(0xFF3DA66E);
+    } else if (rating >= 3.5) {
+      c = const Color(0xFFA8C977);
+    } else if (rating >= 3.0) {
+      c = const Color(0xFFE0C04A);
+    } else if (rating >= 2.5) {
+      c = const Color(0xFFEBB57A);
+    } else {
+      c = const Color(0xFFE89A6B);
+    }
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.star_rounded, size: 14, color: c),
+            const SizedBox(width: 2),
+            Text(value,
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: c)),
+          ],
+        ),
+        Text('Team avg',
+            style: TextStyle(fontSize: 10, color: scheme.onSurfaceVariant)),
+      ],
+    );
+  }
 
   Widget _aggStat(ColorScheme scheme, String value, String label,
       {bool interactive = false}) {
@@ -763,4 +1082,21 @@ class ManagerReportsScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class _TeamTri extends CustomPainter {
+  final Color color;
+  _TeamTri({required this.color});
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()..color = color..style = PaintingStyle.fill;
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..close();
+    canvas.drawPath(path, p);
+  }
+  @override
+  bool shouldRepaint(covariant _TeamTri old) => old.color != color;
 }

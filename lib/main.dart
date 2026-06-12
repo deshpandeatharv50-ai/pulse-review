@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/organization_picker_screen.dart';
+import 'screens/employee_feedback_log_screen.dart';
 import 'supabase_config.dart';
 
 Future<void> main() async {
@@ -11,6 +12,9 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('Supabase init failed (continuing): $e');
   }
+  // Fire-and-forget hydration of cloud feedback into the local override map
+  // so cross-device data is visible without each user opening every log.
+  EmployeeFeedbackLogScreen.hydrateAllFromSupabase();
   runApp(const Elev8App());
 }
 
