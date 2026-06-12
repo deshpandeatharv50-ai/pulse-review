@@ -108,21 +108,21 @@ class _TeamScreenState extends State<TeamScreen> {
       'specialty': 'Cardiology', 'department': 'Cardiac Care', 'status': 'On-Shift',
       'qualifications': 'MD, Board Certified - Cardiology',
       'email': 'james.anderson@hospital.com', 'phone': '+1-555-0102',
-      'yearsExperience': 18, 'manager': null,
+      'yearsExperience': 18, 'manager': null, 'region': 'North',
     },
     {
       'id': 'EMP-004', 'name': 'Dr. Michael Chen', 'title': 'Pulmonologist',
       'specialty': 'Pulmonology', 'department': 'Respiratory', 'status': 'On-Call',
       'qualifications': 'MD, Board Certified - Pulmonology',
       'email': 'michael.chen@hospital.com', 'phone': '+1-555-0104',
-      'yearsExperience': 12, 'manager': null,
+      'yearsExperience': 12, 'manager': null, 'region': 'West',
     },
     {
       'id': 'EMP-006', 'name': 'Dr. Robert Martinez', 'title': 'Emergency Medicine Lead',
       'specialty': 'Emergency Medicine', 'department': 'ER', 'status': 'On-Shift',
       'qualifications': 'MD, Board Certified - EM',
       'email': 'robert.martinez@hospital.com', 'phone': '+1-555-0106',
-      'yearsExperience': 14, 'manager': null,
+      'yearsExperience': 14, 'manager': null, 'region': 'South',
     },
     // ── New direct reports of James Peterson: no team, no feedback yet ──
     {
@@ -130,14 +130,14 @@ class _TeamScreenState extends State<TeamScreen> {
       'specialty': 'Innovation', 'department': 'Innovation', 'status': 'Available',
       'qualifications': 'MD, MBA',
       'email': 'sarah.mitchell@hospital.com', 'phone': '+1-555-0112',
-      'yearsExperience': 9, 'manager': null,
+      'yearsExperience': 9, 'manager': null, 'region': 'East',
     },
     {
       'id': 'EMP-013', 'name': 'Dr. Lisa Chang', 'title': 'Quality Director',
       'specialty': 'Quality & Safety', 'department': 'Quality', 'status': 'Available',
       'qualifications': 'MD, MPH',
       'email': 'lisa.chang@hospital.com', 'phone': '+1-555-0113',
-      'yearsExperience': 7, 'manager': null,
+      'yearsExperience': 7, 'manager': null, 'region': 'North',
     },
 
     // ── Cardiac Care reports → Dr. James Anderson ──
@@ -146,21 +146,21 @@ class _TeamScreenState extends State<TeamScreen> {
       'specialty': 'Surgical Nursing', 'department': 'Cardiac Care', 'status': 'Available',
       'qualifications': 'RN, BSN, CNOR',
       'email': 'emily.rodriguez@hospital.com', 'phone': '+1-555-0103',
-      'yearsExperience': 10, 'manager': 'Dr. James Anderson',
+      'yearsExperience': 10, 'manager': 'Dr. James Anderson', 'region': 'North',
     },
     {
       'id': 'EMP-005', 'name': 'RN. Jessica Thompson', 'title': 'ICU Nurse',
       'specialty': 'Critical Care', 'department': 'Cardiac Care', 'status': 'Available',
       'qualifications': 'RN, CCRN, MSN',
       'email': 'jessica.thompson@hospital.com', 'phone': '+1-555-0105',
-      'yearsExperience': 8, 'manager': 'Dr. James Anderson',
+      'yearsExperience': 8, 'manager': 'Dr. James Anderson', 'region': 'North',
     },
     {
       'id': 'EMP-007', 'name': 'RN. Priya Sharma', 'title': 'Cardiac Nurse',
       'specialty': 'Cardiology', 'department': 'Cardiac Care', 'status': 'On-Shift',
       'qualifications': 'RN, BSN, CCRN',
       'email': 'priya.sharma@hospital.com', 'phone': '+1-555-0107',
-      'yearsExperience': 6, 'manager': 'Dr. James Anderson',
+      'yearsExperience': 6, 'manager': 'Dr. James Anderson', 'region': 'North',
     },
 
     // ── Respiratory reports → Dr. Michael Chen ──
@@ -169,14 +169,14 @@ class _TeamScreenState extends State<TeamScreen> {
       'specialty': 'Pulmonary Function', 'department': 'Respiratory', 'status': 'Available',
       'qualifications': 'RRT, BSRC',
       'email': 'alex.kim@hospital.com', 'phone': '+1-555-0108',
-      'yearsExperience': 5, 'manager': 'Dr. Michael Chen',
+      'yearsExperience': 5, 'manager': 'Dr. Michael Chen', 'region': 'West',
     },
     {
       'id': 'EMP-009', 'name': 'RT. Maya Patel', 'title': 'Senior Respiratory Therapist',
       'specialty': 'Critical Care', 'department': 'Respiratory', 'status': 'On-Shift',
       'qualifications': 'RRT-ACCS, BSRC',
       'email': 'maya.patel@hospital.com', 'phone': '+1-555-0109',
-      'yearsExperience': 9, 'manager': 'Dr. Michael Chen',
+      'yearsExperience': 9, 'manager': 'Dr. Michael Chen', 'region': 'West',
     },
 
     // ── ER reports → Dr. Robert Martinez ──
@@ -185,14 +185,14 @@ class _TeamScreenState extends State<TeamScreen> {
       'specialty': 'Emergency', 'department': 'ER', 'status': 'On-Shift',
       'qualifications': 'RN, CEN',
       'email': 'carlos.rivera@hospital.com', 'phone': '+1-555-0110',
-      'yearsExperience': 7, 'manager': 'Dr. Robert Martinez',
+      'yearsExperience': 7, 'manager': 'Dr. Robert Martinez', 'region': 'South',
     },
     {
       'id': 'EMP-011', 'name': 'RN. Nina Brooks', 'title': 'ER Charge Nurse',
       'specialty': 'Emergency', 'department': 'ER', 'status': 'On-Call',
       'qualifications': 'RN, CEN, MSN',
       'email': 'nina.brooks@hospital.com', 'phone': '+1-555-0111',
-      'yearsExperience': 11, 'manager': 'Dr. Robert Martinez',
+      'yearsExperience': 11, 'manager': 'Dr. Robert Martinez', 'region': 'South',
     },
   ];
 
@@ -1034,8 +1034,6 @@ class ManagerReportsScreen extends StatelessWidget {
         if (bv == null) return -1;
         return bv.compareTo(av);
       });
-    final teamRating = _TeamScreenState.teamAvgRating(mgrName);
-    final feedbackCount = _TeamScreenState.teamFeedbackCount(mgrName);
 
     return Scaffold(
       backgroundColor: scheme.surface,
@@ -1044,92 +1042,244 @@ class ManagerReportsScreen extends StatelessWidget {
         scrolledUnderElevation: 0,
         foregroundColor: scheme.onSurface,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: scheme.onSurface),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(mgrName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-            Text("${manager['department']} · ${reports.length} reports",
-                style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
+            Text(mgrName,
+                style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 18,
+                    color: scheme.onSurface)),
+            Text('Direct reports · ${reports.length}',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                    color: scheme.onSurfaceVariant)),
           ],
         ),
       ),
       body: SafeArea(
-        child: Column(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
-            // Breadcrumb
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-              child: Row(
-                children: [
-                  Text('Team', style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
-                  Icon(Icons.chevron_right_rounded, size: 14, color: scheme.onSurfaceVariant),
-                  Text("${mgrName.split(' ').last}'s team",
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: scheme.onSurface)),
-                ],
-              ),
+            Text("Tap a direct report to see their feedback or their team",
+                style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
+            const SizedBox(height: 20),
+            _managerPulseHero(scheme, mgrName, reports),
+            const SizedBox(height: 22),
+            Row(
+              children: [
+                Text('YOUR DIRECT REPORTS',
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: scheme.onSurfaceVariant,
+                        letterSpacing: 0.8)),
+              ],
             ),
-            // Aggregate hero
-            Container(
-              margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    scheme.primaryContainer,
-                    Color.lerp(scheme.primaryContainer, scheme.tertiaryContainer, 0.5)!,
-                  ],
-                ),
-              ),
-              child: Row(
-                children: [
-                  _heroStat(teamRating?.toStringAsFixed(1) ?? '—', 'Team avg', scheme.onPrimaryContainer),
-                  _heroDiv(scheme),
-                  _heroStat('${reports.length}', 'Reports', scheme.onPrimaryContainer),
-                  _heroDiv(scheme),
-                  _heroStat('$feedbackCount', 'Feedback', scheme.onPrimaryContainer),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: reports.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (_, i) => _staffCard(context, reports[i], scheme),
-              ),
-            ),
+            const SizedBox(height: 12),
+            ...reports.map((r) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _staffCard(context, r, scheme),
+                )),
           ],
         ),
       ),
     );
   }
 
-  Widget _heroDiv(ColorScheme scheme) =>
-      Container(width: 1, height: 32, color: scheme.onPrimaryContainer.withOpacity(0.2));
+  // Mirrors the TeamScreen pulse hero — same look, scoped to this manager's team
+  Widget _managerPulseHero(
+      ColorScheme scheme, String mgrName, List<Map<String, dynamic>> reports) {
+    final reportNames = reports.map((r) => r['name'] as String).toList();
+    final today = DateTime(2026, 6, 10);
+    final qStartMonth = ((today.month - 1) ~/ 3) * 3 + 1;
+    final thisStart = DateTime(today.year, qStartMonth, 1);
+    final thisEnd = DateTime(today.year, qStartMonth + 3, 1)
+        .subtract(const Duration(days: 1));
+    final lastStart = DateTime(today.year, qStartMonth - 3, 1);
+    final lastEnd = thisStart.subtract(const Duration(days: 1));
 
-  Widget _heroStat(String value, String label, Color fg) {
-    return Expanded(
+    final thisAvg = TeamScreen.avgRatingFor(
+        start: thisStart,
+        end: thisEnd.add(const Duration(days: 1)),
+        names: reportNames);
+    final lastAvg = TeamScreen.avgRatingFor(
+        start: lastStart,
+        end: lastEnd.add(const Duration(days: 1)),
+        names: reportNames);
+    final pulse = thisAvg ?? 0.0;
+    final hasTrend = thisAvg != null && lastAvg != null;
+    final delta = hasTrend ? thisAvg - lastAvg : 0.0;
+    final trendUp = delta >= 0;
+    final trendColor =
+        trendUp ? const Color(0xFF5BB880) : const Color(0xFFE6B43A);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border(top: BorderSide(color: scheme.primary, width: 4)),
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: fg)),
-          Text(label, style: TextStyle(fontSize: 11, color: fg.withOpacity(0.75))),
+          Row(
+            children: [
+              Text('TEAM PULSE',
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.0,
+                      color: scheme.onSurfaceVariant)),
+              const SizedBox(width: 8),
+              Text('${reports.length} direct reports',
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600)),
+              const Spacer(),
+              Text('Apr – Jun 2026',
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(thisAvg?.toStringAsFixed(1) ?? '—',
+                  style: TextStyle(
+                      color: scheme.onSurface,
+                      fontSize: 48,
+                      fontWeight: FontWeight.w900,
+                      height: 1.0)),
+              const SizedBox(width: 6),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text('/ 5.0',
+                    style: TextStyle(
+                        color: scheme.onSurfaceVariant,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(width: 12),
+              if (hasTrend)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                          trendUp
+                              ? Icons.arrow_upward_rounded
+                              : Icons.arrow_downward_rounded,
+                          size: 16,
+                          color: trendColor),
+                      const SizedBox(width: 2),
+                      Text(delta.abs().toStringAsFixed(2),
+                          style: TextStyle(
+                              color: trendColor,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900)),
+                    ],
+                  ),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Text('—',
+                      style: TextStyle(
+                          color: scheme.onSurfaceVariant,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (thisAvg != null)
+            LayoutBuilder(builder: (ctx, c) {
+              final frac = ((pulse - 1.0) / 4.0).clamp(0.0, 1.0);
+              const markerW = 12.0;
+              final left = (frac * c.maxWidth - markerW / 2)
+                  .clamp(0.0, c.maxWidth - markerW);
+              return SizedBox(
+                height: 10,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      left: left,
+                      bottom: 0,
+                      child: CustomPaint(
+                        size: const Size(markerW, 8),
+                        painter: _TeamTri(color: scheme.onSurface),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          Container(
+            height: 12,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              gradient: LinearGradient(
+                  colors: thisAvg == null
+                      ? _heatColors.map((c) => c.withOpacity(0.3)).toList()
+                      : _heatColors),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('At-risk',
+                  style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700)),
+              Text('Excellent',
+                  style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700)),
+            ],
+          ),
         ],
       ),
     );
   }
 
+  // Same heatmap palette as TeamScreen
+  static const List<Color> _heatColors = [
+    Color(0xFFE89A6B),
+    Color(0xFFEBB57A),
+    Color(0xFFEBC575),
+    Color(0xFFA8C788),
+    Color(0xFF3DA66E),
+  ];
+
+  // Mirrors _managerCard from TeamScreen — same layout, scoped to staff
   Widget _staffCard(BuildContext context, Map<String, dynamic> emp, ColorScheme scheme) {
     final name = emp['name'] as String;
     final initials = name.split(' ').map((p) => p.isEmpty ? '' : p[0]).join().toUpperCase();
     final rating = EmployeeFeedbackLogScreen.averageRating(name);
-    // Check if this person has reports of their own — if so, drill into
-    // ManagerReportsScreen recursively. Otherwise show their feedback log.
+    final feedbackCount = EmployeeFeedbackLogScreen.logFor(name).length;
     final subReports = _TeamScreenState.reportsOf(name);
     final hasTeam = subReports.isNotEmpty;
+    final subTeamRating = hasTeam
+        ? _TeamScreenState.teamAvgRating(name)
+        : null;
 
     return Material(
       color: scheme.surfaceContainerLow,
@@ -1138,107 +1288,234 @@ class ManagerReportsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => hasTeam
-                ? ManagerReportsScreen(manager: emp)
-                : EmployeeFeedbackLogScreen(employeeName: name),
-          ),
+              builder: (_) => EmployeeFeedbackLogScreen(employeeName: name)),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: scheme.secondaryContainer,
-                child: Text(initials,
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: scheme.onSecondaryContainer)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(name,
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: scheme.primaryContainer,
+                    child: Text(initials,
                         style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 13,
                             fontWeight: FontWeight.w800,
-                            color: scheme.onSurface),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 2),
-                    Text(emp['title'],
-                        style: TextStyle(
-                            fontSize: 12, color: scheme.onSurfaceVariant),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: hasTeam
-                            ? scheme.primaryContainer
-                            : scheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                            color: hasTeam
-                                ? Colors.transparent
-                                : scheme.outlineVariant,
-                            width: 1),
+                            color: scheme.onPrimaryContainer)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(name,
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: scheme.onSurface)),
+                        Text('${emp['title']} · ${emp['department']}',
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: scheme.onSurfaceVariant),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      if (rating != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color:
+                                  _TeamScreenState._tierColor(rating).withOpacity(0.5),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.star_rounded,
+                                  size: 14,
+                                  color: _TeamScreenState._tierColor(rating)),
+                              const SizedBox(width: 3),
+                              Text(rating.toStringAsFixed(1),
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w900,
+                                      color:
+                                          _TeamScreenState._tierColor(rating))),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                      ],
+                      Text(
+                          '$feedbackCount ${feedbackCount == 1 ? "entry" : "entries"}',
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: scheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (hasTeam)
+                Container(
+                  margin: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: scheme.primaryContainer.withOpacity(0.35),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    children: [
+                      Text('THEIR TEAM',
+                          style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.8,
+                              color: scheme.onSurfaceVariant)),
+                      const Spacer(),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  ManagerReportsScreen(manager: emp)),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 2),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('${subReports.length}',
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w900,
+                                      color: scheme.primary)),
+                              const SizedBox(width: 4),
+                              Text('reports',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: scheme.primary,
+                                      fontWeight: FontWeight.w700)),
+                              Icon(Icons.chevron_right_rounded,
+                                  size: 14, color: scheme.primary),
+                            ],
+                          ),
+                        ),
                       ),
-                      child: Row(
+                      const SizedBox(width: 18),
+                      Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            hasTeam
-                                ? Icons.groups_rounded
-                                : Icons.person_rounded,
-                            size: 10,
-                            color: hasTeam
-                                ? scheme.onPrimaryContainer
-                                : scheme.onSurfaceVariant,
-                          ),
+                          Icon(Icons.star_rounded,
+                              size: 14,
+                              color: subTeamRating != null
+                                  ? _TeamScreenState._tierColor(subTeamRating)
+                                  : scheme.onSurfaceVariant),
                           const SizedBox(width: 3),
-                          Text(
-                            hasTeam
-                                ? '${subReports.length} reports'
-                                : 'Individual Contributor',
-                            style: TextStyle(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
-                                color: hasTeam
-                                    ? scheme.onPrimaryContainer
-                                    : scheme.onSurfaceVariant),
-                          ),
+                          Text(subTeamRating?.toStringAsFixed(1) ?? '—',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  color: subTeamRating != null
+                                      ? _TeamScreenState._tierColor(subTeamRating)
+                                      : scheme.onSurfaceVariant)),
+                          const SizedBox(width: 4),
+                          Text('team avg',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: scheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w600)),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              _ratingBadge(rating, scheme),
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 34,
-                child: FilledButton.icon(
-                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => FeedbackScreen(initialEmployee: name),
-                  )),
-                  icon: const Icon(Icons.add_comment_rounded, size: 13),
-                  label: const Text('Feedback',
-                      style: TextStyle(fontSize: 11)),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                    ],
+                  ),
+                )
+              else
+                Container(
+                  margin: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: scheme.primaryContainer.withOpacity(0.35),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    children: [
+                      Text('INDIVIDUAL CONTRIBUTOR',
+                          style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.8,
+                              color: scheme.onSurfaceVariant)),
+                      const Spacer(),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => EmployeeFeedbackLogScreen(
+                                  employeeName: name)),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 2),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('$feedbackCount',
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w900,
+                                      color: scheme.primary)),
+                              const SizedBox(width: 4),
+                              Text('feedback',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: scheme.primary,
+                                      fontWeight: FontWeight.w700)),
+                              Icon(Icons.chevron_right_rounded,
+                                  size: 14, color: scheme.primary),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.star_rounded,
+                              size: 14,
+                              color: rating != null
+                                  ? _TeamScreenState._tierColor(rating)
+                                  : scheme.onSurfaceVariant),
+                          const SizedBox(width: 3),
+                          Text(rating?.toStringAsFixed(1) ?? '—',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  color: rating != null
+                                      ? _TeamScreenState._tierColor(rating)
+                                      : scheme.onSurfaceVariant)),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              ),
             ],
           ),
         ),

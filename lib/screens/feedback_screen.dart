@@ -905,7 +905,9 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       backgroundColor: scheme.surface,
       appBar: AppBar(
         title: const Text('Feedback', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22)),
-        automaticallyImplyLeading: false,
+        // Back arrow only when reached via push (e.g. from Team screen).
+        // When accessed as a bottom-nav tab, Navigator.canPop is false → no arrow.
+        automaticallyImplyLeading: Navigator.of(context).canPop(),
         elevation: 0,
         scrolledUnderElevation: 0,
         backgroundColor: scheme.surface,

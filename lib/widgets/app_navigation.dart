@@ -7,6 +7,7 @@ import '../screens/team_screen.dart';
 import '../screens/feedback_screen.dart';
 import '../screens/goals_screen.dart';
 import '../screens/reviews_list.dart';
+import '../screens/analytics_screen.dart';
 
 class AppNavigation extends StatefulWidget {
   final HealthcareOrganization organization;
@@ -37,6 +38,7 @@ class _AppNavigationState extends State<AppNavigation> {
       const FeedbackScreen(),
       const GoalsScreen(),
       const ReviewsList(),
+      const AnalyticsScreen(),
     ];
   }
 
@@ -116,6 +118,11 @@ class _AppNavigationState extends State<AppNavigation> {
             icon: Icon(Icons.star_outline_rounded),
             selectedIcon: Icon(Icons.star_rounded),
             label: 'Reviews',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.insights_outlined),
+            selectedIcon: Icon(Icons.insights_rounded),
+            label: 'Analytics',
           ),
         ],
       ),
