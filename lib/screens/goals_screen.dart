@@ -576,8 +576,52 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    field('Goal title (Specific)', TextField(controller: titleC, decoration: InputDecoration(hintText: 'What is the goal?', border: border()))),
-                    field('Description', TextField(controller: descC, maxLines: 2, decoration: InputDecoration(hintText: 'Add detail / context', border: border()))),
+                    field('Goal title (Specific)', TextField(
+                      controller: titleC,
+                      decoration: InputDecoration(
+                        hintText: 'What is the goal?',
+                        border: border(),
+                        suffixIcon: IconButton(
+                          tooltip: 'Make SMART',
+                          icon: const Icon(Icons.auto_awesome_rounded,
+                              color: Color(0xFFA855F7), size: 20),
+                          onPressed: () {
+                            final polished = _smartTitle(titleC.text);
+                            titleC.text = polished;
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              const SnackBar(
+                                content: Text('✨ Title rewritten as SMART goal'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    )),
+                    field('Description', TextField(
+                      controller: descC,
+                      maxLines: 2,
+                      decoration: InputDecoration(
+                        hintText: 'Add detail / context',
+                        border: border(),
+                        suffixIcon: IconButton(
+                          tooltip: 'AI polish',
+                          icon: const Icon(Icons.auto_awesome_rounded,
+                              color: Color(0xFFA855F7), size: 20),
+                          onPressed: () {
+                            final polished =
+                                _polishDescription(descC.text, titleC.text);
+                            descC.text = polished;
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              const SnackBar(
+                                content: Text('✨ Description polished'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    )),
                     Row(children: [
                       Expanded(
                         child: field('Owner', Container(
@@ -695,5 +739,65 @@ class _GoalsScreenState extends State<GoalsScreen> {
         },
       ),
     );
+  }
+
+  // Rewrites a vague goal stub into a SMART (specific, measurable, time-bound) sentence.
+  String _smartTitle(String input) {
+    final raw = input.trim().toLowerCase();
+    if (raw.isEmpty) {
+      const templates = [
+        'Improve patient satisfaction score from 78% to 88% by end of Q3',
+        'Reduce medication documentation errors by 30% within 90 days',
+        'Increase team training completion rate to 95% by Sep 30',
+        'Cut average ER triage time from 12 min to 8 min over next quarter',
+      ];
+      return templates[DateTime(2026, 6, 12).millisecondsSinceEpoch %
+          templates.length];
+    }
+    // Keyword-driven SMART rewrites
+    if (raw.contains('sales') || raw.contains('revenue')) {
+      return 'Increase quarterly revenue by 15% through targeted client outreach by end of Q3';
+    }
+    if (raw.contains('team') || raw.contains('collab')) {
+      return 'Improve team collaboration score from 3.6 to 4.2 via weekly sync rituals by end of Q3';
+    }
+    if (raw.contains('error') || raw.contains('mistake')) {
+      return 'Reduce documentation errors by 30% over the next 90 days through checklist adoption';
+    }
+    if (raw.contains('patient') || raw.contains('satisfaction')) {
+      return 'Lift patient satisfaction score from 78% to 88% by end of Q3 via discharge follow-ups';
+    }
+    if (raw.contains('train') || raw.contains('learn')) {
+      return 'Complete advanced certification module with 90%+ score by end of next quarter';
+    }
+    if (raw.contains('time') || raw.contains('faster') || raw.contains('reduce')) {
+      return 'Reduce average task turnaround time by 25% within the next quarter';
+    }
+    if (raw.contains('improve') || raw.contains('better')) {
+      return '${input.trim()} — measured by a 20% lift in the relevant KPI by end of Q3';
+    }
+    // Generic: append measurable + time-bound suffix
+    var out = input.trim();
+    if (out.isNotEmpty) out = out[0].toUpperCase() + out.substring(1);
+    return '$out — measurable target with completion by end of Q3 2026';
+  }
+
+  // Expand a short description into proper context. Uses the title for hints.
+  String _polishDescription(String input, String title) {
+    final raw = input.trim();
+    if (raw.length < 10) {
+      const templates = [
+        'Drives measurable improvement in a key performance metric, with quarterly checkpoints to track progress and adjust course as needed.',
+        'Aligns with department priorities and supports the broader org strategy. Progress to be reviewed bi-weekly with the manager.',
+        'Builds on prior-quarter momentum; defines a concrete outcome with clear acceptance criteria and accountable owner.',
+        'Addresses a recurring pain point flagged in recent feedback; success measured against a baseline established this month.',
+      ];
+      return templates[
+          title.hashCode.abs() % templates.length];
+    }
+    var out = raw;
+    if (out.isNotEmpty) out = out[0].toUpperCase() + out.substring(1);
+    if (out.isNotEmpty && !RegExp(r'[.!?]$').hasMatch(out)) out += '.';
+    return out;
   }
 }
